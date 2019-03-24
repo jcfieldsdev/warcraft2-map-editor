@@ -1,0 +1,37 @@
+This PUD has been adapted from the original for inclusion in the KPUDs.  You 
+are free to distribute the PUD, subject to possible limitations by the author 
+outlined below, but if you do so, include this file with it.  If you modify the 
+PUD, change its name.
+
+      KPUD home page http://w3.one.net/~billw/KPUD
+================================================================================
+PUD Name:     The Gold Rush
+Author:       Cobra
+File Name:    KPgldrsh.pud
+Description:  Gold Rush by Cobra
+Dimensions:   128 x 128
+Terrain:      Forest
+No Players:   4
+ 
+% Open Land:  52
+% Forest:     29
+% Water:      18
+% Mountains:  1
+ 
+Total Gold:   530,000 (12 mines)
+Total Oil:    50,000 (10 patches)
+Total Lumber: 389,900
+Start Mines:  60,000
+Other Mines:  30,000 - 50,000
+
+Default Res:  G=3500  L=2500  O=1000
+Default Unit: 1 Peasant, 1 Farm, 1 Town Hall
+
+Description:  Rush to the Gold Fields - When the original mines run dry, all
+              the extra resources are to the North.  Unlike most maps, where
+              expansion mines are in the center and arranged so each player has
+              one or two which are close, Gold Rush expansion mines are a free 
+              for all.  A warning - don't let yourself get towered in!
+
+Game Setup:   Starting positions are alternating so fixed order, TVB, would
+              place allies separated by enemies.

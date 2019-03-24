@@ -1,0 +1,118 @@
+This PUD has been adapted from the original for inclusion in the KPUDs.  You 
+are free to distribute the PUD, subject to possible limitations by the author 
+outlined below, but if you do so, include this file with it.  If you modify the 
+PUD, change its name.
+
+      KPUD home page http://w3.one.net/~billw/KPUD
+================================================================================
+PUD Name:     Water Maze
+Author:       Jeff Penney (cnight@total.net)
+Nickname:     Cnight
+File Name:    KPwatmaz.pud
+Description:  Water Maze by Cnight
+Dimensions:   128 x 128
+Terrain:      Winter
+No Players:   6
+ 
+% Open Land:  25
+% Forest:     23
+% Water:      52
+% Mountains:  0
+ 
+Total Gold:   750,000 (23 mines)
+Total Oil:    285,000 (19 patches)
+Total Lumber: 302,000
+Start Mines:  40,000
+Other Mines:  30,000
+
+Default Res:  G=3000  L=2000  O=2000
+Default Unit: 1 Peasant, 1 Farm, 1 Town Hall
+ 
+Description:  A maze-type water map with the seaways being 4 or 5 units wide 
+              (almost similiar to the original Maze setup).
+
+================================================================================
+                      Author's Original Text File
+================================================================================
+Completed:  03/21/97  
+Players:    6
+Size:       128x128
+Build Time: 7 1/2 Hours
+
+Other Puds by Author: Fierce Ocean Battle
+
+//Map Information//
+Mines: 22, starting mines 40k, expansions 30k (total 720k)
+Oil Patches: 19 or so, all 15k (total 285k oil)
+
+History: By mid-March, almost every single game was either water, or maze.
+So one day after people started playing Shaf's Maze2 map, ~Creed~ comes
+in kchat and says:
+
+* ~Creed~ has an Idea: A Water Maze!
+
+Everyone thought it was a great idea. The best of both worlds! So right 
+away, people started trying to make a water maze. Silverwolf gives up only
+after about 5 minutes hahaha so I thought I should try making it. After getting
+a few tips from Gotcha!, I started working...
+
+To all those who thought a water maze wasn't possible, Screw you! :)
+
+VERY IMPORTANT: If you are red, don't build your town hall right against the
+edge of the map! Or else your peons will pop out of the bottom of your hall
+and you will be screwed over.
+
+Credits to: ~Creed~ for coming up with this awesome idea! Without him, this
+                    map would not be possible. Thanks ~Creed~!
+
+            Gotcha! for giving me all these neato tips and guidelines for the
+                    map. If I didn't talk to him about it before I made this
+                    pud, it woulda been unplayable. Thanks Gotcha!!
+
+            Shlonglor for giving me some ideas on how to fix this pud. If he
+                      didn't tell me how screwed up it was, it would have been
+                      that way for ever :) Also for him putting my pud on his
+                      page. Thanks Shlonglor!
+
+            Vermeer for getting his ass kicked because of the peon popping
+                    out order thing and then complaining about it :)
+                    So when you're top right and you can mine the second
+                    mine on your island without the peons popping out the
+                    other side, you can thank Vermeer!
+
+            Shadow! for being a general pain by nagging on me to fix this
+                    pud :)
+
+            Silverwolf for his attempt at fixing this pud without asking 
+
+Pud Dedicated to: The Andrews Boys, so they can finally lose a on a water
+                  maze type map since i've been told they suck at Maze :)
+                                                          
+For those of you who made it this far:
+
+Differences between No way out of this Maze and the Water Maze
+
+                NWOOTM:                 Water Maze v 1.1:
+
+Passages:        Land                     Water
+Mines:     16x40k total 640k          18x30k 6x40k total 780k
+Oil:             None                 19x15k total 285k          
+Width of
+Passages:  Mostly 4 squares           Mostly 5 squares
+
+Future Pud Ideas?
+
+First I'll fix my X marks the spot 2 map, I've already got plenty
+of feedback on how to fix it. It'll be more hectic than the first :)
+
+Second I'll try to make a "colonize the continent" type map. You'll
+start on a small island with little resources. You have 2 decisions: to either
+quickly go to your opponents island and destroy him, or to quickly get
+to the continent and expand.
+
+Enjoy and have fun!
+
+Copyrights:
+
+You may NOT alter this pud in any way, shape or form. (this means YOU,
+Silverwolf!)

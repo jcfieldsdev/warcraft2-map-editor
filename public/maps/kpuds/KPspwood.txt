@@ -1,0 +1,34 @@
+This PUD has been adapted from the original for inclusion in the KPUDs.  You 
+are free to distribute the PUD, subject to possible limitations by the author 
+outlined below, but if you do so, include this file with it.  If you modify the 
+PUD, change its name.
+
+      KPUD home page http://w3.one.net/~billw/KPUD
+================================================================================
+PUD Name:     Spider Woods
+Author:       Unknown
+File Name:    KPspwood.pud
+Description:  Spider Woods
+Dimensions:   128 x 128
+Terrain:      Forest
+No Players:   8
+ 
+% Open Land:  44
+% Forest:     56
+% Water:      0
+% Mountains:  0
+ 
+Total Gold:   710,000 (17 mines)
+Total Oil:    0
+Total Lumber: 770,300
+Start Mines:  40,000
+Other Mines:  40,000 - 70,000
+
+Default Res:  G=3000  L=2000  O=2000
+Default Unit: 1 Peasant, 1 Farm, 1 Town Hall, 1 Guard Tower
+
+Description:  8-way multiplayer pud. 40k (POS size) starting mines.  There are eight
+              40k expansion mines plus one 70k center mine.
+ 
+Game Setup:   Starting positions are opposite so fixed order, TVB, would
+              place allies opposite each other.

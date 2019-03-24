@@ -1,0 +1,53 @@
+This PUD has been adapted from the original for inclusion in the KPUDs.  You 
+are free to distribute the PUD, subject to possible limitations by the author 
+outlined below, but if you do so, include this file with it.  If you modify the 
+PUD, change its name.
+
+      KPUD home page http://w3.one.net/~billw/KPUD
+================================================================================
+PUD Name:     Crossings
+Author:       Weave (jd_wild@uclink4.berkeley.edu)
+File Name:    KPcrosng.pud
+Description:  Crossings by Weave
+Dimensions:   128 x 128
+Terrain:      Wasteland
+No Players:   8
+ 
+% Open Land:  33
+% Forest:     25
+% Water:      41
+% Mountains:  1
+ 
+Total Gold:   960,000 (16 mines)
+Total Oil:    360,000 (12 patches)
+Total Lumber: 322,900
+Start Mines:  70,000
+Other Mines:  50,000
+
+Default Res:  G=3000  L=1500  O=2000
+Default Unit: 1 Peasant, 1 Farm, 1 Town Hall, 1 Lumber Mill
+ 
+Game Setup:   Starting positions are opposite so fixed order, TVB, would
+              place allies opposite each other.
+
+================================================================================
+                      Author's Original Text File
+================================================================================
+
+Author Info: Cal Sophomore
+
+Description: A water map with several ways to cross.  None of the spots are
+             unbalanced, but all are different enough so that you won't use the
+             same strategy for each.  You don't start out too close to the water 
+             but chances are your next expansion will be vulnerable to sea
+             vessels.  Ships are a good idea.  A few spots can be blasted to and
+             others hopped, so you never know where your enemy might be.
+             Overall, only the best at controlling sea power, land troops, and
+             reconnaisance will prevail.              
+
+Hints:       Expand soon with the foundry hop.
+                          
+Credits To:  Xate, beta tester, and one of the best sea-faring folk I know.
+                
+Known Bugs:  Email me if you find any, I'll take any suggestions you have.  (I, 
+             however, reserve the right to veto...)

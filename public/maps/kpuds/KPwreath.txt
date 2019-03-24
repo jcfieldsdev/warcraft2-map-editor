@@ -1,0 +1,33 @@
+This PUD has been adapted from the original for inclusion in the KPUDs.  You 
+are free to distribute the PUD, subject to possible limitations by the author 
+outlined below, but if you do so, include this file with it.  If you modify the 
+PUD, change its name.
+
+      KPUD home page http://w3.one.net/~billw/KPUD
+================================================================================
+PUD Name:     Christmas Wreaths
+Author:       Unknown
+File Name:    KPwreath.pud
+Description:  Xmas Wreaths
+Dimensions:   128 x 128
+Terrain:      Winter
+No Players:   8
+ 
+% Open Land:  53
+% Forest:     38
+% Water:      9
+% Mountains:  0
+ 
+Total Gold:   940,000 (18 mines)
+Total Oil:    0
+Total Lumber: 476,500
+Start Mines:  55,000
+Other Mines:  50,000
+
+Default Res:  G=3000  L=3000  O=2000
+Default Unit: 2 Peasant2, 1 Farm, 1 Town Hall
+ 
+Game Setup:   Starting positions are adjacent so fixed order, TVB, would place
+              allies next to each other.  For a 4vs4, fixed order, TVB would 
+              place a team on each side of the river. To accomplish the same
+              setup for a 2vs2 game, use slots 1,2,5,6.

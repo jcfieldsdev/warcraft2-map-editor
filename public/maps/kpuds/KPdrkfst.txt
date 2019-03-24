@@ -1,0 +1,32 @@
+This PUD has been adapted from the original for inclusion in the KPUDs.  You 
+are free to distribute the PUD, subject to possible limitations by the author 
+outlined below, but if you do so, include this file with it.  If you modify the 
+PUD, change its name.
+
+      KPUD home page http://w3.one.net/~billw/KPUD
+================================================================================
+PUD Name:     The Dark Forest
+Author:       Unknown
+File Name:    KPdrkfst.pud
+Description:  Dark Forest
+Dimensions:   128 x 128
+Terrain:      Forest
+No Players:   8
+ 
+% Open Land:  45
+% Forest:     48
+% Water:      7
+% Mountains:  0
+ 
+Total Gold:   780,000 (17 mines)
+Total Oil:    0
+Total Lumber: 631,700
+Start Mines:  50,000
+Other Mines:  35,000 - 100,000
+
+Default Res:  G=8000  L=5000  O=2000
+Default Unit: 1 Peasant, 1 Farm, 1 Town Hall
+ 
+Game Setup:   Starting positions are opposite so fixed order, TVB, would
+              place allies opposite each other.  In a 4vs4 game, TVB would
+              pit the outside (corners) vs the inside.

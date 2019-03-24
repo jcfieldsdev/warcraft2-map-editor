@@ -1,0 +1,59 @@
+This PUD has been adapted from the original for inclusion in the KPUDs.  You 
+are free to distribute the PUD, subject to possible limitations by the author 
+outlined below, but if you do so, include this file with it.  If you modify the 
+PUD, change its name.
+
+      KPUD home page http://w3.one.net/~billw/KPUD
+================================================================================
+PUD Name:     What is the Key?
+Author:       Gotcha (boykom@andrews.edu)
+File Name:    KPwhtkey.pud
+Description:  What is the Key by Gotcha
+Dimensions:   128 x 128
+Terrain:      Forest
+No Players:   8
+ 
+% Open Land:  31
+% Forest:     32
+% Water:      30
+% Mountains:  7
+ 
+Total Gold:   560,000 (10 mines)
+Total Oil:    140,000 (8 patches)
+Total Lumber: 427,200
+Start Mines:  60,000
+Other Mines:  40,000
+
+Default Res:  G=2000  L=1000  O=1000
+Default Unit: 1 Peasant, 1 knight/ogre, 1 Farm, 1 Town Hall
+
+Game Setup:   Starting positions are opposite so fixed order, TVB, would
+              place allies opposite each other.
+
+================================================================================
+                      Author's Original Text File
+================================================================================
+
+This is my attempt to combine land and sea in a balanced manner.  It is
+possible to reach all players by land, but a naval force may be helpful 
+because there are some extra mines on an island in the middle of the map
+and attacking by only land can be defended against. I recommend you use 
+both land and sea to attack the enemies. I start every player with $60000.
+On the middle island there are two additional mines with $40000 in each of
+them. 
+
+Anyway enough talk... time to play! 
+
+Gotcha.
+
+send any comments to: boykom@andrews.edu
+
+(Special thanks to Shlonglor for his help.)
+
+visit Shlonglor's War2 page at
+
+http://www.lighthousewc.com/fraizer/WAR2/war2.html
+
+**************** LEGAL CRAP ***********************************************
+You are free distribute this pud in an fashion you wish but please include 
+this text with the pud.

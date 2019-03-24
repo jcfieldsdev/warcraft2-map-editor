@@ -1,0 +1,43 @@
+This PUD has been adapted from the original for inclusion in the KPUDs.  You 
+are free to distribute the PUD, subject to possible limitations by the author 
+outlined below, but if you do so, include this file with it.  If you modify the 
+PUD, change its name.
+
+      KPUD home page http://w3.one.net/~billw/KPUD
+================================================================================
+PUD Name:     Backdoor
+Author:       Duncan Marshall (ducan@total.net)
+Nickname:     Anvil
+File Name:    KPbkdoor.pud
+Description:  Backdoor by Anvil
+Dimensions:   128 x 128
+Terrain:      Winter
+No Players:   8
+ 
+% Open Land:  55
+% Forest:     36
+% Water:      0
+% Mountains:  9
+ 
+Total Gold:   1,070,000 (17 mines)
+Total Oil:    0
+Total Lumber: 503,800
+Start Mines:  50,000
+Other Mines:  65,000 - 150,000
+
+Default Res:  G=4000  L=2000  O=2000
+Default Unit: 1 Peasant, 1 Farm, 1 Inventor, 1 Town Hall
+
+Game Setup:   Starting positions are opposite so fixed order, TVB, would
+              place allies opposite each other.  In four player games, fixed
+              order would place players in alternating slots, with empty slots
+              between them.
+
+================================================================================
+                      Author's Original Text File
+================================================================================
+
+Dont use this map for a base for other maps or sell it or do any thing 
+with it without including this text file and notifying me first by mail, 
+
+thanks. 

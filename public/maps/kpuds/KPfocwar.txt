@@ -1,0 +1,54 @@
+This PUD has been adapted from the original for inclusion in the KPUDs.  You 
+are free to distribute the PUD, subject to possible limitations by the author 
+outlined below, but if you do so, include this file with it.  If you modify the 
+PUD, change its name.
+
+      KPUD home page http://w3.one.net/~billw/KPUD
+================================================================================
+PUD Name:     Fierce Ocean of War
+Author:       Sir Mino (bobm@aei.ca)
+File Name:    KPfocwar.pud
+Description:  Fierce Ocean of War by Sir Mino
+Dimensions:   128 x 128
+Terrain:      Winter
+No Players:   8
+ 
+% Open Land:  26
+% Forest:     22
+% Water:      52
+% Mountains:  0
+ 
+Total Gold:   680,000 (12 mines)
+Total Oil:    260,000 (12 patches)
+Total Lumber: 291,700
+Start Mines:  65,000
+Other Mines:  40,000
+
+Default Res:  G=5000  L=2000  O=2000
+Default Unit: 1 Peasant, 1 Farm, 1 Town Hall
+ 
+Game Setup:   Starting positions are opposite so fixed order, TVB, would
+              place allies opposite each other.
+
+================================================================================
+                      Author's Original Text File
+================================================================================
+
+There are 9 islands, 8 starts + 1 center. Each start island has a 65k mine & 
+lots of wood and not much space. The center island has four 40k mines, lots of 
+wood and lots of space compared to the start island.  There are eight 20000 oil
+patches and four 25000 oil patches. Be warned, the start islands are tight 
+spaces, just the way I like 'em! Haha, croak if you don't. Too much gold?  You 
+need to learn how to be greedy ...
+
+Thanks to my friends for testing. Send bug reports, suggestions questions etc
+to bobm@aei.ca addressed to Mino so I know its war2 stuff.
+
+COPYRIGHTS & ETC:
+
+You can distribute this in any way as long as the contents are with each
+other. All credits go to those listed in the text.
+
+Thank you. 
+
+-"Sir Mino" 

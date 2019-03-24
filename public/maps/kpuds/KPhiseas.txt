@@ -1,0 +1,151 @@
+This PUD has been adapted from the original for inclusion in the KPUDs.  You 
+are free to distribute the PUD, subject to possible limitations by the author 
+outlined below, but if you do so, include this file with it.  If you modify the 
+PUD, change its name.
+
+      KPUD home page http://w3.one.net/~billw/KPUD
+================================================================================
+PUD Name:     High Seas Combat 2
+Authors:      Many - see below
+File Name:    KPhiseas.pud
+Description:  High Seas Combat 2
+Dimensions:   128 x 128
+Terrain:      Forest
+No Players:   8
+ 
+% Open Land:  29
+% Forest:     23
+% Water:      45
+% Mountains:  3
+ 
+Total Gold:   555,000 (9 mines)
+Total Oil:    260,000 (12 patches)
+Total Lumber: 306,700
+Start Mines:  60,000
+Other Mines:  75,000
+
+Default Res:  G=2000  L=1500  O=3000
+Default Unit: 1 Peasant, 1 Farm, 1 Town Hall
+ 
+Game Setup:   Starting positions are adjacent, so fixed order, TVB, would place 
+              allies next to each other and teams opposite each other in four
+              player games.
+
+================================================================================
+                      Author's Original Text File
+================================================================================
+
+High Seas Combat 2 (Text file by MadDawg, pud by many, see credits)
+
+Background:  Well after Diablo died out, there was great demand for cool
+4on4 water maps.  We had FOC, HSC, and custom puds like Gotcha!'s whatkey,
+but we wanted another one.  Some of us always liked HSC except for the fact
+that it had some serious starting location problems.  Red, the position at
+the bottom left could be hit by sea as well as orange in the top right corner.  
+Then there was major unequalities in lumber and other problems.  So we
+decided we wanted to fix it.
+
+A long time ago, someone extracted the regular HSC and fixed it up a tad.
+No one knows who this was, if you want credit just email me or whatever.
+Well we played on this map, but we didn't like it.  Gotcha pointed out that
+there was no reason to take the sea at all.  He mentioned that no one would
+need to go sea in it, and said that the map sucked.  I was tired of getting
+my ass kicked on whatkey, so I wanted to make the map so that NO ONE would
+ever be able to say they lost because of the position they got.  So we
+started talking about it, and thought about what we could do to make it good.
+LrdSchroeder decided to do the fixing.  I gave him the idea of putting in
+an island in the middle that could be defended ONLY by sea, and that land
+defense was totally unnecessary at the middle.  So he whipped up the new
+center and offered it.
+
+That night and the next day, I worked on it, trying to even out the lumber
+and land situation.  But of course, not being careful, I forgot to change
+the gold on a couple mines back to 75k.  After a few failed attempts
+because the map was so buggy, I was determined to make the "perfect" HSC.
+So Lrd and I worked independently at first, then that caused tons of
+different names of the pud.  It was a big mess.  I had like hsc++, hsc0.9a,
+hsc0.9b (just like Kali95 beta of course :), and this sucked too.
+
+To make this already long story short, I took it from there, making many
+of the land mass changes.  There was the problem of too much gold.  We
+lowered it to 60k.  There was the problem of being able to blizzard
+opponents peon trains from adjacent islands.  There was the problem of
+not being able to do a NaTe formation by your hall without it being
+bombarded.  Of course I found out about this the hard way.  :)  AND, all of
+these suggestions came after every version, so there ended up being like
+twenty or so.
+
+One night, Vermeer and I wanted this map to be perfect.  Enough with these
+buggy versions we thought.  So we playtested it with cheats on.  (Silverwolf,
+you bastard :).  We then tested everything.  Vermeer then snagged it and
+made it totally perfect.  :)
+
+******Vermeer's section, directly quoted******
+Welp,
+
+MadDawg pretty much covered most of what went on.  I was the one who did
+and redid the new rock/river borders (only 2 saps thick) and moved the
+2ndary oil around so it was about the same distance from the next closes
+spot. 
+
+Most of what I did were the little things, like moving mines and trees
+around so starting hall positions were equally defensible, and had equal
+access to resources and room enough for decent urban planning.
+
+Of course I dipped my hand in the geography editing, everyone who touched
+this map probably did.  Gotta make the world safe from cross border 
+dk's.  :)
+
+But of course, the most important thing I did was mess wit the dark/light
+water to make it so coastlines are light and the oceans were dark.  I
+guess MadDawg really hated the previous splotchiness.
+
+Hats off to everyone who put in their time and effort designing, editing,
+and playtesting this thing.  We made it so it would be a great team map,
+and it took a great team effort to make it.
+
+-Vermeer
+
+******End quote******
+
+Changes:
+Gold in original mines lowered to 60k
+More land mass, and made it more equal.  (done because of bombardment reasons)
+More trees
+Added support for the NaTe formation
+Changed it so each person has a river on one side and rocks on the other
+Took away ability to blizzard halls/peons from adjacent islands
+Added the gay looking but cool center.  75k.
+Moved oil patches around.
+Changed original oil to 12.5k, forcing all out sea players to expand for oil
+Made the water prettier.  Shallow water near the shore.  :)
+Moved all mines to cool places, with lumber near it for early efficiency
+Countless others
+
+Credits:
+Whoever originally exported the pud.
+LrdSchroeder for doing all of the early work on it.
+Vermeer for making it TOTALLY perfect.  He did so much to this pud.
+        all the changes were kinda small, like beautifying it, and making all
+        halls start in the most efficient ways, but without him, this map
+        still sucked.  I don't even know everything he did, he's going to
+        tell me what he did and I'll append it to this text file.
+Everyone who playtested it(sorry for putting you through that ;), and
+        everyone who offered their opinions on the map.  You know who you
+        are.  Gotcha!, Wermacht, Silverwolf, Warp!, Vermeer, and the thousands
+        of others that helped with ideas.  :)
+Searon for redoing an early version of the pud and giving me good suggestions.
+        Too bad they had already been fixed.  Doh!
+Shlonglor for kicking my ass almost every time I play against a team with
+        him on it, and for posting it on his page.  :)
+MadDawg for revising the dumb map 20 times and offering it over kali about
+        200 times, literally.  I did whatever.  I did a lot of changing
+        of the land shapes in general, and being the guy who did the
+        changes everyone suggested so kindly.
+
+Why are you still reading this?  :)
+
+I hope you like this pud.  Enjoy.
+
+MadDawg
+mduncan@engin.umich.edu

@@ -1,0 +1,58 @@
+This PUD has been adapted from the original for inclusion in the KPUDs.  You 
+are free to distribute the PUD, subject to possible limitations by the author 
+outlined below, but if you do so, include this file with it.  If you modify the 
+PUD, change its name.
+
+      KPUD home page http://w3.one.net/~billw/KPUD
+================================================================================
+PUD Name:     X Island
+Author:       Ryan Haney (Ryan_Haney@baylor.edu)
+File Name:    KPxislnd.pud
+Description:  X Island by Ryan Haney
+Dimensions:   128 x 128
+Terrain:      Winter
+No Players:   4
+ 
+% Open Land:  37
+% Forest:     23
+% Water:      35
+% Mountains:  5
+ 
+Total Gold:   520,000 (8 mines)
+Total Oil:    160,000 (8 patches)
+Total Lumber: 304,500
+Start Mines:  65,000
+Other Mines:  65,000
+
+Default Res:  G=4000  L=3000  O=2000
+Default Unit: 2 Peasants, 1 Farm, 1 Town Hall
+
+Game Setup:   Starting positions are opposite so fixed order, TVB, would
+              place allies opposite each other.
+
+================================================================================
+                      Author's Original Text File
+================================================================================
+
+Author Info:  just a wc2 fanatic
+
+Description:  This is a very unique level that adds a few new concepts to wc2. 
+              First, all players no start on 2 islands (1 of their own, 1 shared
+              with their opponents) This allows for some very intense strategy
+              as you must now control 2 spots from the beginning. If you dont
+              like this idea, just use the one peseant option. 
+
+Hints:        This level doesn't work well with computer players.  They tend to
+              get confused from the 2 starting locations.
+                          
+Credits To:   Jay Wagner and all my network buds for helping playtest all my
+              levels.
+
+* Copyright / Permissions *
+
+Authors MAY use this level as a base to build their own levels.
+
+You MAY distribute this PUD, provided you include this file, with
+no modifications.  You may distribute this file in any electronic
+format (BBS, Diskette, CD, etc) as long as you include this file
+intact.

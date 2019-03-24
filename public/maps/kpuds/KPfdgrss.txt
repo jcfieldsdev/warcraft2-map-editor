@@ -1,0 +1,36 @@
+This PUD has been adapted from the original for inclusion in the KPUDs.  You 
+are free to distribute the PUD, subject to possible limitations by the author 
+outlined below, but if you do so, include this file with it.  If you modify the 
+PUD, change its name.
+
+      KPUD home page http://w3.one.net/~billw/KPUD
+================================================================================
+PUD Name:     Fields of Grass
+Author:       Unknown
+File Name:    KPfdgrss.pud
+Description:  Fields of Grass
+Dimensions:   128 x 128
+Terrain:      Forest
+No Players:   8
+ 
+% Open Land:  59
+% Forest:     41
+% Water:      0
+% Mountains:  0
+ 
+Total Gold:   700,000 (17 mines)
+Total Oil:    0
+Total Lumber: 563,800
+Start Mines:  40,000
+Other Mines:  30,000 - 100,000
+
+Default Res:  G=3500  L=2500  O=2000
+Default Unit: 1 Peasant, 1 Farm, 1 Town Hall, 1 Guard Tower
+
+Description:  8-way multiplayer pud. 40k (POS size) starting mines.  There are 
+              four 40k expansion mines, four 30k expansion mines and one 100k 
+              center mine.
+
+Game Setup:   Starting positions are adjacent in a 'friends' setup, so 
+              fixed order, TVB, would place allies next to each other and teams
+              opposite each other.

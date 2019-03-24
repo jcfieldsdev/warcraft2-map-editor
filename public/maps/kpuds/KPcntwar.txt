@@ -1,0 +1,40 @@
+This PUD has been adapted from the original for inclusion in the KPUDs.  You 
+are free to distribute the PUD, subject to possible limitations by the author 
+outlined below, but if you do so, include this file with it.  If you modify the 
+PUD, change its name.
+
+      KPUD home page http://w3.one.net/~billw/KPUD
+================================================================================
+PUD Name:     Center War
+Author:       Bill Wright (billw@one.net)
+Nickname:     MugWump
+File Name:    KPcntwar.pud
+Description:  Center War by MugWump
+Dimensions:   128 x 128
+Terrain:      Forest
+No Players:   4
+ 
+% Open Land:  53
+% Forest:     32
+% Water:      14
+% Mountains:  1
+ 
+Total Gold:   560,000 (12 mines)
+Total Oil:    0
+Total Lumber: 427,900
+Start Mines:  60,000
+Other Mines:  30,000 - 50,000
+
+Default Res:  G=3500  L=2500  O=2000
+Default Unit: 1 Peasant, 1 Farm, 1 Inventor, 1 Town Hall
+
+Description:  This map is not totally original but was derived from a pud
+              found in some pud archive.  The separation of the positons
+              by the complex center area should make for long games since
+              an early rush is unlikely.  The edge expansion mines are
+              just out of range of blizzard, but after sappering through
+              the rocks, mages can blizzard the peon line from behind the
+              trees.
+
+Game Setup:   Starting positions are opposite so fixed order, TVB, would
+              place allies opposite each other.

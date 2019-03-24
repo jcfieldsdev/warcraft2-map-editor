@@ -1,0 +1,76 @@
+This PUD has been adapted from the original for inclusion in the KPUDs.  You 
+are free to distribute the PUD, subject to possible limitations by the author 
+outlined below, but if you do so, include this file with it.  If you modify the 
+PUD, change its name.
+
+      KPUD home page http://w3.one.net/~billw/KPUD
+================================================================================
+PUD Name:     Ogre Rule
+Author:       Gotcha (boykom@andrews.edu)
+File Name:    KPogrule.pud
+Description:  Ogre Rule by Gotcha
+Dimensions:   128 x 128
+Terrain:      Winter
+No Players:   4
+ 
+% Open Land:  45
+% Forest:     27
+% Water:      28
+% Mountains:  0
+ 
+Total Gold:   430,000 (7 mines)
+Total Oil:    80,000 (4 patches)
+Total Lumber: 339,600
+Start Mines:  50,000
+Other Mines:  70,000 - 90,000
+
+Default Res:  G=1700  L=1050  O=2000
+Default Unit: 1 Peasant, 1 Farm, 1 Town Hall
+ 
+Game Setup:   Starting positions are opposite so fixed order, TVB, would
+              place allies opposite each other.
+
+================================================================================
+                      Author's Original Text File
+================================================================================
+
+What is the Ogre Rule?
+
+There is a stupid rule on Kali called the Ogre rule. What the Ogre rule
+says is: You cannot attack the enemy until you have Ogres.
+
+This rule was invented because some people (crappy players) find that they
+cannot survive long enough to get Ogres. Well with this pud, those guys can 
+survive just a little bit longer. But not much, hehe.
+
+This is a much better way to insure people get Ogres, rather than making a 
+stupid rule.
+
+This certainly doesn't make this pud not fun to play. This level is cool.
+
+Let me explain a bit about it.
+
+Everyone is surrounded by lumber. To get to the enemy, you have to chop out.
+Then you have to either chop into the enemy or sapper into them.
+
+You can make ships. If you do, you can get to the 2 islands where there are 
+gold mines with 70,000 in it. You can also try to get the middle mine. You
+have to chop into it, or sapper to it. The middle mine has 90,000 in it.
+The mines you start off with have 50,000.
+
+--
+Gotcha.
+
+Legal Stuff: You are free to pass out this pud to whoever you want as long
+as you include this Readme file with it. Please don't alter this pud.
+
+send any comments to:
+
+Gotcha at:  boykom@andrews.edu
+
+----------------------------------------------------------------
+Also visit my friend Shlonglor's War 2 page (The best one ever) at
+
+http://www.lighthousewc.com/fraizer/WAR2/war2.html
+
+That site has the best War2 stuff and also has more of my puds.

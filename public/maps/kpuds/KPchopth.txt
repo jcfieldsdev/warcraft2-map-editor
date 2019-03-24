@@ -1,0 +1,40 @@
+This PUD has been adapted from the original for inclusion in the KPUDs.  You 
+are free to distribute the PUD, subject to possible limitations by the author 
+outlined below, but if you do so, include this file with it.  If you modify the 
+PUD, change its name.
+
+      KPUD home page http://w3.one.net/~billw/KPUD
+================================================================================
+PUD Name:     Chop Through
+Author:       Bill Wright (billw@one.net)
+Nickname:     MugWump
+File Name:    KPchopth.pud
+Description:  Chop Through by MugWump
+Dimensions:   128 x 128
+Terrain:      Forest
+No Players:   6
+ 
+% Open Land:  55
+% Forest:     42
+% Water:      3
+% Mountains:  0
+ 
+Total Gold:   900,000 (18 mines)
+Total Oil:    30,000 (6 patches)
+Total Lumber: 574,100
+Start Mines:  60,000
+Other Mines:  30,000 - 60,000
+
+Default Res:  G=4000  L=2000  O=1000
+Default Unit: 1 Peasant, 1 Ballista, 1 Flying Machine, 1 Farm, 1 Town Hall
+ 
+Description:  Chop to your Neighbors - A six player PUD similar to the 
+              Expansion Pack PUD 3vs3 but with some signigicant differences.
+              Each player is adjacent to 4 of the other 5 players, so there
+              are numberous strategic possibilities regarding which way to
+              chop.  Also, some parts of the forest walls are thinner than
+              other parts, so every position has directions of highest 
+              vulnerability.
+   
+Game Setup:   Starting positions are such that fixed order, TVB would
+              make the teams inside vs outside.

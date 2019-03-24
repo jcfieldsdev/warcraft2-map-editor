@@ -1,0 +1,31 @@
+This PUD has been adapted from the original for inclusion in the KPUDs.  You 
+are free to distribute the PUD, subject to possible limitations by the author 
+outlined below, but if you do so, include this file with it.  If you modify the 
+PUD, change its name.
+
+      KPUD home page http://w3.one.net/~billw/KPUD
+================================================================================
+PUD Name:     Foot Hills
+Author:       Unknown
+File Name:    KPfthill.pud
+Description:  Foot Hills
+Dimensions:   128 x 128
+Terrain:      Forest
+No Players:   6
+ 
+% Open Land:  52
+% Forest:     36
+% Water:      4
+% Mountains:  8
+ 
+Total Gold:   615,000 (13 mines)
+Total Oil:    0
+Total Lumber: 466,000
+Start Mines:  45,000
+Other Mines:  45,000 - 75,000
+
+Default Res:  G=3000  L=1500  O=1500
+Default Unit: 1 Peasant, 1 Farm, 1 Town Hall, 1 Guard Tower
+ 
+Game Setup:   Starting positions are adjacent so fixed order, TVB, would
+              place allies next to each other in 2vs2 games.

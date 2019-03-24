@@ -1,0 +1,66 @@
+This PUD has been adapted from the original for inclusion in the KPUDs.  You 
+are free to distribute the PUD, subject to possible limitations by the author 
+outlined below, but if you do so, include this file with it.  If you modify the 
+PUD, change its name.
+
+      KPUD home page http://w3.one.net/~billw/KPUD
+================================================================================
+PUD Name:     High Plains Combat
+Author:       Gary A. C. Backus (gbackus@mindspring.com)
+Nickname:     Bacchus
+File Name:    KPhpcomb.pud
+Description:  High Plains Combat by Bacchus
+Dimensions:   128 x 128
+Terrain:      Forest
+No Players:   8
+ 
+% Open Land:  51
+% Forest:     31
+% Water:      14
+% Mountains:  4
+ 
+Total Gold:   850,000 (14 mines)
+Total Oil:    0
+Total Lumber: 413,500
+Start Mines:  60,000
+Other Mines:  45,000 - 95,000
+
+Default Res:  G=2000  L=1500  O=3000
+Default Unit: 1 Peasant, 1 Farm, 1 Town Hall, 1 Lumber Mill
+
+Game Setup:   Starting positions are adjacent, so fixed order, TVB, would place 
+              allies next to each other and teams opposite each other in four
+              player games or players in alternating slots if the odd positions
+              are used.
+
+================================================================================
+                      Author's Original Text File
+================================================================================
+
+A special thanks to Alter_Ego for the idea of a Hopping .pud
+
+Another special thanks to MadDawg for the use of his .pud modified to fit 
+this scenario.  Please read the .txt of Highsea2.pud to see all his credits.
+
+Important:  You must know how to use the shipyard/Foundry hop to play this 
+map.  First you need to know that when a building is completed the peon will
+pop out of that building at the upper left corner.  If that spot is already
+taken, he will pop out below that.  If that spot is covered he will pop out 
+of the building in the first open spot going around the building in a 
+counter-clockwise direction.
+
+Now if you build a shipyard in a narrow canal, the same rules apply.  If you
+want him to pop out on the other side of the canal, the first opening from 
+the shipyard must be on the other side of the canal.  Sometimes this takes 
+practice to figure out completely.  This can be done with a shipyard, a 
+foundry, or even a refinery.  But unless you actually want the building, you
+need to hit escape or cancel as soon as you start the building process.  
+This is cheaper and much faster than building the entire building just to 
+hop across.
+
+If you cannot put the building in a position to make the peon pop out on the
+other side, you can take excess units , i.e. peons, and have them stand on 
+the near side of the bank to have the peon who is constructing actually pop 
+out on the other side.  It is important to note that if you are going to 
+cancel the building construction, do not have the other peons assist in the 
+build since that would be a further waste of resources.

@@ -1,0 +1,16 @@
+You have downloaded a file that is part of the Warcraft II KPUD set.  PC
+users should install the KPUD files in the main War2 directory.  Mac users
+should install them in the Custom PUDs folder.  In order to play a PUD on
+the internet, everyone in the game must have that PUD installed in the
+same folder and this setup will allow PC and Mac users to play in the same
+game.  
+
+If you have not done so, we encourage you to visit the KPUD home page to
+find out what the KPUD project is all about.   
+
+    http://w3.one.net/~billw/KPUD
+
+Thanks for your support
+
+Bill Wright (aka MugWump)
+billw@one.net

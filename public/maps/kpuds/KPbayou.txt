@@ -1,0 +1,41 @@
+This PUD has been adapted from the original for inclusion in the KPUDs.  You 
+are free to distribute the PUD, subject to possible limitations by the author 
+outlined below, but if you do so, include this file with it.  If you modify the 
+PUD, change its name.
+
+      KPUD home page http://w3.one.net/~billw/KPUD
+================================================================================
+PUD Name:     Bayou
+Author:       Bill Wright (billw@one.net)
+Nickname:     MugWump
+File Name:    KPbayou.pud
+Description:  Bayou by MugWump
+Dimensions:   128 x 128
+Terrain:      Forest
+No Players:   8
+ 
+% Open Land:  38
+% Forest:     23
+% Water:      39
+% Mountains:  0
+ 
+Total Gold:   800,000 (17 mines)
+Total Oil:    80,000 (8 patches)
+Total Lumber: 297,300
+Start Mines:  55,000
+Other Mines:  35,000 - 80,000
+ 
+Default Res:  G=3000  L=2000  O=2000
+Default Unit: 1 Peasant, 1 Ballista, 1 Transport, 1 Farm, 1 Town Hall
+
+Description:  Navigate the Bayou - An eight player pud with plenty of water
+              but which is really a land battle.  The combination of the
+              narrow passages, which are easily defended by towers, mages,
+              and catapults, and the low amount of oil available, makes a 
+              large navy impractical.  He who manages his transports most 
+              efficiently (e.g., taking advantage of the fact that they can 
+              be repaired) will probably be the victor.
+
+Game Setup:   Starting positions are opposite so fixed order, TVB, would
+              place allies opposite each other.
+

@@ -1,0 +1,47 @@
+This PUD has been adapted from the original for inclusion in the KPUDs.  You 
+are free to distribute the PUD, subject to possible limitations by the author 
+outlined below, but if you do so, include this file with it.  If you modify the 
+PUD, change its name.
+
+      KPUD home page http://w3.one.net/~billw/KPUD
+================================================================================
+PUD Name:     Fixed Garden of War
+Author:       Bill Wright (billw@one.net)
+Nickname:     MugWump
+File Name:    KPfixgow.pud
+Description:  Fixed GOW by MugWump
+Dimensions:   128 x 128
+Terrain:      Forest
+No Players:   8
+ 
+% Open Land:  57
+% Forest:     40
+% Water:      3
+% Mountains:  0
+ 
+Total Gold:   800,000 (16 mines)
+Total Oil:    0
+Total Lumber: 499,900
+Start Mines:  60,000
+Other Mines:  30,000 - 50,000
+
+Default Res:  G=2000  L=1000  O=1000
+Default Unit: 1 Peasant, 1 Farm, 1 Town Hall
+ 
+Description:  A fixed version of Garden of War.  The modifications are:
+              - Eliminated the roads thru the start positions that 
+                restricted building.
+              - Moved mines and added trees to eliminate offensive towering
+                of Town Halls.
+              - Removed small lake so Town Hall can be built near top 
+                middle expansion mine.
+              - Made starting positions have equal building areas and 
+                ability to wall in.
+              - Added trees to eliminate easy yellow access to top middle 
+                mine by chopping thru thin tree line.
+              - Made black mine the same size as all other start mines.
+              - Added a lake in upper right so yellow doesn't have a large
+                protected building area.
+
+Game Setup:    Starting positions are adjacent so fixed order, TVB, would
+               place allies next to each other.

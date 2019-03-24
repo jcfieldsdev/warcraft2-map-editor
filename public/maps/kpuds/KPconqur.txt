@@ -1,0 +1,32 @@
+This PUD has been adapted from the original for inclusion in the KPUDs.  You 
+are free to distribute the PUD, subject to possible limitations by the author 
+outlined below, but if you do so, include this file with it.  If you modify the 
+PUD, change its name.
+
+      KPUD home page http://w3.one.net/~billw/KPUD
+================================================================================
+PUD Name:     Conquer
+Author:       Martin Shears (hostile@light.iinet.net.au)
+Nickname:     Hostile (OzWL War/Pud Manager)
+File Name:    KPconqur.pud
+Description:  Conquer All by Hostile
+Dimensions:   128 x 128
+Terrain:      Forest
+No Players:   4
+ 
+% Open Land:  52
+% Forest:     37
+% Water:      11
+% Mountains:  0
+ 
+Total Gold:   650,000 (10 mines)
+Total Oil:    0
+Total Lumber: 505,300
+Start Mines:  65,000
+Other Mines:  65,000
+
+Default Res:  G=6000  L=3000  O=10000
+Default Unit: 1 Peasant, 1 Farm, 1 Town Hall, 1 Guard Tower
+
+Game Setup:   Starting positions are adjacent so fixed order, TVB, would
+              place allies next to each other.

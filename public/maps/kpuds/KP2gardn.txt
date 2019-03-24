@@ -1,0 +1,31 @@
+This PUD has been adapted from the original for inclusion in the KPUDs.  You 
+are free to distribute the PUD, subject to possible limitations by the author 
+outlined below, but if you do so, include this file with it.  If you modify the 
+PUD, change its name.
+
+      KPUD home page http://w3.one.net/~billw/KPUD
+================================================================================
+PUD Name:     Two Gardens
+Author:       Unknown
+File Name:    KP2gardn.pud
+Description:  Two Gardens
+Dimensions:   128 x 128
+Terrain:      Forest
+No Players:   8
+ 
+% Open Land:  56
+% Forest:     44
+% Water:      0
+% Mountains:  0
+ 
+Total Gold:   840,000 (20 mines)
+Total Oil:    0
+Total Lumber: 580,000
+Start Mines:  60,000
+Other Mines:  20,000 - 40,000
+
+Default Res:  G=3500  L=2000  O=1500
+Default Unit: 1 Peasant, 1 Farm, 1 Town Hall
+ 
+Game Setup:   Starting positions are opposite so fixed order, TVB, would
+              place allies opposite each other.

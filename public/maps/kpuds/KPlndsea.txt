@@ -1,0 +1,37 @@
+This PUD has been adapted from the original for inclusion in the KPUDs.  You 
+are free to distribute the PUD, subject to possible limitations by the author 
+outlined below, but if you do so, include this file with it.  If you modify the 
+PUD, change its name.
+
+      KPUD home page http://w3.one.net/~billw/KPUD
+================================================================================
+PUD Name:     Land and Sea
+Author:       Bill Wright (billw@one.net)
+Nickname:     MugWump
+File Name:    KPlndsea.pud
+Description:  Land & Sea by MugWump
+Dimensions:   128 x 128
+Terrain:      Forest
+No Players:   4
+ 
+% Open Land:  30
+% Forest:     12
+% Water:      47
+% Mountains:  11
+ 
+Total Gold:   360,000 (8 mines)
+Total Oil:    135,000 (9 patches)
+Total Lumber: 159,600
+Start Mines:  50,000
+Other Mines:  40,000
+
+Default Res:  G=2000  L=1000  O=1000
+Default Unit: 1 Peasant, 1 Farm, 1 Town Hall
+ 
+Description:  A four player map which requires control of both the land 
+              and the sea.  Player positions are connected by narrow paths 
+              which can be attacked from the sea and all expansion mines 
+              are on islands so sea power is critical for expansion.
+
+Game Setup:   Starting positions are opposite so fixed order, TVB, would
+              place allies opposite each other.

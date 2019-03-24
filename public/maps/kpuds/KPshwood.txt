@@ -1,0 +1,31 @@
+This PUD has been adapted from the original for inclusion in the KPUDs.  You 
+are free to distribute the PUD, subject to possible limitations by the author 
+outlined below, but if you do so, include this file with it.  If you modify the 
+PUD, change its name.
+
+      KPUD home page http://w3.one.net/~billw/KPUD
+================================================================================
+PUD Name:     Sherwood Forest
+Author:       Unknown
+File Name:    KPshwood.pud
+Description:  Sherwood Forest
+Dimensions:   128 x 128
+Terrain:      Forest
+No Players:   8
+ 
+% Open Land:  45
+% Forest:     35
+% Water:      0
+% Mountains:  20
+ 
+Total Gold:   1,200,000 (8 mines)
+Total Oil:    0
+Total Lumber: 420,400
+Start Mines:  150,000
+Other Mines:  None
+
+Default Res:  G=2000  L=1500  O=3000
+Default Unit: 1 Peasant, 1 Ballista, 1 Farm, 1 Town Hall
+ 
+Game Setup:   Starting positions are opposite so fixed order, TVB, would
+              place allies opposite each other.

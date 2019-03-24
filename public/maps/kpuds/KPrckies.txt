@@ -1,0 +1,33 @@
+his PUD has been adapted from the original for inclusion in the KPUDs.  You 
+are free to distribute the PUD, subject to possible limitations by the author 
+outlined below, but if you do so, include this file with it.  If you modify the 
+PUD, change its name.
+
+      KPUD home page http://w3.one.net/~billw/KPUD
+================================================================================
+PUD Name:     Colorado Rockies
+Authors:      Brian Drake (warp@sihope.com)
+              Patrick Schroeder (marymcs@itis.com)
+Nickname:     ^RaiN^ & @gent 
+File Name:    KPrckies.pud
+Description:  Rockies by ^RaiN^ & @gent
+Dimensions:   128 x 128
+Terrain:      Winter
+No Players:   8
+ 
+% Open Land:  41
+% Forest:     28
+% Water:      5
+% Mountains:  26
+ 
+Total Gold:   840,000 (16 mines)
+Total Oil:    20,000 (4 patches)
+Total Lumber: 366,400
+Start Mines:  60,000
+Other Mines:  40,000 - 50,000
+
+Default Res:  G=3000  L=1000  O=1000
+Default Unit: 1 Peasant, 1 Farm, 1 Town Hall
+
+Game Setup:   Starting positions are opposite so fixed order, TVB, would
+              place allies opposite each other.

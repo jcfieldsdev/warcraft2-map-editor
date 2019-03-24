@@ -1,0 +1,35 @@
+This PUD has been adapted from the original for inclusion in the KPUDs.  You 
+are free to distribute the PUD, subject to possible limitations by the author 
+outlined below, but if you do so, include this file with it.  If you modify the 
+PUD, change its name.
+
+      KPUD home page http://w3.one.net/~billw/KPUD
+================================================================================
+PUD Name:     The Hexagon
+Author:       Alterac Stormbringer (alterac@monmouth.com)
+File Name:    KPhexagn.pud
+Description:  Hexagon by Alterac
+Dimensions:   128 x 128
+Terrain:      Winter
+No Players:   6
+ 
+% Open Land:  35
+% Forest:     19
+% Water:      45
+% Mountains:  1
+ 
+Total Gold:   810,000 (9 mines)
+Total Oil:    300,000 (14 patches)
+Total Lumber: 257,500
+Start Mines:  90,000
+Other Mines:  90,000
+
+Default Res:  G=2000  L=1500  O=2000
+Default Unit: 1 Peasant, 1 Farm, 1 Inventor, 1 Town Hall
+
+Description:  A six sided combination land and sea battle with plenty of 
+              resources, protected seaports, and large expansion mines to fight
+              over.
+
+Game Setup:   Starting positions are alternating so fixed order, TVB, would
+              place allies in every other slot in a 3vs3 game.

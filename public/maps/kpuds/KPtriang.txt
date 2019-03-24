@@ -1,0 +1,33 @@
+This PUD has been adapted from the original for inclusion in the KPUDs.  You 
+are free to distribute the PUD, subject to possible limitations by the author 
+outlined below, but if you do so, include this file with it.  If you modify the 
+PUD, change its name.
+
+      KPUD home page http://w3.one.net/~billw/KPUD
+================================================================================
+PUD Name:     Triangles
+Author:       Unknown
+File Name:    KPtriang.pud
+Description:  Triangles
+Dimensions:   128 x 128
+Terrain:      Winter
+No Players:   6
+ 
+% Open Land:  21
+% Forest:     13
+% Water:      66
+% Mountains:  0
+ 
+Total Gold:   600,000 (9 mines)
+Total Oil:    240,000 (11 patches)
+Total Lumber: 173,300
+Start Mines:  60,000
+Other Mines:  80,000
+
+Default Res:  G=4000  L=3000  O=2000
+Default Unit: 1 Peasant, 1 Farm, 1 Town Hall
+ 
+Game Setup:   Starting positions are adjacent in a 'friends' setup, so fixed 
+              order, TVMVB, would place allies on the same island for 3 teams.
+              For a 3 way FFA, use the odd slots (1,3,5) to place one player
+              on each island.

@@ -1,0 +1,45 @@
+This PUD has been adapted from the original for inclusion in the KPUDs.  You 
+are free to distribute the PUD, subject to possible limitations by the author 
+outlined below, but if you do so, include this file with it.  If you modify the 
+PUD, change its name.
+
+      KPUD home page http://w3.one.net/~billw/KPUD
+================================================================================
+PUD Name:     Battle on War Lake
+Author:       Jonathan Schneider (jschneid@umich.edu)
+Nickname:     Magius
+File Name:    KPwrlake.pud
+Description:  War Lake by Magius
+Dimensions:   128 x 128
+Terrain:      Forest
+No Players:   4
+ 
+% Open Land:  49
+% Forest:     20
+% Water:      27
+% Mountains:  4
+ 
+Total Gold:   580,000 (13 mines)
+Total Oil:    220,000 (4 patches)
+Total Lumber: 260,400
+Start Mines:  55,000
+Other Mines:  25,000 - 120,000
+
+Default Res:  G=2200  L=3000  O=2000
+Default Unit: 1 Peasant, 1 Ballista, 1 Farm, 1 Town Hall
+
+Description:  This PUD is somewhat unique to my knowledge, because it offers 
+              equal opportunity to attack over land and over water.  Each player
+              starts with a town hall which is on the shore of a large circular
+              lake in the center of the board.  Players may reach each other by
+              building ships early to attack other player's town halls, or by 
+              building land units and moving them around the various obstacles
+              to reach the other towns on land.  Because the starting positions
+              are defensible to land attack but somewhat vulnerable to water 
+              attack, this PUD strikes an excellent balance between being a land
+              level and a water level, simultaneously.  An added bonus for 
+              having water superiority is being able to access the 120,000 gold
+              mine in an island on the center of the lake.  
+ 
+Game Setup:   Starting positions are adjacent so fixed order, TVB, would
+              place allies next to each other.

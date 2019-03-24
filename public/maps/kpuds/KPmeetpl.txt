@@ -1,0 +1,35 @@
+This PUD has been adapted from the original for inclusion in the KPUDs.  You 
+are free to distribute the PUD, subject to possible limitations by the author 
+outlined below, but if you do so, include this file with it.  If you modify the 
+PUD, change its name.
+
+      KPUD home page http://w3.one.net/~billw/KPUD
+================================================================================
+PUD Name:     The Meeting Place
+Author:       Cobra
+File Name:    KPmeetpl.pud
+Description:  Meeting Place by Cobra
+Dimensions:   128 x 128
+Terrain:      Winter
+No Players:   6
+ 
+% Open Land:  39
+% Forest:     39
+% Water:      17
+% Mountains:  5
+ 
+Total Gold:   720,000 (13 mines)
+Total Oil:    0
+Total Lumber: 535,800
+Start Mines:  60,000
+Other Mines:  40,000 - 120,000
+
+Default Res:  G=4000  L=3000  O=2000
+Default Unit: 1 Peasant, 1 Farm, 1 Town Hall, 1 Guard Tower
+
+Description:  Very good War map. Everyone is in their own little area with the
+              only way out is through the middle.  Therfore the Meeting Place.
+              Big gold mine in Middle.
+
+Game Setup:   Starting positions are alternating so fixed order, TVB, would
+              place allies in every other slot in a 3vs3 game.

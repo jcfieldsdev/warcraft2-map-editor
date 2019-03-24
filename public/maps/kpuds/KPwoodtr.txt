@@ -1,0 +1,40 @@
+This PUD has been adapted from the original for inclusion in the KPUDs.  You 
+are free to distribute the PUD, subject to possible limitations by the author 
+outlined below, but if you do so, include this file with it.  If you modify the 
+PUD, change its name.
+
+      KPUD home page http://w3.one.net/~billw/KPUD
+================================================================================
+PUD Name:     Woodland Trails
+Author:       Bill Wright (billw@one.net)
+Nickname:     MugWump
+File Name:    KPwoodtr.pud
+Description:  Woodland Trails by MugWump
+Dimensions:   128 x 128
+Terrain:      Forest
+No Players:   4
+ 
+% Open Land:  42
+% Forest:     53
+% Water:      5
+% Mountains:  0
+ 
+Total Gold:   720,000 (16 mines)
+Total Oil:    15,000 (5 patches)
+Total Lumber: 714,300
+Start Mines:  None
+Other Mines:  30,000 - 60,000
+
+Default Res:  G=4000  L=2000  O=1000
+Default Unit: 1 Peasant, 1 Flying Machine
+ 
+Description:  A four player pud with several unique features.  The map is 
+              a collection of 'nodes' or clearings which are connected by 
+              trails.  Each player has a choice of where to go to establish
+              his initial town - to the corner which is safe with a large 
+              clearing and a small gold mine; to the center with a large 
+              gold mine and a small vulnerable clearing; or one of the 
+              positions in between.
+
+Game Setup:   Starting positions are adjacent so fixed order, TVB, would
+              place allies next to each other.

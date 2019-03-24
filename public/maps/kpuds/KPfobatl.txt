@@ -1,0 +1,66 @@
+This PUD has been adapted from the original for inclusion in the KPUDs.  You 
+are free to distribute the PUD, subject to possible limitations by the author 
+outlined below, but if you do so, include this file with it.  If you modify the 
+PUD, change its name.
+
+      KPUD home page http://w3.one.net/~billw/KPUD
+================================================================================
+PUD Name:     Fierce Ocean Battle
+Author:       Jeff Penney (cnight@total.net)
+Nickname:     Cnight
+File Name:    KPfobatl.pud
+Description:  Fierce Ocean Battle by Cnight
+Dimensions:   128 x 128
+Terrain:      Forest
+No Players:   6
+ 
+% Open Land:  15
+% Forest:     10
+% Water:      73
+% Mountains:  2
+ 
+Total Gold:   300,000 (6 mines)
+Total Oil:    240,000 (12 patches)
+Total Lumber: 116,500
+Start Mines:  50,000
+Other Mines:  None
+
+Default Res:  G=2000  L=1000  O=1000
+Default Unit: 1 Peasant, 1 Farm, 1 Town Hall
+ 
+Game Setup:   Starting positions are adjacent so fixed order, TVB, would
+              place allies next to each other.
+
+================================================================================
+                      Author's Original Text File
+================================================================================
+
+Completed:     04/12/97  
+Build Time:    2 1/2 Hours
+
+Other Puds by Author: Watermaze
+
+Description: Basically redone Fierce Ocean Combat, but for 6 players.
+
+History: None. I asked Shlongy if he had any ideas for a pud. So he
+         said a foc2. So I made it :)
+
+Credits to: Shlonglor for helping me with some ideas for this pud :)
+            And for helping notice some obvious crap.
+
+            Gotcha! for helping me with some ideas to fix it up.
+              
+
+Pud Dedicated to: All those people who wanted another great Fierce Ocean
+                  type map.
+                                                          
+Future Pud Ideas?
+
+None. /msg me in Kchat if you have any good ideas :)
+
+Enjoy and have fun!
+
+Copyrights:
+
+You may NOT alter this pud in any way, shape or form. (this means YOU,
+Silverwolf!)

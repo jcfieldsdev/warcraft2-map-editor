@@ -1,0 +1,70 @@
+This PUD has been adapted from the original for inclusion in the KPUDs.  You 
+are free to distribute the PUD, subject to possible limitations by the author 
+outlined below, but if you do so, include this file with it.  If you modify the 
+PUD, change its name.
+
+      KPUD home page http://w3.one.net/~billw/KPUD
+================================================================================
+PUD Name:     Cold War
+Author:       Jim Weirich (jweirich@one.net)
+Nickname:     Ohwrd
+File Name:    KPcoldwr.pud
+Description:  Cold War by Ohwrd
+Dimensions:   128 x 128
+Terrain:      Winter
+No Players:   4
+ 
+% Open Land:  18
+% Forest:     18
+% Water:      47
+% Mountains:  17
+ 
+Total Gold:   1,000,000 (4 mines)
+Total Oil:    400,000 (8 patches)
+Total Lumber: 237,500
+Start Mines:  250,000
+Other Mines:  None
+
+Default Res:  G=5000  L=2000  O=1000
+Default Unit: 1 Peasant, 1 Farm, 1 Town Hall
+
+Game Setup:   Starting positions are opposite so fixed order, TVB, would
+              place allies opposite each other.
+
+================================================================================
+                      Author's Original Text File
+================================================================================
+
+Lots of gold, lots of oil, and a terrain that is designed with defense
+in mind.  Attacks will be difficult and the large gold mines will
+insure a long battle.
+
+Some hints about this map ...
+
+o Take advantage of the rock formations when defending the land
+  bridge.  Position your men so that only one attacker can get through
+  while you use two or three defenders (see diagram).
+     aaaaaaa
+     fffffff          KEY: X rock
+    XXeXeXeXX              f (your) footmen
+     XeXeXeX               a (your) archers
+     X X X X               e enemy
+
+  As the attacker comes through the single file path in the rock,
+  three defenders gang up on him.  Make sure you tell the defenders to
+  stand ground.  Put archers (or a catapult!) behind your defenders
+  for added protection.  A similar approach can be used at the center
+  cross road.
+
+o The only open area for a sea attack is the back of the island.  You
+  can place three ships across the sea lane in the back to cut off
+  access to the back of your island.  If you don't want to bother with
+  ships, four strategically placed farms will wall off the back of the
+  island (that is, until you chop throught the trees).
+
+o The rocky shores have shelves where a transport could land a sapper
+  or two.  Be prepared for it.
+
+Have at it!
+
+-- Ohwrd (Jim Weirich)

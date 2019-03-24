@@ -1,0 +1,36 @@
+This PUD has been adapted from the original for inclusion in the KPUDs.  You 
+are free to distribute the PUD, subject to possible limitations by the author 
+outlined below, but if you do so, include this file with it.  If you modify the 
+PUD, change its name.
+
+      KPUD home page http://w3.one.net/~billw/KPUD
+================================================================================
+PUD Name:     Decisions
+Author:       Bill Wright (billw@one.net)
+Nickname:     MugWump
+File Name:    KPdecisn.pud
+Description:  Decisions by MugWump
+Dimensions:   128 x 128
+Terrain:      Winter
+No Players:   4
+ 
+% Open Land:  35
+% Forest:     25
+% Water:      35
+% Mountains:  5
+ 
+Total Gold:   580,000 (9 mines)
+Total Oil:    120,000 (8 patches)
+Total Lumber: 337,100
+Start Mines:  80,000
+Other Mines:  40,000 - 100,000
+
+Default Res:  G=4000  L=2000  O=2000
+Default Unit: 1 Peasant, 1 Farm, 1 Town Hall, 1 Lumber Mill
+
+Description:  Decisions - You can choose to attack by sea, land, or
+              air - or go for the mine in the middle.  These are the
+              decisions you have to make.
+ 
+Game Setup:   Starting positions are adjacent so fixed order, TVB, would
+              place allies next to each other.

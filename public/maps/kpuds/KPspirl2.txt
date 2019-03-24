@@ -1,0 +1,45 @@
+This PUD has been adapted from the original for inclusion in the KPUDs.  You 
+are free to distribute the PUD, subject to possible limitations by the author 
+outlined below, but if you do so, include this file with it.  If you modify the 
+PUD, change its name.
+
+      KPUD home page http://w3.one.net/~billw/KPUD
+================================================================================
+PUD Name:     Spiral 2
+Author:       Gotcha (boykom@andrews.edu)
+File Name:    KPspirl2.pud
+Description:  Spiral 2 by Gotcha
+Dimensions:   128 x 128
+Terrain:      Winter
+No Players:   6
+ 
+% Open Land:  35
+% Forest:     19
+% Water:      46
+% Mountains:  0
+ 
+Total Gold:   420,000 (12 mines)
+Total Oil:    105,000 (7 patches)
+Total Lumber: 259,000
+Start Mines:  40,000
+Other Mines:  30,000
+
+Default Res:  G=2100  L=1050  O=2000
+Default Unit: 1 Peasant, 1 Farm, 1 Town Hall
+ 
+Game Setup:   Starting positions are alternating so fixed order, TVB, would
+              place allies in alternating slots.
+
+================================================================================
+                      Author's Original Text File
+================================================================================
+
+One of my favorite maps to play would have to be The Spiral.  However,
+I don't usually like to play on any map size other than 128x128, so in
+response to this problem I created The Spiral2.  This map is basically
+The Spiral with a few minor changes which include 1) the map size is now
+128x128 2) the spiral swirl now goes in the opposite direction 3) The Spiral2
+can support 6 players 4) and the terrain is set to snow.  Despite these
+changes the map retains the basic look of The Spiral. Enjoy!
+
+send any comments to: boykom@andrews.edu

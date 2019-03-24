@@ -1,0 +1,32 @@
+This PUD has been adapted from the original for inclusion in the KPUDs.  You 
+are free to distribute the PUD, subject to possible limitations by the author 
+outlined below, but if you do so, include this file with it.  If you modify the 
+PUD, change its name.
+
+      KPUD home page http://w3.one.net/~billw/KPUD
+================================================================================
+PUD Name:     Teams of Three
+Author:       Unknown
+File Name:    KPtmsof3.pud
+Description:  Two Teams of 3
+Dimensions:   128 x 128
+Terrain:      Forest
+No Players:   6
+ 
+% Open Land:  55
+% Forest:     24
+% Water:      18
+% Mountains:  3
+ 
+Total Gold:   840,000 (13 mines)
+Total Oil:    0
+Total Lumber: 310,500
+Start Mines:  60,000
+Other Mines:  50,000 - 120,000
+
+Default Res:  G=3000  L=1500  O=1300
+Default Unit: 2 Peasants, 2 Farms, 1 Town Hall
+ 
+Game Setup:   Starting positions are adjacent in a 'friends' setup, so 
+              fixed order, TVB, would place allies next to each other and teams
+              opposite each other.

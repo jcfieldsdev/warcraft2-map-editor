@@ -1,0 +1,36 @@
+This PUD has been adapted from the original for inclusion in the KPUDs.  You 
+are free to distribute the PUD, subject to possible limitations by the author 
+outlined below, but if you do so, include this file with it.  If you modify the 
+PUD, change its name.
+
+      KPUD home page http://w3.one.net/~billw/KPUD
+================================================================================
+PUD Name:     Amazed
+Author:       Bill Wright (billw@one.net)
+Nickname:     MugWump
+File Name:    KPamazed.pud
+Description:  Amazed by MugWump
+Dimensions:   128 x 128
+Terrain:      Forest
+No Players:   6
+ 
+% Open Land:  44
+% Forest:     48
+% Water:      5
+% Mountains:  3
+ 
+Total Gold:   700,000 (13 mines)
+Total Oil:    0
+Total Lumber: 656,800
+Start Mines:  60,000
+Other Mines:  40,000 - 100,000
+
+Default Res:  G=3000  L=2000  O=2000
+Default Unit: 1 Peasant, 1 Flying Machine, 1 Farm, 1 Town Hall
+ 
+Description: A six player maze with an expansion mine between each pair of
+             player positions and a large walled in mine in the center.
+  
+Game Setup:  Starting positions are ordered such that in a 2vs2 game, 
+             using fixed order places one team at the top and one team at
+             the bottom.

@@ -1,0 +1,57 @@
+This PUD has been adapted from the original for inclusion in the KPUDs.  You 
+are free to distribute the PUD, subject to possible limitations by the author 
+outlined below, but if you do so, include this file with it.  If you modify the 
+PUD, change its name.
+
+      KPUD home page http://w3.one.net/~billw/KPUD
+================================================================================
+PUD Name:     X Mountain
+Author:       Enrique (redc2@cam.ac.uk)
+File Name:    KPxmount.pud
+Description:  X Mountain by Enrique
+Dimensions:   128 x 128
+Terrain:      Forest
+No Players:   4
+ 
+% Open Land:  46
+% Forest:     27
+% Water:      6
+% Mountains:  21
+ 
+Total Gold:   400,000 (8 mines)
+Total Oil:    20,000 (4 patches)
+Total Lumber: 321,700
+Start Mines:  40,000
+Other Mines:  60,000
+
+Default Res:  G=4000  L=2000  O=1000
+Default Unit: 1 Peasant, 1 Farm, 1 Town Hall
+ 
+Description:  The map is just a big X-shaped mountain, with each player 
+              starting at an angle of the X.  There's trees all round, a 
+              little like Garden, but plenty of room for building.  You 
+              start with a 40,000 mine each, and there is a 60,000 mine at
+              the end of each side of the X.  I hate unimaginative, 
+              straight-line puds as much as anyone, so I've spent some time
+              making it look fairly professional.
+
+              The shape, and size, of the map make grunt rushing very 
+              difficult: by the time your guys get to your neighbour's 
+              town, he is bound to have more unless he is very slow 
+              (another 'ogre rules' pud, hehe).  Each of the four rock 
+              walls has a thin place about half way along which you could 
+              blast through with 1 or 2 sappers to sneak in a surprise 
+              attack - could happen to you, of course :)  The map seems 
+              really big because everyone is fairly close together in the 
+              middle, separated by far too much rock to sapper through.  
+              The other players' peasants should be too far to blizzard, 
+              and the middle mines should be finished by the time you have
+              mages anyway. This is a cool map for FFA, because everyone 
+              has an enemy on each side, and you'll have to fight each 
+              neighbour over the corner mines.  The strategy for teams is 
+              completely different, and depends whether you're next to you
+              partner or opposite - I'll let you work it out for yourself 
+              though, hahaha.
+
+Game Setup:   Starting positions are adjacent so fixed order, TVB, would
+              place allies next to each other.

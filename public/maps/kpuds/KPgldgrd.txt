@@ -1,0 +1,35 @@
+This PUD has been adapted from the original for inclusion in the KPUDs.  You 
+are free to distribute the PUD, subject to possible limitations by the author 
+outlined below, but if you do so, include this file with it.  If you modify the 
+PUD, change its name.
+
+      KPUD home page http://w3.one.net/~billw/KPUD
+================================================================================
+PUD Name:     Garden of Gold
+Author:       Unknown
+File Name:    KPgldgrd.pud
+Description:  Gold Garden
+Dimensions:   128 x 128
+Terrain:      Forest
+No Players:   8
+ 
+% Open Land:  51
+% Forest:     46
+% Water:      3
+% Mountains:  0
+ 
+Total Gold:   2,160,000 (24 mines)
+Total Oil:    20,000 (4 patches)
+Total Lumber: 610,900
+Start Mines:  90,000
+Other Mines:  90,000
+
+Default Res:  G=3000  L=2000  O=1000
+Default Unit: 1 Peasant, 2 Farms, 1 Town Hall, 1 Guard Tower
+
+Description:  Tons of gold - should give ample opportunity to learn and practice
+              all the magic spells.
+ 
+Game Setup:   Starting positions are adjacent, so fixed order, TVB, would place 
+              allies next to each other and teams opposite each other in four
+              player games or in games with 4 teams of 2. 

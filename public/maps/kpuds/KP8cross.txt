@@ -1,0 +1,46 @@
+This PUD has been adapted from the original for inclusion in the KPUDs.  You 
+are free to distribute the PUD, subject to possible limitations by the author 
+outlined below, but if you do so, include this file with it.  If you modify the 
+PUD, change its name.
+
+      KPUD home page http://w3.one.net/~billw/KPUD
+================================================================================
+PUD Name:     Eight Cross
+Author:       Duncan Marshall (ducan@total.net)
+Nickname:     Anvil
+File Name:    KP8cross.pud
+Description:  8 Cross by Anvil
+Dimensions:   128 x 128
+Terrain:      Forest
+No Players:   8
+ 
+% Open Land:  39
+% Forest:     22
+% Water:      23
+% Mountains:  16
+ 
+Total Gold:   960,000 (12 mines)
+Total Oil:    240,000 (9 patches)
+Total Lumber: 288,900
+Start Mines:  70,000
+Other Mines:  100,000
+
+Default Res:  G=4000  L=2000  O=2000
+Default Unit: 1 Peasant, 1 Farm, 1 Town Hall, 1 Lumber Mill
+ 
+Description:  This map is a great cross between land and sea. You need sea 
+              control to make attacks or to expand.  You could also go and and
+              sapper through rocks to reach expansions and opponents. Great 
+              Multiplayer map.
+
+Game Setup:   Starting positions are opposite so fixed order, TVB, would
+              place allies opposite each other.
+
+================================================================================
+                      Author's Original Text File
+================================================================================
+
+Dont use this map for a base for other maps or sell it or do any thing 
+with it without including this text file and notifying me first by mail, 
+
+thanks. 

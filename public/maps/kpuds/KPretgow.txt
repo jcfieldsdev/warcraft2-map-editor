@@ -1,0 +1,53 @@
+This PUD has been adapted from the original for inclusion in the KPUDs.  You 
+are free to distribute the PUD, subject to possible limitations by the author 
+outlined below, but if you do so, include this file with it.  If you modify the 
+PUD, change its name.
+
+      KPUD home page http://w3.one.net/~billw/KPUD
+================================================================================
+PUD Name:     Return to Garden of War
+Author:       Ryan Haney (Ryan_Haney@baylor.edu)
+File Name:    KPretgow.pud
+Description:  Return to GOW by Ryan Haney
+Dimensions:   128 x 128
+Terrain:      Forest
+No Players:   8
+ 
+% Open Land:  50
+% Forest:     45
+% Water:      2
+% Mountains:  3
+ 
+Total Gold:   970,000 (18 mines)
+Total Oil:    0
+Total Lumber: 593,200
+Start Mines:  65,000
+Other Mines:  50,000 - 65,000
+
+Default Res:  G=3000  L=2000  O=3000
+Default Unit: 1 Peasant, 1 Farm, 1 Town Hall
+ 
+Game Setup:   Starting positions are adjacent in order around the edge, so fixed 
+              order, TVB, would place allies next to each other.
+
+================================================================================
+                      Author's Original Text File
+================================================================================
+
+Author Info:  just a wc2 fanatic. Author of solar, xmen, and massive.
+
+Description:  This is probably the best gow remake out there.  Its not taken 
+              directly from gow, but it's obviously based on it.  All the 
+              starting spots are fair now as everyone can wall-in and nobody's 
+              mine can be towered early.  There are just enough mines around and
+              the "middle" is still there. Works great as a multi-player map or 
+              a computer map.
+           
+* Copyright / Permissions *
+
+Authors MAY use this level as a base to build their own levels.
+
+You MAY distribute this PUD, provided you include this file, with
+no modifications.  You may distribute this file in any electronic
+format (BBS, Diskette, CD, etc) as long as you include this file
+intact.

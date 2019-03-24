@@ -1,0 +1,65 @@
+This PUD has been adapted from the original for inclusion in the KPUDs.  You 
+are free to distribute the PUD, subject to possible limitations by the author 
+outlined below, but if you do so, include this file with it.  If you modify the 
+PUD, change its name.
+
+      KPUD home page http://w3.one.net/~billw/KPUD
+================================================================================
+PUD Name:     Pirate's Cove
+Author:       David West (dwest@roar.gfalls.wednet.edu)
+Nickname:     Kyp
+File Name:    KPpircov.pud
+Description:  Pirate's Cove by Kyp
+Dimensions:   128 x 128
+Terrain:      Forest
+No Players:   8
+ 
+% Open Land:  29
+% Forest:     18
+% Water:      53
+% Mountains:  0
+ 
+Total Gold:   510,000 (10 mines)
+Total Oil:    300,000 (12 patches)
+Total Lumber: 217,700
+Start Mines:  55,000
+Other Mines:  35,000
+
+Default Res:  G=2000  L=1000  O=1000
+Default Unit: 1 Peasant, 1 Farm, 1 Town Hall
+ 
+Game Setup:   Starting positions are alternating so fixed order, TVB, would
+              place allies adjacent but with a slot in between.
+
+================================================================================
+                      Author's Original Text File
+================================================================================
+
+I love water, and I wanted a high seas type map with more fairness, smaller
+mines.  It was originally called High Seas 2, but it turns out it's not 
+simply a High Seas Clone.
+
+I also added a few more features that would make it more interesting.  It's
+completely foundry hoppable both ways to each island using only one peon.  
+There's the fight for the 2 mines in the middle.  There's less resources to
+generate a bigger fight for the middle and expansions.  There's approx. 
+equal lumber for all players
+
+It's a hybrid of HSC, Fierce Ocean Combat, and Critter Attack.
+
+Credits go to:
+Me :)
+Whoever created those great sea maps for the cd.  I used those ideas for 
+     asthetic design.
+MugWump (Bill Wright, creator of KPUDs) for suggestions.
+Anvil for telling me about some bugs.
+Cnight, for giving me great suggestions for pud design, and for saying my 
+    other puds were crap :)
+All those who play me water, and who make me enjoy it so much.
+
+You can visit my War2 page at http://www.gfalls.wednet.edu/~dwest/war2
+
+If you'd like to email me about this pud, give thanks,
+ or just plain flame me, send to - dwest@roar.gfalls.wednet.edu
+
+Have Fun!

@@ -1,0 +1,40 @@
+This PUD has been adapted from the original for inclusion in the KPUDs.  You 
+are free to distribute the PUD, subject to possible limitations by the author 
+outlined below, but if you do so, include this file with it.  If you modify the 
+PUD, change its name.
+
+      KPUD home page http://w3.one.net/~billw/KPUD
+================================================================================
+PUD Name:     Diamond Rocks
+Author:       Bill Wright (billw@one.net)
+Nickname:     MugWump
+File Name:    KPdiamnd.pud
+Description:  Diamond Rocks by MugWump
+Dimensions:   128 x 128
+Terrain:      Winter
+No Players:   8
+ 
+% Open Land:  57
+% Forest:     30
+% Water:      0
+% Mountains:  13
+ 
+Total Gold:   790,000 (9 mines)
+Total Oil:    0
+Total Lumber: 390,900
+Start Mines:  80,000
+Other Mines:  150,000
+
+Default Res:  G=2000  L=1000  O=2000
+Default Unit: 1 Peasant, 1 Farm, 1 Inventor, 1 Town Hall
+
+Description:  A 'blast out' pud with an embedded mine in the middle where
+              you can't attack your enemies until you sapper through the
+              rock walls.  Default unit provide everyone with an alchemist/
+              inventor as an optional scenario where invasions will come
+              much sooner.
+
+Game Setup:   Starting positions are opposite so fixed order, TVB, would
+              place allies opposite each other.  In four player games, fixed
+              order would place players in alternating slots, with empty slots
+              between them.

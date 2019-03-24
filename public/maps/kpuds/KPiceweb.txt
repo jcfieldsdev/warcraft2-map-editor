@@ -1,0 +1,40 @@
+This PUD has been adapted from the original for inclusion in the KPUDs.  You 
+are free to distribute the PUD, subject to possible limitations by the author 
+outlined below, but if you do so, include this file with it.  If you modify the 
+PUD, change its name.
+
+      KPUD home page http://w3.one.net/~billw/KPUD
+================================================================================
+PUD Name:     Ice Web
+Author:       Bill Wright (billw@one.net)
+Nickname:     MugWump
+File Name:    KPiceweb.pud
+Description:  Ice Web by MugWump
+Dimensions:   128 x 128
+Terrain:      Winter
+No Players:   8
+ 
+% Open Land:  41
+% Forest:     22
+% Water:      37
+% Mountains:  0
+ 
+Total Gold:   720,000 (16 mines)
+Total Oil:    40,000 (8 patches)
+Total Lumber: 267,900
+Start Mines:  60,000
+Other Mines:  30,000
+
+Default Res:  G=4000  L=2000  O=1000
+Default Unit: 1 Peasant, 1 Farm, 1 Town Hall,  1 Guard Tower
+ 
+Description:  Ice Web is a combination of a 'ring' and a 'wheel' PUD.  The
+              layout is intentionally geometric and there are no well
+              defined clearings for building a town.  Instead, all islands
+              are covered with tree clumps which must be chopped away to
+              allow building room.  Since there are no typical clearings,
+              there is no way to wall-in to prevent being rushed.  To
+              compensate for that, the default units include a guard tower.
+
+Game Setup:   Starting positions are opposite so fixed order, TVB, would
+              place allies opposite each other.

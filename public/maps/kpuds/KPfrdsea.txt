@@ -1,0 +1,36 @@
+This PUD has been adapted from the original for inclusion in the KPUDs.  You 
+are free to distribute the PUD, subject to possible limitations by the author 
+outlined below, but if you do so, include this file with it.  If you modify the 
+PUD, change its name.
+
+      KPUD home page http://w3.one.net/~billw/KPUD
+================================================================================
+PUD Name:     Friends on Sea
+Author:       Bill Wright (billw@one.net)
+Nickname:     MugWump
+File Name:    KPfrdsea.pud
+Description:  Friends on Sea by MugWump
+Dimensions:   128 x 128
+Terrain:      Forest
+No Players:   8
+ 
+% Open Land:  43
+% Forest:     28
+% Water:      29
+% Mountains:  0
+ 
+Total Gold:   1,060,000 (9 mines)
+Total Oil:    360,000 (12 patches)
+Total Lumber: 377,200
+Start Mines:  160,000
+Other Mines:  80,000 - 100,000
+
+Default Res:  G=2500  L=1500  O=1000
+Default Unit: 1 Peasant, 1 Farm, 1 Town Hall
+
+Description:  Friends on the sea - just like Friends.pud except positions
+              are separated by water.
+
+Game Setup:   Starting positions are adjacent in a 'friends' setup, so 
+              fixed order, TVB, would place allies next to each other and teams
+              adjacent to each other.

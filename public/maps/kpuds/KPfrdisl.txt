@@ -1,0 +1,45 @@
+This PUD has been adapted from the original for inclusion in the KPUDs.  You 
+are free to distribute the PUD, subject to possible limitations by the author 
+outlined below, but if you do so, include this file with it.  If you modify the 
+PUD, change its name.
+
+      KPUD home page http://w3.one.net/~billw/KPUD
+================================================================================
+PUD Name:     Friendly Isles
+Author:       Duncan Marshall (ducan@total.net)
+Nickname:     Anvil
+File Name:    KPfrdisl.pud
+Description:  Friendly Isles by Anvil
+Dimensions:   128 x 128
+Terrain:      Forest
+No Players:   8
+ 
+% Open Land:  38
+% Forest:     20
+% Water:      42
+% Mountains:  0
+ 
+Total Gold:   920,000 (13 mines)
+Total Oil:    240,000 (16 patches)
+Total Lumber: 269,200
+Start Mines:  100,000
+Other Mines:  50,000 - 80,000
+
+Default Res:  G=2000  L=1000  O=1000
+Default Unit: 1 Peasant, 1 Farm, 1 Town Hall
+ 
+Description:  Friendly Isles - a friends PUD on the sea where expansion is a 
+              must. 
+
+Game Setup:   Starting positions are adjacent in a 'friends' setup, so 
+              fixed order, TVB, would place allies next to each other and teams
+              adjacent to each other.
+
+================================================================================
+                      Author's Original Text File
+================================================================================
+
+Dont use this map for a base for other maps or sell it or do any thing 
+with it without including this text file and notifying me first by mail, 
+
+thanks. 

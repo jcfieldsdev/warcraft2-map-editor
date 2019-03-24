@@ -1,0 +1,32 @@
+This PUD has been adapted from the original for inclusion in the KPUDs.  You 
+are free to distribute the PUD, subject to possible limitations by the author 
+outlined below, but if you do so, include this file with it.  If you modify the 
+PUD, change its name.
+
+      KPUD home page http://w3.one.net/~billw/KPUD
+================================================================================
+PUD Name:     The Hammer Claws
+Author:       King Sley
+File Name:    KPhammer.pud
+Description:  Hammer by King Sley
+Dimensions:   128 x 128
+Terrain:      Forest
+No Players:   6
+ 
+% Open Land:  51
+% Forest:     27
+% Water:      3
+% Mountains:  19
+ 
+Total Gold:   560,000 (10 mines)
+Total Oil:    10,000 (2 patches)
+Total Lumber: 349,500
+Start Mines:  60,000
+Other Mines:  50,000
+
+Default Res:  G=3500  L=2500  O=1000
+Default Unit: 1 Peasant, 1 Farm, 1 Town Hall, 1 Guard Tower
+ 
+Game Setup:   Starting positions are opposite so fixed order, TVB, would
+              place allies opposite each other with the players in the corners
+              in a 2vs2 game.
