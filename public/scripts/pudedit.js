@@ -268,7 +268,7 @@ Editor.prototype.open=function(filename, buffer) {
 		$(id).width=w;
 		$(id).height=h;
 	}
-}
+};
 
 Editor.prototype.drawTileMap=function() {
 	let tiles=tilesets[this.pud.tileset];
@@ -282,7 +282,7 @@ Editor.prototype.drawTileMap=function() {
 	this.miniMap.scale(rx, ry);
 
 	for (let i=0; i<this.pud.tileMap.length; i++) {
-		let sx=0, sy=0, w=x*TILE_SIZE, h=y*TILE_SIZE, tile=this.pud.tileMap[i];
+		let w=x*TILE_SIZE, h=y*TILE_SIZE, tile=this.pud.tileMap[i];
 
 		if (tile in tiles) {
 			this.tileMap.drawImage(
@@ -327,7 +327,7 @@ Editor.prototype.drawUnitMap=function() {
 
 		img.src=path+unit.type.toString().padStart(4, "0")+".png";
 		img.addEventListener("load", function() {
-			let x=unit.x*TILE_SIZE, y=unit.y*TILE_SIZE
+			let x=unit.x*TILE_SIZE, y=unit.y*TILE_SIZE;
 			let w=unitSize.x*TILE_SIZE, h=unitSize.y*TILE_SIZE;
 
 			drawUnit(unitMap, this, unit, x, y, w, h);
@@ -637,8 +637,6 @@ Editor.prototype.submitUpgradeProperties=function() {
 };
 
 Editor.prototype.getRace=function() {
-	let race="";
-
 	if (this.player in this.pud.races) {
 		if (this.pud.races[this.player]) {
 			return "orc";
@@ -670,7 +668,7 @@ Editor.prototype.changeIcon=function(input, img, select) {
 		input.value=195;
 	}
 
-	let option=select.options[select.selectedIndex], upgrade=option.value;
+	let option=select.options[select.selectedIndex];
 	let icon=input.value.padStart(4, "0");
 
 	img.src="icons/"+this.getTileset(this.pud.tileset)+"/"+icon+".png";
@@ -716,7 +714,7 @@ Editor.prototype.saveRadio=function(name) {
 			return radios[i].value;
 		}
 	}
-}
+};
 
 Editor.prototype.saveSelect=function(id) {
 	let select=$(id);
@@ -1016,7 +1014,6 @@ Pud.prototype.readUdta=function() {
 		return;
 	}
 
-	const size=15;
 	let udta=this.struct["UDTA"], addr=0, units={};
 
 	this.defaultUnits=Boolean(getAttr(1, WORD));
@@ -1079,7 +1076,6 @@ Pud.prototype.readAlow=function() {
 		return;
 	}
 
-	const size=6;
 	let alow=this.struct["ALOW"], addr=0, restrictions={};
 
 	restrictions.units=this.getArray(getAttr(16, LONG), LONG);
@@ -1127,7 +1123,6 @@ Pud.prototype.readUgrd=function() {
 		return;
 	}
 
-	const size=15;
 	let ugrd=this.struct["UGRD"], addr=0, upgrades={};
 
 	this.defaultUpgrades=Boolean(getAttr(1, WORD));
