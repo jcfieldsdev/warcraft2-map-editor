@@ -58,17 +58,19 @@ window.addEventListener("load", function() {
 		a.href=window.URL.createObjectURL(editor.pud.save());
 		a.click();
 	});
+	$("frame").addEventListener("mousedown", function() {
+		editor.drag=true;
+	});
+	$("frame").addEventListener("mouseup", function() {
+		editor.drag=false;
+	});
 	$("frame").addEventListener("click", function(event) {
 		editor.moveMap(event.layerX, event.layerY);
 	});
-	$("frame").addEventListener("mousedown", function(event) {
-		editor.dragMap(true);
-	});
-	$("frame").addEventListener("mouseup", function(event) {
-		editor.dragMap(false);
-	});
 	$("frame").addEventListener("mousemove", function(event) {
-		editor.moveMap(event.layerX, event.layerY);
+		if (editor.drag) {
+			editor.moveMap(event.layerX, event.layerY);
+		}
 	});
 	$("btn_about").addEventListener("click", function() {
 		overlays.about.show();
@@ -345,18 +347,10 @@ Editor.prototype.drawTileMap=function() {
 };
 
 Editor.prototype.moveMap=function(x, y) {
-	if (!this.drag) {
-		return;
-	}
-
 	window.scroll(
 		x/this.scaleX-window.innerWidth/2,
 		y/this.scaleY-window.innerHeight/2
 	);
-};
-
-Editor.prototype.dragMap=function(state) {
-	this.drag=state;
 };
 
 Editor.prototype.updateCoords=function() {
