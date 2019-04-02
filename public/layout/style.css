@@ -98,7 +98,7 @@ button.unit img, img.icon {
 	width: 46px;
 }
 
-button.unit img, fieldset, img.icon, canvas#frame, fieldset {
+button.unit img, fieldset, img.icon, canvas#miniTileMap, fieldset {
 	border: 2px solid #808080;
 }
 
@@ -112,6 +112,7 @@ canvas#frame, canvas#grid {
 
 canvas#frame, canvas#miniUnitMap {
 	left: 0;
+	padding: 2px;
 	position: absolute;
 	top: 0;
 }
@@ -128,10 +129,6 @@ canvas#grid, canvas#tileMap, canvas#unitMap {
 	left: 275px;
 	position: absolute;
 	top: 0;
-}
-
-canvas#miniTileMap, canvas#miniUnitMap {
-	padding: 2px;
 }
 
 canvas#miniTileMap, canvas#tileMap {

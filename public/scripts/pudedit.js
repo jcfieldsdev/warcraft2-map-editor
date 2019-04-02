@@ -61,7 +61,13 @@ window.addEventListener("load", function() {
 	$("frame").addEventListener("click", function(event) {
 		editor.moveMap(event.layerX, event.layerY);
 	});
-	$("frame").addEventListener("drag", function(event) {
+	$("frame").addEventListener("mousedown", function(event) {
+		editor.dragMap(true);
+	});
+	$("frame").addEventListener("mouseup", function(event) {
+		editor.dragMap(false);
+	});
+	$("frame").addEventListener("mousemove", function(event) {
 		editor.moveMap(event.layerX, event.layerY);
 	});
 	$("btn_about").addEventListener("click", function() {
@@ -251,6 +257,8 @@ function Editor() {
 	this.frame=null;
 	this.tiles=null;
 
+	this.drag=false;
+
 	this.x=0;
 	this.y=0;
 	this.scaleX=0;
@@ -337,10 +345,18 @@ Editor.prototype.drawTileMap=function() {
 };
 
 Editor.prototype.moveMap=function(x, y) {
+	if (!this.drag) {
+		return;
+	}
+
 	window.scroll(
-		$("tileMap").width/MINIMAP_SIZE*x-LEFT_MARGIN,
-		$("tileMap").height/MINIMAP_SIZE*y
+		x/this.scaleX-window.innerWidth/2,
+		y/this.scaleY-window.innerHeight/2
 	);
+};
+
+Editor.prototype.dragMap=function(state) {
+	this.drag=state;
 };
 
 Editor.prototype.updateCoords=function() {
