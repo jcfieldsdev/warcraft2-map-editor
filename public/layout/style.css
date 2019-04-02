@@ -98,12 +98,22 @@ button.unit img, img.icon {
 	width: 46px;
 }
 
-button.unit img, fieldset, img.icon, canvas#miniMap, fieldset {
+button.unit img, fieldset, img.icon, canvas#frame, fieldset {
 	border: 2px solid #808080;
 }
 
 button.unit:hover img {
 	border-color: #fff;
+}
+
+canvas#frame, canvas#grid {
+	z-index: 3;
+}
+
+canvas#frame, canvas#miniUnitMap {
+	left: 0;
+	position: absolute;
+	top: 0;
 }
 
 canvas#grid {
@@ -112,7 +122,6 @@ canvas#grid {
 	border-style: solid;
 	border-width: 1px 0 0 1px;
 	color: inherit;
-	z-index: 3;
 }
 
 canvas#grid, canvas#tileMap, canvas#unitMap {
@@ -121,17 +130,15 @@ canvas#grid, canvas#tileMap, canvas#unitMap {
 	top: 0;
 }
 
-canvas#miniMap {
-	height: 220px;
-	margin: 1em 15px;
-	width: 220px;
+canvas#miniTileMap, canvas#miniUnitMap {
+	padding: 2px;
 }
 
-canvas#tileMap {
+canvas#miniTileMap, canvas#tileMap {
 	z-index: 1;
 }
 
-canvas#unitMap {
+canvas#miniUnitMap, canvas#unitMap {
 	z-index: 2;
 }
 
@@ -160,6 +167,16 @@ div#overlay_create fieldset {
 
 div#overlay_startingConditions input {
 	width: 6em;
+}
+
+div#miniMap {
+	position: relative;
+}
+
+div#miniMap canvas {
+	height: 220px;
+	margin: 1em 15px;
+	width: 220px;
 }
 
 div#units select {

@@ -11,6 +11,7 @@ const LONG=4;
 const MAX_PLAYERS=8;
 const TILE_SIZE=32;
 const MINIMAP_SIZE=220;
+const LEFT_MARGIN=275;
 
 // file names and locations
 const MAPS_DIR="maps/";
@@ -56,6 +57,12 @@ window.addEventListener("load", function() {
 		a.download=editor.pud.filename;
 		a.href=window.URL.createObjectURL(editor.pud.save());
 		a.click();
+	});
+	$("frame").addEventListener("click", function(event) {
+		editor.moveMap(event.layerX, event.layerY);
+	});
+	$("frame").addEventListener("drag", function(event) {
+		editor.moveMap(event.layerX, event.layerY);
 	});
 	$("btn_about").addEventListener("click", function() {
 		overlays.about.show();
@@ -131,6 +138,14 @@ window.addEventListener("load", function() {
 			});
 			reader.readAsArrayBuffer(file);
 		}
+	});
+
+	window.addEventListener("resize", function() {
+		editor.drawFrame();
+	});
+	window.addEventListener("scroll", function() {
+		editor.updateCoords();
+		editor.drawFrame();
 	});
 
 	let players=document.getElementsByClassName("player");
@@ -229,10 +244,17 @@ function closeAllOverlays() {
 function Editor() {
 	this.pud=null;
 
-	this.miniMap=null;
 	this.tileMap=null;
 	this.unitMap=null;
+	this.miniTileMap=null;
+	this.miniUnitMap=null;
+	this.frame=null;
 	this.tiles=null;
+
+	this.x=0;
+	this.y=0;
+	this.scaleX=0;
+	this.scaleY=0;
 
 	this.player=0;
 
@@ -249,14 +271,21 @@ Editor.prototype.open=function(filename, buffer) {
 
 	$("filename").innerHTML=this.pud.filename;
 
-	setSize("miniMap", MINIMAP_SIZE, MINIMAP_SIZE);
 	setSize("tileMap", this.pud.width*TILE_SIZE, this.pud.height*TILE_SIZE);
 	setSize("unitMap", this.pud.width*TILE_SIZE, this.pud.height*TILE_SIZE);
 	setSize("grid", this.pud.width*TILE_SIZE, this.pud.height*TILE_SIZE);
+	setSize("miniUnitMap", MINIMAP_SIZE, MINIMAP_SIZE);
+	setSize("miniTileMap", MINIMAP_SIZE, MINIMAP_SIZE);
+	setSize("frame", MINIMAP_SIZE, MINIMAP_SIZE);
 
-	this.miniMap=$("miniMap").getContext("2d");
+	this.miniTileMap=$("miniTileMap").getContext("2d");
+	this.miniUnitMap=$("miniUnitMap").getContext("2d");
+	this.frame=$("frame").getContext("2d");
 	this.tileMap=$("tileMap").getContext("2d");
 	this.unitMap=$("unitMap").getContext("2d");
+
+	this.scaleX=MINIMAP_SIZE/$("tileMap").width;
+	this.scaleY=MINIMAP_SIZE/$("tileMap").height;
 
 	this.selectPlayer(this.player);
 	this.selectPalette("units");
@@ -274,12 +303,7 @@ Editor.prototype.drawTileMap=function() {
 	let tiles=tilesets[this.pud.tileset];
 	let x=0, y=0;
 
-	let rx=MINIMAP_SIZE/$("tileMap").width, ry=MINIMAP_SIZE/$("tileMap").height;
-	this.miniMap.rect(0, 0, rx*(window.innerWidth-275), ry*window.innerHeight);
-	this.miniMap.lineWidth=2;
-	this.miniMap.strokeStyle="#fff";
-	this.miniMap.stroke();
-	this.miniMap.scale(rx, ry);
+	this.miniTileMap.scale(this.scaleX, this.scaleY);
 
 	for (let i=0; i<this.pud.tileMap.length; i++) {
 		let w=x*TILE_SIZE, h=y*TILE_SIZE, tile=this.pud.tileMap[i];
@@ -292,7 +316,7 @@ Editor.prototype.drawTileMap=function() {
 				w, h,
 				TILE_SIZE, TILE_SIZE
 			);
-			this.miniMap.drawImage(
+			this.miniTileMap.drawImage(
 				this.tiles,
 				tiles[tile].x, tiles[tile].y,
 				TILE_SIZE, TILE_SIZE,
@@ -308,13 +332,41 @@ Editor.prototype.drawTileMap=function() {
 			x++;
 		}
 	}
+
+	this.drawFrame();
+};
+
+Editor.prototype.moveMap=function(x, y) {
+	window.scroll(
+		$("tileMap").width/MINIMAP_SIZE*x-LEFT_MARGIN,
+		$("tileMap").height/MINIMAP_SIZE*y
+	);
+};
+
+Editor.prototype.updateCoords=function() {
+	this.x=this.scaleX*window.scrollX;
+	this.y=this.scaleY*window.scrollY;
+};
+
+Editor.prototype.drawFrame=function() {
+	this.frame.clearRect(0, 0, $("frame").width, $("frame").height);
+	this.frame.beginPath();
+	this.frame.rect(
+		this.x, this.y,
+		this.scaleX*(window.innerWidth-LEFT_MARGIN),
+		this.scaleY*window.innerHeight
+	);
+	this.frame.lineWidth=2;
+	this.frame.strokeStyle="#fff";
+	this.frame.stroke();
 };
 
 Editor.prototype.drawUnitMap=function() {
-	let unitMap=this.unitMap, miniMap=this.miniMap;
+	let unitMap=this.unitMap, miniUnitMap=this.miniUnitMap;
 
 	// clears canvas every time or units will stack when tileset changed
 	unitMap.clearRect(0, 0, $("unitMap").width, $("unitMap").height);
+	miniUnitMap.scale(this.scaleX, this.scaleY);
 
 	this.pud.unitMap.forEach(function(unit) {
 		let unitSize=1, img=new Image();
@@ -331,7 +383,7 @@ Editor.prototype.drawUnitMap=function() {
 			let w=unitSize.x*TILE_SIZE, h=unitSize.y*TILE_SIZE;
 
 			drawUnit(unitMap, this, unit, x, y, w, h);
-			drawMiniMap(miniMap, unit.owner, x, y, w, h);
+			drawMiniMap(miniUnitMap, unit.owner, x, y, w, h, unit);
 		});
 	}, this);
 
@@ -381,23 +433,23 @@ Editor.prototype.drawUnitMap=function() {
 		unitMap.putImageData(imageData, x, y);
 	}
 
-	function drawMiniMap(miniMap, owner, x, y, w, h) {
-		if (owner>7) { // neutral players use yellow colors
+	function drawMiniMap(miniUnitMap, owner, x, y, w, h, unit) {
+		if (owner>7) { // neutral players use same color as player 8 (yellow)
 			owner=7;
 		}
 
 		// uses first player color for minimap squares
-		let r=colors[owner][0].r.toString(16);
-		let g=colors[owner][0].g.toString(16);
-		let b=colors[owner][0].b.toString(16);
+		let r=colors[owner][0].r.toString(16).padStart(2, "0");
+		let g=colors[owner][0].g.toString(16).padStart(2, "0");
+		let b=colors[owner][0].b.toString(16).padStart(2, "0");
 
 		x=Math.floor(x);
 		y=Math.floor(y);
 		w=Math.ceil(w);
-		w=Math.ceil(h);
+		h=Math.ceil(h);
 
-		miniMap.fillStyle="#"+r+g+b;
-		miniMap.fillRect(x, y, w, h);
+		miniUnitMap.fillStyle="#"+r+g+b;
+		miniUnitMap.fillRect(x, y, w, h);
 	}
 };
 
