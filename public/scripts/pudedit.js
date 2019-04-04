@@ -887,8 +887,8 @@ Editor.prototype.setRadio=function(name, compare) {
 Editor.prototype.setSelect=function(id, compare) {
 	let select=$(id), options=select.options;
 
-	for (let element of options) {
-		if (element.value==compare) {
+	for (let i=0; i<options.length; i++) {
+		if (options[i].value==compare) {
 			select.selectedIndex=i;
 		}
 	}
