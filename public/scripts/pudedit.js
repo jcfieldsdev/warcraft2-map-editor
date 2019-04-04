@@ -13,7 +13,7 @@ const MAX_PLAYERS=8;
 const TILE_SIZE=32;
 
 // layout/appearance
-const MINIMAP_SIZE=220;
+const MINIMAP_SIZE=200;
 const LEFT_MARGIN=275;
 const FRAME_COLOR="#fff";
 const SELECT_COLOR="#0f0";
