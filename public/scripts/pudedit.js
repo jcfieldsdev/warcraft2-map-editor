@@ -519,13 +519,13 @@ Editor.prototype.drawFrame=function() {
 
 Editor.prototype.startSelect=function(x, y) {
 	this.dragSelect=true;
-	this.selectX=x-LEFT_MARGIN;
-	this.selectY=y;
+	this.selectX=window.scrollX+x-LEFT_MARGIN;
+	this.selectY=window.scrollY+y;
 };
 
 Editor.prototype.drawSelect=function(x, y) {
-	let w=x-this.selectX-LEFT_MARGIN;
-	let h=y-this.selectY;
+	let w=window.scrollX+x-this.selectX-LEFT_MARGIN;
+	let h=window.scrollY+y-this.selectY;
 
 	this.select.clearRect(0, 0, $("select").width, $("select").height);
 	this.select.beginPath();
@@ -543,8 +543,8 @@ Editor.prototype.selectUnit=function(x, y) {
 	this.select.lineWidth=1;
 	this.select.strokeStyle=SELECT_COLOR;
 
-	x=Math.floor((x-LEFT_MARGIN)/TILE_SIZE);
-	y=Math.floor(y/TILE_SIZE);
+	x=Math.floor((window.scrollX+x-LEFT_MARGIN)/TILE_SIZE);
+	y=Math.floor((window.scrollY+y)/TILE_SIZE);
 
 	Object.values(this.pud.unitMap).forEach(function(unit) {
 		let unitSize=this.pud.units.unitSize[unit.type];
@@ -814,6 +814,8 @@ Editor.prototype.submitMapProperties=function() {
 	if (this.pud.tileset!=tileset){
 		this.changeTileset(tileset);
 	}
+
+	$("filename").textContent=this.pud.filename;
 };
 
 Editor.prototype.submitPlayerProperties=function() {
