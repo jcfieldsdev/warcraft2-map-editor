@@ -53,28 +53,28 @@ window.addEventListener("load", function() {
 		editor.dragFrame=false;
 	});
 	$("frame").addEventListener("click", function(event) {
-		editor.moveMap(event.layerX, event.layerY);
+		editor.moveMap(event.clientX, event.clientY);
 	});
 	$("frame").addEventListener("mousemove", function(event) {
 		if (editor.dragFrame) {
-			editor.moveMap(event.layerX, event.layerY);
+			editor.moveMap(event.clientX, event.clientY);
 		}
 	});
 	// for map
 	$("select").addEventListener("mousedown", function() {
-		editor.startSelect(event.layerX, event.layerY);
+		editor.startSelect(event.clientX, event.clientY);
 	});
 	$("select").addEventListener("mouseup", function() {
 		if (editor.dragSelect) {
-			editor.selectUnits(event.layerX, event.layerY);
+			editor.selectUnits(event.clientX, event.clientY);
 		}
 	});
 	$("select").addEventListener("click", function(event) {
-		editor.selectUnit(event.layerX, event.layerY);
+		editor.selectUnit(event.clientX, event.clientY);
 	});
 	$("select").addEventListener("mousemove", function(event) {
 		if (editor.dragSelect) {
-			editor.drawSelect(event.layerX, event.layerY);
+			editor.drawSelect(event.clientX, event.clientY);
 		}
 	});
 	// for palettes
@@ -309,6 +309,7 @@ function Editor() {
 	this.selectY=0;
 
 	this.dragFrame=false;
+	this.pos=null;
 	this.x=0;
 	this.y=0;
 	this.scaleX=0;
@@ -344,6 +345,7 @@ Editor.prototype.open=function(filename, buffer) {
 	this.miniUnitMap=$("miniUnitMap").getContext("2d");
 	this.frame=$("frame").getContext("2d");
 
+	this.pos=$("frame").getBoundingClientRect();
 	this.scaleX=MINIMAP_SIZE/$("tileMap").width;
 	this.scaleY=MINIMAP_SIZE/$("tileMap").height;
 
@@ -489,6 +491,9 @@ Editor.prototype.drawUnitMap=function() {
 };
 
 Editor.prototype.moveMap=function(x, y) {
+	x-=this.pos.left;
+	y-=this.pos.top;
+
 	window.scroll(
 		x/this.scaleX-window.innerWidth/2,
 		y/this.scaleY-window.innerHeight/2
@@ -515,12 +520,13 @@ Editor.prototype.drawFrame=function() {
 
 Editor.prototype.startSelect=function(x, y) {
 	this.dragSelect=true;
-	this.selectX=x;
+	this.selectX=x-LEFT_MARGIN;
 	this.selectY=y;
 };
 
 Editor.prototype.drawSelect=function(x, y) {
-	let w=x-this.selectX, h=y-this.selectY;
+	let w=x-this.selectX-LEFT_MARGIN;
+	let h=y-this.selectY;
 
 	this.select.clearRect(0, 0, $("select").width, $("select").height);
 	this.select.beginPath();
@@ -538,7 +544,7 @@ Editor.prototype.selectUnit=function(x, y) {
 	this.select.lineWidth=1;
 	this.select.strokeStyle=SELECT_COLOR;
 
-	x=Math.floor(x/TILE_SIZE);
+	x=Math.floor((x-LEFT_MARGIN)/TILE_SIZE);
 	y=Math.floor(y/TILE_SIZE);
 
 	Object.values(this.pud.unitMap).forEach(function(unit) {
@@ -573,7 +579,7 @@ Editor.prototype.selectUnits=function(x, y) {
 
 	let x1=Math.floor(this.selectX/TILE_SIZE);
 	let y1=Math.floor(this.selectY/TILE_SIZE);
-	let x2=Math.floor(x/TILE_SIZE);
+	let x2=Math.floor((x-LEFT_MARGIN)/TILE_SIZE);
 	let y2=Math.floor(y/TILE_SIZE);
 
 	Object.values(this.pud.unitMap).forEach(function(unit) {
