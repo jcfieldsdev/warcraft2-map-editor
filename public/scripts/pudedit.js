@@ -935,10 +935,14 @@ Editor.prototype.saveImage=function() {
 	context.drawImage($("unitMap"), 0, 0, canvas.width, canvas.height);
 	context.drawImage($("grid"), 0, 0, canvas.width, canvas.height);
 
-	let a=document.getElementById("download");
-	a.download=this.pud.filename.replace(/\.pud$/, ".png");
-	a.href=canvas.toDataURL("image/png");
-	a.click();
+	let filename=this.pud.filename.replace(/\.pud$/, ".png");
+
+	canvas.toBlob(function(blob) {
+		let a=document.getElementById("download");
+		a.download=filename;
+		a.href=window.URL.createObjectURL(blob);
+		a.click();
+	}, "image/png");
 };
 
 /*
