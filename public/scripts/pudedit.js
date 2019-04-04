@@ -42,7 +42,17 @@ const overlays={
  */
 
 window.addEventListener("load", function() {
-	files.loadTemplate("forest", 128);
+	let query=window.location.search.replace(/\?map=(.*)/, "$1");
+
+	if (query=="") {
+		files.loadTemplate("forest", 128);
+	} else {
+		let path=query.split("/");
+		let filename=decodeURIComponent(path.pop());
+
+		files.path=path;
+		files.load(filename, editor.open.bind(editor));
+	}
 
 	// event listeners
 	// for minimap
