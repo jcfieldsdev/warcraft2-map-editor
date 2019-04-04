@@ -353,7 +353,11 @@ nav {
 optgroup {
 	font-family: inherit;
 	font-size: inherit;
-	font-style: italic;
+	font-style: normal;
+	font-weight: bold;
+}
+
+optgroup option {
 	font-weight: normal;
 }
 
