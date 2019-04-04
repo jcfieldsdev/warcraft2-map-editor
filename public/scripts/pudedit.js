@@ -348,6 +348,7 @@ Editor.prototype.open=function(filename, buffer) {
 	this.pos=$("frame").getBoundingClientRect();
 	this.scaleX=MINIMAP_SIZE/$("tileMap").width;
 	this.scaleY=MINIMAP_SIZE/$("tileMap").height;
+	this.miniTileMap.scale(this.scaleX, this.scaleY);
 
 	this.selectPlayer(this.player);
 	this.selectPalette("units");
@@ -364,8 +365,6 @@ Editor.prototype.open=function(filename, buffer) {
 Editor.prototype.drawTileMap=function() {
 	let tiles=tilesets[this.pud.tileset];
 	let x=0, y=0;
-
-	this.miniTileMap.scale(this.scaleX, this.scaleY);
 
 	for (let i=0; i<this.pud.tileMap.length; i++) {
 		let w=x*TILE_SIZE, h=y*TILE_SIZE, tile=this.pud.tileMap[i];
