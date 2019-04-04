@@ -12,9 +12,9 @@
 <body><header><h1>Warcraft II Map Editor</h1></header>
 <nav>
 <ul id="basic">
-	<li><button title="Create a new scenario" id="create"><img src="layout/icon-create.svg" alt="[Create]"></span></button></li>
-	<li><button title="Open an existing scenario" id="open"><img src="layout/icon-open.svg" alt="[Open]"></li>
-	<li><button title="Save this scenario" id="save"><img src="layout/icon-save.svg" alt="[Save]"></button></li>
+	<li><button title="Create a new scenario" value="create" class="basic"><img src="layout/icon-create.svg" alt="[Create]"></span></button></li>
+	<li><button title="Open an existing scenario" value="open" class="basic"><img src="layout/icon-open.svg" alt="[Open]"></li>
+	<li><button title="Save this scenario" value="save" class="basic"><img src="layout/icon-save.svg" alt="[Save Map]"></button></li>
 </ul>
 <div id="filename"></div>
 <div id="miniMap"><canvas id="miniTileMap"></canvas>
@@ -32,10 +32,21 @@
 	<li><button value="15" title="Neutral" class="player player15">0</button></li>
 </ul>
 <ul id="mode">
+	<li><button value="editor" class="mode">Editor</button></li>
 	<li><button value="terrain" class="mode">Terrain</button></li>
 	<li><button value="units" class="mode">Units</button></li>
 	<li><button value="map" class="mode">Map</button></li>
 </ul>
+<div id="editor" class="palette"><ul>
+	<li><button id="create"><img src="layout/icon-create.svg" alt="[Create]"> Create</button></li>
+	<li><button id="open"><img src="layout/icon-open.svg" alt="[Open]"> Open</li>
+	<li><button id="save"><img src="layout/icon-save.svg" alt="[Save Map]"> Save Map</button></li>
+	<li><button id="saveImage"><img src="layout/icon-image.svg" alt="[Save Map as Image]"> Save Map as Image</button></li>
+	<li><button id="about"><img src="layout/icon-about.svg" alt="[About]"> About</button></li>
+</ul>
+<div><label><input type="checkbox" value="tileMap" checked="checked" class="layer"> Terrain</label>
+<label><input type="checkbox" value="unitMap" checked="checked" class="layer"> Units</label>
+<label><input type="checkbox" value="grid" class="layer"> Grid</label></div></div>
 <div id="terrain" class="palette">
 <ul>
 	<li><button id="btn_mapBrushLight">Light</button></li>
@@ -73,15 +84,12 @@
 	<li><button id="btn_startingConditions">Starting Resources</button></li>
 	<li><button id="btn_unitProperties">Unit Properties</button></li>
 	<li><button id="btn_upgradeProperties">Upgrade Properties</button></li>
-	<li><button id="btn_about">About</button></li>
-</ul>
-<div><label><input type="checkbox" value="tileMap" checked="checked" class="layer"> Terrain</label>
-<label><input type="checkbox" value="unitMap" checked="checked" class="layer"> Units</label>
-<label><input type="checkbox" value="grid" class="layer"> Grid</label></div></div></nav>
+</ul></div></nav>
 <main><noscript><p>Must have JavaScript enabled.</p></noscript>
 <canvas id="tileMap"></canvas>
 <canvas id="unitMap"></canvas>
 <canvas id="grid" class="hidden"></canvas>
+<canvas id="select"></canvas>
 <div id="overlay_create" class="overlay"><div class="title"><h2>Create</h2>
 <button type="button" title="Create" id="submit_create"><img src="layout/widget-save.svg" alt="Create"></button>
 <button type="button" value="create" title="Close" class="close"><img src="layout/widget-close.svg" alt="Close"></button></div>
@@ -367,6 +375,14 @@
 <tr><td><label for="number_upgradeIcon">Icon:</label></td><td><img src="icons/forest/0000.png" alt="[Upgrade icon]" id="img_upgradeIcon" class="icon"><input type="number" min="0" max="65535" id="number_upgradeIcon"></td></tr>
 <tr><td><label for="number_upgradeGroup">Group:</label></td><td><input type="number" min="0" max="65535" id="number_upgradeGroup"></td></tr>
 <tr><td><label for="number_upgradeEffect">Effect:</label></td><td><select id="number_upgradeEffect"><option value="1">0</option><option value="2">1</option><option value="4">2</option><option value="8">3</option><option value="16">4</option><option value="32">5</option><option value="64">6</option><option value="128">7</option><option value="256">8</option><option value="512">9</option><option value="1024">10</option><option value="2048">11</option><option value="4096">12</option><option value="8192">13</option><option value="16384">14</option><option value="32768">15</option><option value="65536">16</option><option value="131072">17</option><option value="262144">18</option><option value="524288">19</option><option value="1048576">20</option></select></td></tr></table></fieldset></div></div>
+<div id="overlay_specialProperties" class="overlay"><div class="title"><h2>Special Properties</h2>
+<button type="button" id="submit_specialProperties" title="Save"><img src="layout/widget-save.svg" alt="Save"></button>
+<button type="button" value="specialProperties" title="Close" class="close"><img src="layout/widget-close.svg" alt="Close"></button></div>
+<fieldset><legend>Resources:</legend>
+<div><input type="range" min="1" max="100" value="50" id="range_resource"></div></fieldset>
+<fieldset><legend>A.I. behavior:</legend>
+<div><label><input type="radio" value="active" name="radio_ai"> Active</label></div>
+<div><label><input type="radio" value="passive" name="radio_ai"> Passive</label></div></fieldset></div>
 <div id="overlay_about" class="overlay"><div class="title"><h2>About</h2>
 <button type="button" value="about" title="Close" class="close"><img src="layout/widget-close.svg" alt="Close"></button></div>
 <p>Created by <a href="mailto:jcfields+pudedit@gmail.com">typhoon</a>. Hosted by <a href="https://gitlab.com/jcfields/warcraft2-map-editor">GitLab</a>.</p>

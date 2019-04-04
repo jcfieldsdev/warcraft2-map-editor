@@ -125,7 +125,7 @@ canvas#grid {
 	color: inherit;
 }
 
-canvas#grid, canvas#tileMap, canvas#unitMap {
+canvas#grid, canvas#select, canvas#tileMap, canvas#unitMap {
 	left: 275px;
 	position: absolute;
 	top: 0;
@@ -139,8 +139,19 @@ canvas#miniUnitMap, canvas#unitMap {
 	z-index: 2;
 }
 
-div#about, div#filename, div#map, input#text_height, input#text_width {
+canvas#select {
+	z-index: 4;
+}
+
+div#editor div, div#filename, div#map, input#text_height, input#text_width {
 	text-align: center;
+}
+
+div#editor img {
+	height: 16px;
+	margin: 0 0.5em;
+	vertical-align: middle;
+	width: 16px;
 }
 
 div#filename {
@@ -187,7 +198,7 @@ div.overlay {
 	top: 50%;
 	transform: translate(-50%, -50%);
 	visibility: hidden;
-	z-index: 5;
+	z-index: 6;
 }
 
 div.overlay, nav {
@@ -326,7 +337,7 @@ nav {
 	left: 0.5em;
 	top: 0.5em;
 	width: 250px;
-	z-index: 4;
+	z-index: 5;
 }
 
 optgroup {

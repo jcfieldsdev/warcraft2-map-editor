@@ -8,10 +8,15 @@ const BYTE=1;
 const WORD=2;
 const LONG=4;
 
+// game mechanics
 const MAX_PLAYERS=8;
 const TILE_SIZE=32;
+
+// layout/appearance
 const MINIMAP_SIZE=220;
 const LEFT_MARGIN=275;
+const FRAME_COLOR="#fff";
+const SELECT_COLOR="#0f0";
 
 // file names and locations
 const MAPS_DIR="maps/";
@@ -28,7 +33,8 @@ const overlays={
 	playerProperties: new Overlay("playerProperties"),
 	startingConditions: new Overlay("startingConditions"),
 	unitProperties: new Overlay("unitProperties"),
-	upgradeProperties: new Overlay("upgradeProperties")
+	upgradeProperties: new Overlay("upgradeProperties"),
+	specialProperties: new Overlay("specialProperties")
 };
 
 /*
@@ -38,6 +44,40 @@ const overlays={
 window.addEventListener("load", function() {
 	files.loadTemplate("forest", 128);
 
+	// event listeners
+	// for minimap
+	$("frame").addEventListener("mousedown", function() {
+		editor.dragFrame=true;
+	});
+	$("frame").addEventListener("mouseup", function() {
+		editor.dragFrame=false;
+	});
+	$("frame").addEventListener("click", function(event) {
+		editor.moveMap(event.layerX, event.layerY);
+	});
+	$("frame").addEventListener("mousemove", function(event) {
+		if (editor.dragFrame) {
+			editor.moveMap(event.layerX, event.layerY);
+		}
+	});
+	// for map
+	$("select").addEventListener("mousedown", function() {
+		editor.startSelect(event.layerX, event.layerY);
+	});
+	$("select").addEventListener("mouseup", function() {
+		if (editor.dragSelect) {
+			editor.selectUnits(event.layerX, event.layerY);
+		}
+	});
+	$("select").addEventListener("click", function(event) {
+		editor.selectUnit(event.layerX, event.layerY);
+	});
+	$("select").addEventListener("mousemove", function(event) {
+		if (editor.dragSelect) {
+			editor.drawSelect(event.layerX, event.layerY);
+		}
+	});
+	// for palettes
 	$("create").addEventListener("click", function() {
 		editor.openCreate();
 		overlays.create.show();
@@ -58,21 +98,10 @@ window.addEventListener("load", function() {
 		a.href=window.URL.createObjectURL(editor.pud.save());
 		a.click();
 	});
-	$("frame").addEventListener("mousedown", function() {
-		editor.drag=true;
+	$("saveImage").addEventListener("click", function() {
+		editor.saveImage();
 	});
-	$("frame").addEventListener("mouseup", function() {
-		editor.drag=false;
-	});
-	$("frame").addEventListener("click", function(event) {
-		editor.moveMap(event.layerX, event.layerY);
-	});
-	$("frame").addEventListener("mousemove", function(event) {
-		if (editor.drag) {
-			editor.moveMap(event.layerX, event.layerY);
-		}
-	});
-	$("btn_about").addEventListener("click", function() {
+	$("about").addEventListener("click", function() {
 		overlays.about.show();
 	});
 	$("filename").addEventListener("click", function() {
@@ -99,6 +128,7 @@ window.addEventListener("load", function() {
 		editor.openUpgradeProperties();
 		overlays.upgradeProperties.show();
 	});
+	// for overlay save buttons
 	$("submit_create").addEventListener("click", function() {
 		editor.submitCreate();
 		overlays.create.hide();
@@ -123,6 +153,7 @@ window.addEventListener("load", function() {
 		editor.submitUpgradeProperties();
 		overlays.upgradeProperties.hide();
 	});
+	// for overlay widgets
 	$("select_unitsPalette").addEventListener("input", function() {
 		editor.changeUnitPalette();
 	});
@@ -135,6 +166,7 @@ window.addEventListener("load", function() {
 	$("number_upgradeIcon").addEventListener("input", function() {
 		editor.changeIcon(this, $("img_upgradeIcon"), $("select_upgrades"));
 	});
+	// for file browser in open overlay
 	$("file").addEventListener("input", function(event) {
 		let file=event.target.files[0];
 
@@ -148,6 +180,55 @@ window.addEventListener("load", function() {
 		}
 	});
 
+	window.addEventListener("keyup", function(event) {
+		if (event.keyCode==13) { // Enter
+			editor.submitSpecialProperties();
+			overlays.specialProperties.show();
+		}
+
+		if (event.keyCode==27) { // Esc
+			closeAllOverlays();
+		}
+
+		if (event.keyCode==48) { // 0
+			editor.selectPlayer(15);
+		}
+
+		if (event.keyCode==49) { // 1
+			editor.selectPlayer(0);
+		}
+
+		if (event.keyCode==50) { // 2
+			editor.selectPlayer(1);
+		}
+
+		if (event.keyCode==51) { // 3
+			editor.selectPlayer(2);
+		}
+
+		if (event.keyCode==52) { // 4
+			editor.selectPlayer(3);
+		}
+
+		if (event.keyCode==53) { // 5
+			editor.selectPlayer(4);
+		}
+
+		if (event.keyCode==54) { // 6
+			editor.selectPlayer(5);
+		}
+
+		if (event.keyCode==55) { // 7
+			editor.selectPlayer(6);
+		}
+
+		if (event.keyCode==56) { // 8
+			editor.selectPlayer(7);
+		}
+	});
+	window.addEventListener("beforeunload", function() {
+	//	store.save(editor.pud);
+	});
 	window.addEventListener("resize", function() {
 		editor.drawFrame();
 	});
@@ -156,82 +237,44 @@ window.addEventListener("load", function() {
 		editor.drawFrame();
 	});
 
+	let basic=document.getElementsByClassName("basic");
+
+	for (let element of basic) {
+		element.addEventListener("click", function() {
+			$(this.value).click();
+		});
+	}
+
 	let players=document.getElementsByClassName("player");
 
-	for (let i=0; i<players.length; i++) {
-		players[i].addEventListener("click", function() {
+	for (let element of players) {
+		element.addEventListener("click", function() {
 			editor.selectPlayer(this.value);
 		});
 	}
 
 	let modes=document.getElementsByClassName("mode");
 
-	for (let i=0; i<modes.length; i++) {
-		modes[i].addEventListener("click", function() {
+	for (let element of modes) {
+		element.addEventListener("click", function() {
 			editor.selectPalette(this.value);
 		});
 	}
 
 	let toggles=document.getElementsByClassName("layer");
 
-	for (let i=0; i<toggles.length; i++) {
-		toggles[i].addEventListener("click", function() {
+	for (let element of toggles) {
+		element.addEventListener("click", function() {
 			$(this.value).classList.toggle("hidden", !this.checked);
 		});
 	}
 
 	let close=document.getElementsByClassName("close");
 
-	for (let i=0; i<close.length; i++) {
-		close[i].addEventListener("click", function() {
+	for (let element of close) {
+		element.addEventListener("click", function() {
 			overlays[this.value].hide();
 		});
-	}
-});
-
-window.addEventListener("beforeunload", function() {
-//	store.save(editor.pud);
-});
-
-window.addEventListener("keyup", function(event) {
-	if (event.keyCode==27) { // Esc
-		closeAllOverlays();
-	}
-
-	if (event.keyCode==48) { // 0
-		editor.selectPlayer(15);
-	}
-
-	if (event.keyCode==49) { // 1
-		editor.selectPlayer(0);
-	}
-
-	if (event.keyCode==50) { // 2
-		editor.selectPlayer(1);
-	}
-
-	if (event.keyCode==51) { // 3
-		editor.selectPlayer(2);
-	}
-
-	if (event.keyCode==52) { // 4
-		editor.selectPlayer(3);
-	}
-
-	if (event.keyCode==53) { // 5
-		editor.selectPlayer(4);
-	}
-
-	if (event.keyCode==54) { // 6
-		editor.selectPlayer(5);
-	}
-
-	if (event.keyCode==55) { // 7
-		editor.selectPlayer(6);
-	}
-
-	if (event.keyCode==56) { // 8
-		editor.selectPlayer(7);
 	}
 });
 
@@ -254,13 +297,18 @@ function Editor() {
 
 	this.tileMap=null;
 	this.unitMap=null;
+	this.select=null;
 	this.miniTileMap=null;
 	this.miniUnitMap=null;
 	this.frame=null;
 	this.tiles=null;
 
-	this.drag=false;
+	this.dragSelect=false;
+	this.selected=[];
+	this.selectX=0;
+	this.selectY=0;
 
+	this.dragFrame=false;
 	this.x=0;
 	this.y=0;
 	this.scaleX=0;
@@ -284,15 +332,17 @@ Editor.prototype.open=function(filename, buffer) {
 	setSize("tileMap", this.pud.width*TILE_SIZE, this.pud.height*TILE_SIZE);
 	setSize("unitMap", this.pud.width*TILE_SIZE, this.pud.height*TILE_SIZE);
 	setSize("grid", this.pud.width*TILE_SIZE, this.pud.height*TILE_SIZE);
+	setSize("select", this.pud.width*TILE_SIZE, this.pud.height*TILE_SIZE);
 	setSize("miniUnitMap", MINIMAP_SIZE, MINIMAP_SIZE);
 	setSize("miniTileMap", MINIMAP_SIZE, MINIMAP_SIZE);
 	setSize("frame", MINIMAP_SIZE, MINIMAP_SIZE);
 
+	this.tileMap=$("tileMap").getContext("2d");
+	this.unitMap=$("unitMap").getContext("2d");
+	this.select=$("select").getContext("2d");
 	this.miniTileMap=$("miniTileMap").getContext("2d");
 	this.miniUnitMap=$("miniUnitMap").getContext("2d");
 	this.frame=$("frame").getContext("2d");
-	this.tileMap=$("tileMap").getContext("2d");
-	this.unitMap=$("unitMap").getContext("2d");
 
 	this.scaleX=MINIMAP_SIZE/$("tileMap").width;
 	this.scaleY=MINIMAP_SIZE/$("tileMap").height;
@@ -346,31 +396,6 @@ Editor.prototype.drawTileMap=function() {
 	this.drawFrame();
 };
 
-Editor.prototype.moveMap=function(x, y) {
-	window.scroll(
-		x/this.scaleX-window.innerWidth/2,
-		y/this.scaleY-window.innerHeight/2
-	);
-};
-
-Editor.prototype.updateCoords=function() {
-	this.x=this.scaleX*window.scrollX;
-	this.y=this.scaleY*window.scrollY;
-};
-
-Editor.prototype.drawFrame=function() {
-	this.frame.clearRect(0, 0, $("frame").width, $("frame").height);
-	this.frame.beginPath();
-	this.frame.rect(
-		this.x, this.y,
-		this.scaleX*(window.innerWidth-LEFT_MARGIN),
-		this.scaleY*window.innerHeight
-	);
-	this.frame.lineWidth=2;
-	this.frame.strokeStyle="#fff";
-	this.frame.stroke();
-};
-
 Editor.prototype.drawUnitMap=function() {
 	let unitMap=this.unitMap, miniUnitMap=this.miniUnitMap;
 
@@ -418,7 +443,7 @@ Editor.prototype.drawUnitMap=function() {
 			return;
 		}
 
-		if (owner>7) { // neutral players use yellow colors
+		if (owner>7) { // neutral players use same colors as player 8
 			owner=7;
 		}
 
@@ -427,7 +452,7 @@ Editor.prototype.drawUnitMap=function() {
 
 		// changes player colors to match unit owner
 		for (let i=0; i<imageData.data.length; i+=4) { // 4 for RGBA
-			for (let j=0; j<4; j++) { // 4 player colors for each player
+			for (let j=0; j<4; j++) { // 4 colors for each player
 				if (
 					imageData.data[i]==colors[0][j].r&&
 					imageData.data[i+1]==colors[0][j].g&&
@@ -443,8 +468,8 @@ Editor.prototype.drawUnitMap=function() {
 		unitMap.putImageData(imageData, x, y);
 	}
 
-	function drawMiniMap(miniUnitMap, owner, x, y, w, h, unit) {
-		if (owner>7) { // neutral players use same color as player 8 (yellow)
+	function drawMiniMap(miniUnitMap, owner, x, y, w, h) {
+		if (owner>7) { // neutral players use same color as player 8
 			owner=7;
 		}
 
@@ -461,6 +486,118 @@ Editor.prototype.drawUnitMap=function() {
 		miniUnitMap.fillStyle="#"+r+g+b;
 		miniUnitMap.fillRect(x, y, w, h);
 	}
+};
+
+Editor.prototype.moveMap=function(x, y) {
+	window.scroll(
+		x/this.scaleX-window.innerWidth/2,
+		y/this.scaleY-window.innerHeight/2
+	);
+};
+
+Editor.prototype.updateCoords=function() {
+	this.x=this.scaleX*window.scrollX;
+	this.y=this.scaleY*window.scrollY;
+};
+
+Editor.prototype.drawFrame=function() {
+	this.frame.clearRect(0, 0, $("frame").width, $("frame").height);
+	this.frame.beginPath();
+	this.frame.rect(
+		this.x, this.y,
+		this.scaleX*(window.innerWidth-LEFT_MARGIN),
+		this.scaleY*window.innerHeight
+	);
+	this.frame.lineWidth=2;
+	this.frame.strokeStyle=FRAME_COLOR;
+	this.frame.stroke();
+};
+
+Editor.prototype.startSelect=function(x, y) {
+	this.dragSelect=true;
+	this.selectX=x;
+	this.selectY=y;
+};
+
+Editor.prototype.drawSelect=function(x, y) {
+	let w=x-this.selectX, h=y-this.selectY;
+
+	this.select.clearRect(0, 0, $("select").width, $("select").height);
+	this.select.beginPath();
+	this.select.rect(this.selectX, this.selectY, w, h);
+	this.select.lineWidth=1;
+	this.select.strokeStyle=SELECT_COLOR;
+	this.select.stroke();
+};
+
+Editor.prototype.selectUnit=function(x, y) {
+	this.selected=[];
+	this.dragSelect=false;
+
+	this.select.clearRect(0, 0, $("select").width, $("select").height);
+	this.select.lineWidth=1;
+	this.select.strokeStyle=SELECT_COLOR;
+
+	x=Math.floor(x/TILE_SIZE);
+	y=Math.floor(y/TILE_SIZE);
+
+	Object.values(this.pud.unitMap).forEach(function(unit) {
+		let unitSize=this.pud.units.unitSize[unit.type];
+
+		if (unitSize==undefined) {
+			return;
+		}
+
+		let gx1=unit.x, gy1=unit.y;
+		let gx2=unit.x+unitSize.x-1, gy2=unit.y+unitSize.y-1;
+
+		if (x>=gx1&&x<=gx2&&y>=gy1&&y<=gy2) {
+			this.select.beginPath();
+			this.select.rect(
+				gx1*TILE_SIZE, gy1*TILE_SIZE,
+				unitSize.x*TILE_SIZE, unitSize.y*TILE_SIZE
+			);
+			this.select.stroke();
+
+			this.selected.push(unit);
+		}
+	}, this);
+};
+
+Editor.prototype.selectUnits=function(x, y) {
+	this.selected=[];
+
+	this.select.clearRect(0, 0, $("select").width, $("select").height);
+	this.select.lineWidth=1;
+	this.select.strokeStyle=SELECT_COLOR;
+
+	let x1=Math.floor(this.selectX/TILE_SIZE);
+	let y1=Math.floor(this.selectY/TILE_SIZE);
+	let x2=Math.floor(x/TILE_SIZE);
+	let y2=Math.floor(y/TILE_SIZE);
+
+	Object.values(this.pud.unitMap).forEach(function(unit) {
+		let unitSize=this.pud.units.unitSize[unit.type];
+
+		if (unitSize==undefined) {
+			return;
+		}
+
+		let gx1=unit.x, gy1=unit.y;
+		let gx2=unit.x+unitSize.x-1, gy2=unit.y+unitSize.y-1;
+
+		if (gx1>=x1&&gx2<=x2&&gy1>=y1&&gy2<=y2) {
+			this.select.rect(
+				gx1*TILE_SIZE, gy1*TILE_SIZE,
+				unitSize.x*TILE_SIZE, unitSize.y*TILE_SIZE
+			);
+			this.select.stroke();
+
+			this.selected.push(unit);
+		}
+	}, this);
+
+	console.log(this.selected);
 };
 
 Editor.prototype.openCreate=function() {
@@ -510,8 +647,8 @@ Editor.prototype.openUpgradeProperties=function() {
 Editor.prototype.selectPlayer=function(player) {
 	let players=document.getElementsByClassName("player");
 
-	for (let i=0; i<players.length; i++) {
-		players[i].classList.toggle("current", players[i].value==player);
+	for (let element of players) {
+		element.classList.toggle("current", element.value==player);
 	}
 
 	this.player=player;
@@ -521,14 +658,14 @@ Editor.prototype.selectPlayer=function(player) {
 Editor.prototype.selectPalette=function(palette) {
 	let palettes=document.getElementsByClassName("palette");
 
-	for (let i=0; i<palettes.length; i++) {
-		palettes[i].classList.toggle("open", palettes[i].id==palette);
+	for (let element of palettes) {
+		element.classList.toggle("open", element.id==palette);
 	}
 
 	let modes=document.getElementsByClassName("mode");
 
-	for (let i=0; i<modes.length; i++) {
-		modes[i].classList.toggle("current", modes[i].value==palette);
+	for (let element of modes) {
+		element.classList.toggle("current", element.value==palette);
 	}
 };
 
@@ -698,6 +835,9 @@ Editor.prototype.submitUnitProperties=function() {
 Editor.prototype.submitUpgradeProperties=function() {
 };
 
+Editor.prototype.submitSpecialProperties=function() {
+};
+
 Editor.prototype.getRace=function() {
 	if (this.player in this.pud.races) {
 		if (this.pud.races[this.player]) {
@@ -739,16 +879,16 @@ Editor.prototype.changeIcon=function(input, img, select) {
 Editor.prototype.setRadio=function(name, compare) {
 	let radios=document.getElementsByName(name);
 
-	for (let i=0; i<radios.length; i++) {
-		radios[i].checked=radios[i].value==compare;
+	for (let element of radios) {
+		element.checked=element.value==compare;
 	}
 };
 
 Editor.prototype.setSelect=function(id, compare) {
 	let select=$(id), options=select.options;
 
-	for (let i=0; i<options.length; i++) {
-		if (options[i].value==compare) {
+	for (let element of options) {
+		if (element.value==compare) {
 			select.selectedIndex=i;
 		}
 	}
@@ -771,9 +911,9 @@ Editor.prototype.saveNumber=function(id, size) {
 Editor.prototype.saveRadio=function(name) {
 	let radios=document.getElementsByName(name);
 
-	for (let i=0; i<radios.length; i++) {
-		if (radios[i].checked) {
-			return radios[i].value;
+	for (let element of radios) {
+		if (element.checked) {
+			return element.value;
 		}
 	}
 };
@@ -782,6 +922,23 @@ Editor.prototype.saveSelect=function(id) {
 	let select=$(id);
 
 	return select.options[select.selectedIndex].value;
+};
+
+Editor.prototype.saveImage=function() {
+	let canvas=document.createElement("canvas");
+	canvas.width=$("tileMap").width;
+	canvas.height=$("tileMap").height;
+
+	let context=canvas.getContext("2d");
+	// composites all layers into a single image
+	context.drawImage($("tileMap"), 0, 0, canvas.width, canvas.height);
+	context.drawImage($("unitMap"), 0, 0, canvas.width, canvas.height);
+	context.drawImage($("grid"), 0, 0, canvas.width, canvas.height);
+
+	let a=document.getElementById("download");
+	a.download=this.pud.filename.replace(/\.pud$/, ".png");
+	a.href=canvas.toDataURL("image/png");
+	a.click();
 };
 
 /*
@@ -1332,20 +1489,20 @@ Files.prototype.getList=function() {
 				);
 			}
 
-			for (let i=0; i<dirs.length; i++) {
-				ul.appendChild(self.createItem("dir", "["+dirs[i]+"]",
+			for (let dir of dirs) {
+				ul.appendChild(self.createItem("dir", "["+dir+"]",
 					function() {
-						self.path.push(dirs[i]);
+						self.path.push(dir);
 						self.getList();
 					})
 				);
 			}
 
-			for (let i=0; i<files.length; i++) {
-				ul.appendChild(self.createItem("pud", files[i],
+			for (let file of files) {
+				ul.appendChild(self.createItem("pud", file,
 					function() {
 						overlays.browser.hide();
-						self.load(files[i], editor.open.bind(editor));
+						self.load(file, editor.open.bind(editor));
 					})
 				);
 			}
