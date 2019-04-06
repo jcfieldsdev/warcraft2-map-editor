@@ -4,6 +4,7 @@
  * constants
  */
 
+// data sizes
 const BYTE=1;
 const WORD=2;
 const LONG=4;
@@ -437,15 +438,15 @@ Editor.prototype.drawUnitMap=function() {
 		let sx=0, sy=0, type=unit.type, owner=unit.owner;
 
 		if (type<58) { // units, not buildings
-			// picks random idle frame
-			let rand=Math.floor(Math.random()*5);
-
+			// centers unit in tile
 			x-=(img.width-w)/2;
 			y-=(img.width-h)/2;
 
-			w=h=img.width;
+			w=img.width;
+			h=img.width;
 
-			sy=h*rand;
+			// picks random idle frame
+			sy=h*Math.floor(Math.random()*5);
 		}
 
 		unitMap.drawImage(img, sx, sy, w, h, x, y, w, h);
@@ -504,8 +505,8 @@ Editor.prototype.moveMap=function(x, y) {
 	y-=this.pos.top;
 
 	window.scroll(
-		x/this.scaleX-window.innerWidth/2,
-		y/this.scaleY-window.innerHeight/2
+		x/this.scaleX-window.innerWidth/2-LEFT_MARGIN,
+		y/this.scaleY-window.innerHeight
 	);
 };
 
