@@ -111,7 +111,7 @@
 <button type="button" id="submit_mapProperties" title="Save"><img src="layout/widget-save.svg" alt="Save"></button>
 <button type="button" value="mapProperties" title="Close" class="close"><img src="layout/widget-close.svg" alt="Close"></button></div>
 <table><tr><td><label for="text_filename">File Name:</label></td><td><input type="text" size="32" maxlength="255" id="text_filename"></td></tr>
-<tr><td><label>Map Size:</label></td><td><input type="text" size="3" disabled="disabled" id="text_width">×<input type="text" size="3" disabled="disabled" id="text_height"></td></tr>
+<tr><td><label>Map Size:</label></td><td><input type="text" size="3" disabled="disabled" id="number_width">×<input type="text" size="3" disabled="disabled" id="number_height"></td></tr>
 <tr><td><label for="text_description">Map Description:</label></td><td><input type="text" size="32" maxlength="32" id="text_description"></td></tr></table>
 <fieldset><legend>Terrain Type:</legend>
 <div><label><input type="radio" value="0" name="radio_tileset"> Forest</label></div>
@@ -284,8 +284,8 @@
 <tr><td><label for="number_unitOil">Oil cost:</label></td><td><input type="number" min="0" max="255" id="number_unitOil" class="oil"></td></tr>
 <tr><td><label for="number_sight">Sight range:</label></td><td><input type="number" min="0" max="9" id="number_sight"></td></tr>
 <tr><td><label for="number_magic">Magic:</label></td><td><input type="number" min="0" max="255" id="number_magic"></td></tr>
-<tr><td><label for="number_unitSize">Unit size:</label></td><td><input type="number" min="0" max="4294967295" id="number_unitSize"></td></tr>
-<tr><td><label for="number_boxSize">Box size:</label></td><td><input type="number" min="0" max="255" id="number_boxSize"></td></tr>
+<tr><td><label for="number_unitSizeX">Unit size:</label></td><td><input type="number" size="1" id="number_unitSizeX">×<input type="number" size="1" id="number_unitSizeY"></td></tr>
+<tr><td><label for="number_boxSizeX">Box size:</label></td><td><input type="number" size="1" id="number_boxSizeX">×<input type="number" size="1" id="number_boxSizeY"></td></tr>
 <tr><td><label for="number_range">Attack range:</label></td><td><input type="number" min="0" max="255" id="number_range"></td></tr>
 <tr><td><label for="number_reactComputer">React range (computer):</label></td><td><input type="number" min="0" max="255" id="number_reactComputer"></td></tr>
 <tr><td><label for="number_reactHuman">React range (human):</label></td><td><input type="number" min="0" max="255" id="number_reactHuman"></td></tr>

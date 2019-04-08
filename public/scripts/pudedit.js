@@ -625,8 +625,8 @@ Editor.prototype.openMapProperties=function() {
 	this.setRadio("radio_tileset", this.pud.tileset);
 
 	$("text_filename").value=this.pud.filename;
-	$("text_width").value=this.pud.width;
-	$("text_height").value=this.pud.height;
+	$("number_width").value=this.pud.width;
+	$("number_height").value=this.pud.height;
 	$("text_description").value=this.pud.description;
 };
 
@@ -762,8 +762,10 @@ Editor.prototype.fillUnitProperties=function() {
 	$("number_unitGold").value=this.pud.units.gold[unit];
 	$("number_unitLumber").value=this.pud.units.lumber[unit];
 	$("number_unitOil").value=this.pud.units.oil[unit];
-	$("number_unitSize").value=this.pud.units.unitSize[unit];
-	$("number_boxSize").value=this.pud.units.boxSize[unit];
+	$("number_unitSizeX").value=this.pud.units.unitSize[unit].x;
+	$("number_unitSizeY").value=this.pud.units.unitSize[unit].y;
+	$("number_boxSizeX").value=this.pud.units.boxSize[unit].x;
+	$("number_boxSizeY").value=this.pud.units.boxSize[unit].y;
 	$("number_range").value=this.pud.units.range[unit];
 	$("number_reactComputer").value=this.pud.units.reactComputer[unit];
 	$("number_reactHuman").value=this.pud.units.reactHuman[unit];

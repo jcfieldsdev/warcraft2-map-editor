@@ -188,6 +188,12 @@ div#overlay_startingConditions input {
 	width: 6em;
 }
 
+div#overlay_unitProperties fieldset, div#overlay_upgradeProperties fieldset {
+	height: 20em;
+	overflow: auto;
+	width: 30em;
+}
+
 div#miniMap {
 	position: relative;
 }
@@ -224,6 +230,10 @@ div.overlay.open {
 	visibility: visible;
 }
 
+div.overlay table {
+	white-space: nowrap;
+}
+
 div.palette {
 	border-radius: 0 0.5em 0.5em 0.5em;
 	border-width: 2px;
@@ -258,11 +268,6 @@ div.title img {
 
 div.view {
 	display: flex;
-}
-
-div#overlay_unitProperties fieldset, div#overlay_upgradeProperties fieldset {
-	height: 20em;
-	overflow: auto;
 }
 
 div.view>select {
@@ -332,7 +337,7 @@ input[type="number"] {
 	width: 5em;
 }
 
-input[type="text"]:disabled {
+input[type="number"]:disabled, input[type="text"]:disabled {
 	border: 0;
 }
 
