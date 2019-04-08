@@ -92,6 +92,11 @@ button {
 	padding: 0;
 }
 
+button.action img {
+	height: 1em;
+	width: 1em;
+}
+
 button.unit img, img.icon {
 	float: left;
 	height: 38px;
@@ -303,6 +308,10 @@ input {
 	background: none;
 	border-width: 1px;
 	color: inherit;
+}
+
+input#text_link {
+	width: 40em;
 }
 
 input, select {

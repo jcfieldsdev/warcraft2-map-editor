@@ -30,6 +30,7 @@ const overlays={
 	about: new Overlay("about"),
 	create: new Overlay("create"),
 	browser: new Overlay("browser"),
+	link: new Overlay("link"),
 	mapProperties: new Overlay("mapProperties"),
 	playerProperties: new Overlay("playerProperties"),
 	startingConditions: new Overlay("startingConditions"),
@@ -111,6 +112,17 @@ window.addEventListener("load", function() {
 	});
 	$("saveImage").addEventListener("click", function() {
 		editor.saveImage();
+	});
+	$("link").addEventListener("click", function() {
+		let link=window.location.href.split("?")[0];
+		link+="?map="+editor.fullname;
+
+		$("text_link").value=link;
+		overlays.link.show();
+	});
+	$("copy").addEventListener("click", function() {
+		$(this.value).select();
+		document.execCommand("copy");
 	});
 	$("about").addEventListener("click", function() {
 		overlays.about.show();
@@ -305,6 +317,7 @@ function closeAllOverlays() {
 
 function Editor() {
 	this.pud=null;
+	this.fullname="";
 
 	this.tileMap=null;
 	this.unitMap=null;
@@ -332,8 +345,10 @@ function Editor() {
 	this.upgrades=[];
 }
 
-Editor.prototype.open=function(filename, buffer) {
+Editor.prototype.open=function(filename, fullname, buffer) {
 	window.scrollTo(0, 0);
+
+	this.fullname=fullname;
 
 	this.pud=new Pud();
 	this.pud.load(filename, buffer);
@@ -1541,13 +1556,14 @@ Files.prototype.getList=function() {
 
 Files.prototype.load=function(filename, callback) {
 	let xhr=new XMLHttpRequest();
+	let fullname=this.path.join("/")+"/"+filename;
 
 	xhr.addEventListener("readystatechange", function() {
 		if (this.readyState==4&&this.status==200) {
-			callback(filename, this.response);
+			callback(filename, fullname, this.response);
 		}
 	});
-	xhr.open("GET", MAPS_DIR+this.path.join("/")+"/"+filename, true);
+	xhr.open("GET", MAPS_DIR+fullname, true);
 	xhr.responseType="arraybuffer";
 	xhr.send();
 };
