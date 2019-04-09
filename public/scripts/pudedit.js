@@ -588,16 +588,26 @@ Editor.prototype.selectUnits=function(x, y, multiple=false) {
 			return;
 		}
 
-		let gx1=unit.x, gy1=unit.y;
-		let gx2=unit.x+unitSize.x-1, gy2=unit.y+unitSize.y-1;
+		let gx1=unit.x, gy1=unit.y; // top left
+		let gx2=unit.x+unitSize.x-1, gy2=unit.y+unitSize.y-1; // bottom right
 
 		let condition=false;
 
 		if (multiple) {
-			let selectTopLeft=(x1<=gx1&&y1<=gy1)&&(x2>=gx1&&y2>=gy1);
-			let selectBottomRight=(x2<=gx2&&y2<=gy2)&&(x1>=gx2&&y1>=gy2);
-			condition=selectTopLeft||selectBottomRight;
-		} else {
+			if (x2>x1&&y2>y1) {
+				// top left to bottom right
+				condition=(x1<=gx1&&y1<=gy1)&&(x2>=gx1&&y2>=gy1);
+			} else if (x1>x2&&y1>y2) {
+				// bottom right to top left
+				condition=(x2<=gx2&&y2<=gy2)&&(x1>=gx2&&y1>=gy2);
+			} else if (x2>x1&&y2<y1) {
+				// bottom left to top right
+				condition=(x1<=gx1&&y1>=gy2)&&(x2>=gx1&&y2<=gy2);
+			} else {
+				// top right to bottom left
+				condition=(x2<=gx2&&y2>=gy1)&&(x1>=gx2&&y1<=gy1);
+			}
+		} else { // single unit
 			condition=(x2>=gx1&&x2<=gx2)&&(y2>=gy1&&y2<=gy2);
 		}
 
