@@ -576,14 +576,10 @@ Editor.prototype.selectUnits=function(x, y, multiple=false) {
 	if (multiple) {
 		x1=Math.floor(this.selectX/TILE_SIZE);
 		y1=Math.floor(this.selectY/TILE_SIZE);
-		x2=Math.floor((x-LEFT_MARGIN)/TILE_SIZE);
-		y2=Math.floor(y/TILE_SIZE);
-	} else {
-		x1=Math.floor((window.scrollX+x-LEFT_MARGIN)/TILE_SIZE);
-		y1=Math.floor((window.scrollY+y)/TILE_SIZE);
 	}
 
-	console.log(x1, y1, x2, y2);
+	x2=Math.floor((window.scrollX+x-LEFT_MARGIN)/TILE_SIZE);
+	y2=Math.floor((window.scrollY+y)/TILE_SIZE);
 
 	Object.values(this.pud.unitMap).forEach(function(unit) {
 		let unitSize=this.pud.units.unitSize[unit.type];
@@ -599,10 +595,10 @@ Editor.prototype.selectUnits=function(x, y, multiple=false) {
 
 		if (multiple) {
 			let selectTopLeft=(x1<=gx1&&y1<=gy1)&&(x2>=gx1&&y2>=gy1);
-			let selectBottomRight=(x1<=gx2&&y1<=gy2)&&(x2>=gx2&&y2>=gy2);
+			let selectBottomRight=(x2<=gx2&&y2<=gy2)&&(x1>=gx2&&y1>=gy2);
 			condition=selectTopLeft||selectBottomRight;
 		} else {
-			condition=x1>=gx1&&x1<=gx2&&y1>=gy1&&y1<=gy2;
+			condition=(x2>=gx1&&x2<=gx2)&&(y2>=gy1&&y2<=gy2);
 		}
 
 		if (condition) {
