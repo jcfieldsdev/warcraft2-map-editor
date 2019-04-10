@@ -278,6 +278,7 @@ div.view fieldset {
 div.view>select {
 	height: 21em;
 	margin-right: 1em;
+	min-width: 15em;
 }
 
 footer, h1 {

@@ -880,27 +880,20 @@ Editor.prototype.fillSelectionProperties=function() {
 	this.setSelect("select_owner", unit.owner);
 
 	if (unit.type==92||unit.type==93) { // gold mine or oil patch
-		$("range_resource").disabled=false;
+		$("row_resource").classList.remove("hidden");
 		$("range_resource").value=unit.property;
 	} else {
-		$("range_resource").disabled=true;
-		$("range_resource").value=1;
+		$("row_resource").classList.add("hidden");
 		this.changeResource();
 	}
 
 	let radios=document.getElementsByName("radio_ai");
 
 	if (unit.type<58) { // units, not buildings
-		for (let element of radios) {
-			element.disabled=false;
-		}
-
+		$("row_ai").classList.remove("hidden");
 		this.setRadio("radio_ai", unit.property);
 	} else {
-		for (let element of radios) {
-			element.disabled=true;
-			element.checked=false;
-		}
+		$("row_ai").classList.add("hidden");
 	}
 };
 
