@@ -377,7 +377,6 @@ Editor.prototype.open=function(filename, fullname, buffer) {
 
 	this.pud=new Pud();
 	this.pud.load(filename, buffer);
-	console.log(this.pud);
 
 	$("filename").innerHTML=this.pud.filename;
 
@@ -417,8 +416,8 @@ Editor.prototype.drawTileMap=function() {
 	let tiles=data.tilesets[this.pud.tileset];
 	let x=0, y=0;
 
-	for (let i=0; i<this.pud.tileMap.length; i++) {
-		let w=x*TILE_SIZE, h=y*TILE_SIZE, tile=this.pud.tileMap[i];
+	this.pud.tileMap.forEach(function(tile, i) {
+		let w=x*TILE_SIZE, h=y*TILE_SIZE;
 
 		if (tile in tiles) {
 			this.tileMap.drawImage(
@@ -443,7 +442,7 @@ Editor.prototype.drawTileMap=function() {
 		} else {
 			x++;
 		}
-	}
+	}, this);
 
 	this.drawFrame();
 };
@@ -703,15 +702,13 @@ Editor.prototype.openSelectionProperties=function() {
 		select.removeChild(select.lastChild);
 	}
 
-	for (let i=0; i<this.selected.length; i++) {
+	this.selected.forEach(function(selection, i) {
 		let item=document.createElement("option");
 		item.value=i;
-
-		let type=this.selected[i].type;
-		item.textContent=data.units[type]||"Undefined";
+		item.textContent=data.units[selection.type]||"Undefined";
 
 		select.appendChild(item);
-	}
+	});
 
 	select.selectedIndex=0;
 	this.fillSelectionProperties();
@@ -871,7 +868,7 @@ Editor.prototype.fillUpgradeProperties=function() {
 
 Editor.prototype.fillSelectionProperties=function() {
 	let select=$("select_selection");
-	let option=select.options[select.selectedIndex], selection=option.value;
+	let option=select.options[select.selectedIndex];
 
 	$("legend_selection").innerHTML=option.label;
 
@@ -986,15 +983,13 @@ Editor.prototype.changeIcon=function(input, img, select) {
 		input.value=195;
 	}
 
-	let option=select.options[select.selectedIndex];
 	let icon=input.value.padStart(4, "0");
-
 	img.src="icons/"+this.getTileset(this.pud.tileset)+"/"+icon+".png";
 };
 
 Editor.prototype.changeResource=function() {
 	$("resource").textContent=$("range_resource").value*2500;
-}
+};
 
 Editor.prototype.setRadio=function(name, compare) {
 	let radios=document.getElementsByName(name);
@@ -1177,13 +1172,9 @@ Pud.prototype.save=function() {
 
 // converts hex to ASCII
 Pud.prototype.hexToStr=function(arr) {
-	let str="";
-
-	for (let i=0; i<arr.length; i++) {
-		str+=String.fromCharCode(arr[i]);
-	}
-
-	return str;
+	return arr.reduce(function(str, hex) {
+		return str+String.fromCharCode(hex);
+	}, "");
 };
 
 // converts ASCII to hex
@@ -1199,13 +1190,9 @@ Pud.prototype.strToHex=function(str) {
 
 // parses little-endian number
 Pud.prototype.parseNum=function(arr) {
-	let num=0;
-
-	for (let i=0; i<arr.length; i++) {
-		num+=arr[i]<<i*8;
-	}
-
-	return num;
+	return arr.reduce(function(num, hex, i) {
+		return num+(hex<<i*8);
+	}, 0);
 };
 
 Pud.prototype.readSection=function(section, size) {
@@ -1536,9 +1523,9 @@ Pud.prototype.readUnit=function() {
 	}
 
 	const size=8;
-	let unit=this.struct["UNIT"], length=unit.length, unitMap=[];
+	let unit=this.struct["UNIT"], unitMap=[];
 
-	for (let i=0; i<length; i+=size) {
+	for (let i=0; i<unit.length; i+=size) {
 		unitMap.push({
 			x: this.parseNum(unit.slice(i, i+WORD)),
 			y: this.parseNum(unit.slice(i+2, i+2+WORD)),
