@@ -12,8 +12,8 @@
 <body><header><h1>Warcraft II Map Editor</h1></header>
 <nav>
 <ul id="basic">
-	<li><button title="Create a new scenario" value="create" class="basic"><img src="layout/icon-create.svg" alt="[Create]"></span></button></li>
-	<li><button title="Open an existing scenario" value="open" class="basic"><img src="layout/icon-open.svg" alt="[Open]"></li>
+	<li><button title="Create a new scenario" value="create" class="basic"><img src="layout/icon-create.svg" alt="[Create]"></button></li>
+	<li><button title="Open an existing scenario" value="open" class="basic"><img src="layout/icon-open.svg" alt="[Open]"></button></li>
 	<li><button title="Save this scenario" value="save" class="basic"><img src="layout/icon-save.svg" alt="[Save Map]"></button></li>
 </ul>
 <div id="filename"></div>
@@ -39,7 +39,7 @@
 </ul>
 <div id="editor" class="palette"><ul>
 	<li><button id="create"><img src="layout/icon-create.svg" alt="[Create]"> Create</button></li>
-	<li><button id="open"><img src="layout/icon-open.svg" alt="[Open]"> Open</li>
+	<li><button id="open"><img src="layout/icon-open.svg" alt="[Open]"> Open</button></li>
 	<li><button id="save"><img src="layout/icon-save.svg" alt="[Save Map]"> Save Map</button></li>
 	<li><button id="saveImage"><img src="layout/icon-image.svg" alt="[Save Map as Image]"> Save Map as Image</button></li>
 	<li><button id="link"><img src="layout/icon-link.svg" alt="[Link to Map]"> Link to Map</button></li>
@@ -112,7 +112,7 @@
 <button type="button" id="submit_mapProperties" title="Save"><img src="layout/widget-save.svg" alt="Save"></button>
 <button type="button" value="mapProperties" title="Close" class="close"><img src="layout/widget-close.svg" alt="Close"></button></div>
 <table><tr><td><label for="text_filename">File Name:</label></td><td><input type="text" size="32" maxlength="255" id="text_filename"></td></tr>
-<tr><td><label>Map Size:</label></td><td><input type="text" size="3" disabled="disabled" id="number_width">×<input type="text" size="3" disabled="disabled" id="number_height"></td></tr>
+<tr><td><label>Map Size:</label></td><td><input type="text" size="3" disabled="disabled" id="text_width">×<input type="text" size="3" disabled="disabled" id="text_height"></td></tr>
 <tr><td><label for="text_description">Map Description:</label></td><td><input type="text" size="32" maxlength="32" id="text_description"></td></tr></table>
 <fieldset><legend>Terrain Type:</legend>
 <div><label><input type="radio" value="0" name="radio_tileset"> Forest</label></div>
@@ -375,18 +375,32 @@
 <tr><td><label for="number_upgradeOil">Oil cost:</label></td><td><input type="number" min="0" max="65535" id="number_upgradeOil" class="oil"></td></tr>
 <tr><td><label for="number_upgradeIcon">Icon:</label></td><td><img src="icons/forest/0000.png" alt="[Upgrade icon]" id="img_upgradeIcon" class="icon"><input type="number" min="0" max="65535" id="number_upgradeIcon"></td></tr>
 <tr><td><label for="number_upgradeGroup">Group:</label></td><td><input type="number" min="0" max="65535" id="number_upgradeGroup"></td></tr>
-<tr><td><label for="number_upgradeEffect">Effect:</label></td><td><select id="number_upgradeEffect"><option value="1">0</option><option value="2">1</option><option value="4">2</option><option value="8">3</option><option value="16">4</option><option value="32">5</option><option value="64">6</option><option value="128">7</option><option value="256">8</option><option value="512">9</option><option value="1024">10</option><option value="2048">11</option><option value="4096">12</option><option value="8192">13</option><option value="16384">14</option><option value="32768">15</option><option value="65536">16</option><option value="131072">17</option><option value="262144">18</option><option value="524288">19</option><option value="1048576">20</option></select></td></tr></table></fieldset></div></div>
+<tr><td><label for="select_upgradeEffect">Effect:</label></td><td><select id="select_upgradeEffect"><option value="1">0</option><option value="2">1</option><option value="4">2</option><option value="8">3</option><option value="16">4</option><option value="32">5</option><option value="64">6</option><option value="128">7</option><option value="256">8</option><option value="512">9</option><option value="1024">10</option><option value="2048">11</option><option value="4096">12</option><option value="8192">13</option><option value="16384">14</option><option value="32768">15</option><option value="65536">16</option><option value="131072">17</option><option value="262144">18</option><option value="524288">19</option><option value="1048576">20</option></select></td></tr></table></fieldset></div></div>
 <div id="overlay_link" class="overlay"><div class="title"><h2>Link to Map</h2>
 <button type="button" value="link" title="Close" class="close"><img src="layout/widget-close.svg" alt="Close"></button></div>
-<div><input type="text" id="text_link">&nbsp;<button type="button" value="text_link" id="copy" class="action"><img src="layout/icon-copy.svg"></button></div></fieldset></div>
-<div id="overlay_specialProperties" class="overlay"><div class="title"><h2>Special Properties</h2>
-<button type="button" id="submit_specialProperties" title="Save"><img src="layout/widget-save.svg" alt="Save"></button>
-<button type="button" value="specialProperties" title="Close" class="close"><img src="layout/widget-close.svg" alt="Close"></button></div>
-<fieldset><legend>Resources:</legend>
-<div><input type="range" min="1" max="100" value="50" id="range_resource"></div></fieldset>
-<fieldset><legend>A.I. behavior:</legend>
-<div><label><input type="radio" value="active" name="radio_ai"> Active</label></div>
-<div><label><input type="radio" value="passive" name="radio_ai"> Passive</label></div></fieldset></div>
+<div><input type="text" id="text_link">&nbsp;<button type="button" value="text_link" id="copy" class="action"><img src="layout/icon-copy.svg" alt="[Copy]"></button></div></div>
+<div id="overlay_selectionProperties" class="overlay"><div class="title"><h2>Selection Properties</h2>
+<button type="button" id="submit_selectionProperties" title="Save"><img src="layout/widget-save.svg" alt="Save"></button>
+<button type="button" value="selectionProperties" title="Close" class="close"><img src="layout/widget-close.svg" alt="Close"></button></div>
+<div class="view">
+<select size="10" id="select_selection"></select>
+<fieldset><legend id="legend_selection"></legend>
+<table><tr><td>Position:</td><td><input type="text" size="3" disabled="disabled" id="text_unitX">×<input type="text" size="3" disabled="disabled" id="text_unitY"></td></tr>
+<tr><td>Owner:</td><td>
+<select id="select_owner">
+	<option value="0" class="player1">Player 1</option>
+	<option value="1" class="player2">Player 2</option>
+	<option value="2" class="player3">Player 3</option>
+	<option value="3" class="player4">Player 4</option>
+	<option value="4" class="player5">Player 5</option>
+	<option value="5" class="player6">Player 6</option>
+	<option value="6" class="player7">Player 7</option>
+	<option value="7" class="player8">Player 8</option>
+	<option value="15" class="player15">Neutral</option>
+</select></td></tr>
+<tr><td>Resources:</td><td><input type="range" min="1" max="255" value="6" id="range_resource"> <span id="resource"></span></td></tr>
+<tr><td>A.I.:</td><td><label><input type="radio" value="1" name="radio_ai"> Active</label>
+<label><input type="radio" value="0" name="radio_ai"> Passive</label></td></tr></table></fieldset></div></div>
 <div id="overlay_about" class="overlay"><div class="title"><h2>About</h2>
 <button type="button" value="about" title="Close" class="close"><img src="layout/widget-close.svg" alt="Close"></button></div>
 <p>Created by <a href="mailto:jcfields+pudedit@gmail.com">typhoon</a>. Hosted by <a href="https://gitlab.com/jcfields/warcraft2-map-editor">GitLab</a>.</p>

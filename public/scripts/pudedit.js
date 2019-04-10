@@ -22,6 +22,11 @@ const SELECT_COLOR="#0f0";
 // file names and locations
 const MAPS_DIR="maps/";
 
+// mouse buttons
+const LEFT=0;
+const MIDDLE=1;
+const RIGHT=2;
+
 // objects
 const store=new Storage("pudedit");
 const editor=new Editor();
@@ -36,7 +41,7 @@ const overlays={
 	startingConditions: new Overlay("startingConditions"),
 	unitProperties: new Overlay("unitProperties"),
 	upgradeProperties: new Overlay("upgradeProperties"),
-	specialProperties: new Overlay("specialProperties")
+	selectionProperties: new Overlay("selectionProperties")
 };
 
 /*
@@ -58,12 +63,15 @@ window.addEventListener("load", function() {
 
 	// event listeners
 	// for minimap
-	$("frame").addEventListener("mousedown", function() {
-		editor.dragFrame=true;
+	$("frame").addEventListener("mousedown", function(event) {
+		if (event.button==LEFT) {
+			editor.dragFrame=true;
+		}
 	});
-	$("frame").addEventListener("mouseup", function() {
-		editor.dragFrame=false;
-		editor.moveMap(event.clientX, event.clientY);
+	$("frame").addEventListener("mouseup", function(event) {
+		if (event.button==LEFT) {
+			editor.dragFrame=false;
+		}
 	});
 	$("frame").addEventListener("mousemove", function(event) {
 		if (editor.dragFrame) {
@@ -71,16 +79,32 @@ window.addEventListener("load", function() {
 		}
 	});
 	// for map
-	$("select").addEventListener("mousedown", function() {
-		editor.startSelect(event.clientX, event.clientY);
+	$("select").addEventListener("mousedown", function(event) {
+		if (event.button==LEFT) {
+			editor.startSelect(event.clientX, event.clientY);
+		}
 	});
-	$("select").addEventListener("mouseup", function() {
-		editor.selectUnits(event.clientX, event.clientY, editor.selectMultiple);
+	$("select").addEventListener("mouseup", function(event) {
+		if (event.button==LEFT) {
+			editor.selectUnits(
+				event.clientX, event.clientY,
+				event.shiftKey,
+				editor.selectMultiple
+			);
+		} else if (event.button==RIGHT) {
+			if (editor.selected.length>0) {
+				editor.openSelectionProperties();
+				overlays.selectionProperties.show();
+			}
+		}
 	});
 	$("select").addEventListener("mousemove", function(event) {
 		if (editor.dragSelect) {
 			editor.drawSelect(event.clientX, event.clientY);
 		}
+	});
+	$("select").addEventListener("contextmenu", function(event) {
+		event.preventDefault();
 	});
 	// for palettes
 	$("create").addEventListener("click", function() {
@@ -183,6 +207,12 @@ window.addEventListener("load", function() {
 	$("number_upgradeIcon").addEventListener("input", function() {
 		editor.changeIcon(this, $("img_upgradeIcon"), $("select_upgrades"));
 	});
+	$("select_selection").addEventListener("input", function() {
+		editor.fillSelectionProperties();
+	});
+	$("range_resource").addEventListener("input", function() {
+		editor.changeResource();
+	});
 	// for file browser in open overlay
 	$("file").addEventListener("input", function(event) {
 		let file=event.target.files[0];
@@ -199,8 +229,8 @@ window.addEventListener("load", function() {
 
 	window.addEventListener("keyup", function(event) {
 		if (event.keyCode==13) { // Enter
-			editor.submitSpecialProperties();
-			overlays.specialProperties.show();
+			editor.openSelectionProperties();
+			overlays.selectionProperties.show();
 		}
 
 		if (event.keyCode==27) { // Esc
@@ -343,11 +373,6 @@ function Editor() {
 Editor.prototype.open=function(filename, fullname, buffer) {
 	window.scrollTo(0, 0);
 
-	// remove initial slash from file path if present
-	if (fullname.slice(0, 1)=="/") {
-		fullname=fullname.slice(1);
-	}
-
 	this.fullname=fullname;
 
 	this.pud=new Pud();
@@ -389,7 +414,7 @@ Editor.prototype.open=function(filename, fullname, buffer) {
 };
 
 Editor.prototype.drawTileMap=function() {
-	let tiles=tilesets[this.pud.tileset];
+	let tiles=data.tilesets[this.pud.tileset];
 	let x=0, y=0;
 
 	for (let i=0; i<this.pud.tileMap.length; i++) {
@@ -481,13 +506,13 @@ Editor.prototype.drawUnitMap=function() {
 		for (let i=0; i<imageData.data.length; i+=4) { // 4 for RGBA
 			for (let j=0; j<4; j++) { // 4 colors for each player
 				if (
-					imageData.data[i]==colors[0][j].r&&
-					imageData.data[i+1]==colors[0][j].g&&
-					imageData.data[i+2]==colors[0][j].b
+					imageData.data[i]==data.colors[0][j].r&&
+					imageData.data[i+1]==data.colors[0][j].g&&
+					imageData.data[i+2]==data.colors[0][j].b
 				) {
-					imageData.data[i]=colors[owner][j].r;
-					imageData.data[i+1]=colors[owner][j].g;
-					imageData.data[i+2]=colors[owner][j].b;
+					imageData.data[i]=data.colors[owner][j].r;
+					imageData.data[i+1]=data.colors[owner][j].g;
+					imageData.data[i+2]=data.colors[owner][j].b;
 				}
 			}
 		}
@@ -501,9 +526,9 @@ Editor.prototype.drawUnitMap=function() {
 		}
 
 		// uses first player color for minimap squares
-		let r=colors[owner][0].r.toString(16).padStart(2, "0");
-		let g=colors[owner][0].g.toString(16).padStart(2, "0");
-		let b=colors[owner][0].b.toString(16).padStart(2, "0");
+		let r=data.colors[owner][0].r.toString(16).padStart(2, "0");
+		let g=data.colors[owner][0].g.toString(16).padStart(2, "0");
+		let b=data.colors[owner][0].b.toString(16).padStart(2, "0");
 
 		x=Math.floor(x);
 		y=Math.floor(y);
@@ -562,14 +587,17 @@ Editor.prototype.drawSelect=function(x, y) {
 	this.select.stroke();
 };
 
-Editor.prototype.selectUnits=function(x, y, multiple=false) {
-	this.selected=[];
+Editor.prototype.selectUnits=function(x, y, add=false, multiple=false) {
 	this.dragSelect=false;
 	this.selectMultiple=false;
 
-	this.select.clearRect(0, 0, $("select").width, $("select").height);
-	this.select.lineWidth=1;
-	this.select.strokeStyle=SELECT_COLOR;
+	if (!add) {
+		this.selected=[];
+
+		this.select.clearRect(0, 0, $("select").width, $("select").height);
+		this.select.lineWidth=1;
+		this.select.strokeStyle=SELECT_COLOR;
+	}
 
 	let x1=0, y1=0, x2=0, y2=0;
 
@@ -611,7 +639,7 @@ Editor.prototype.selectUnits=function(x, y, multiple=false) {
 			condition=(x2>=gx1&&x2<=gx2)&&(y2>=gy1&&y2<=gy2);
 		}
 
-		if (condition) {
+		if (condition&&(!add||!this.selected.includes(unit))) {
 			this.select.beginPath();
 			this.select.rect(
 				gx1*TILE_SIZE, gy1*TILE_SIZE,
@@ -633,8 +661,8 @@ Editor.prototype.openMapProperties=function() {
 	this.setRadio("radio_tileset", this.pud.tileset);
 
 	$("text_filename").value=this.pud.filename;
-	$("number_width").value=this.pud.width;
-	$("number_height").value=this.pud.height;
+	$("text_width").value=this.pud.width;
+	$("text_height").value=this.pud.height;
 	$("text_description").value=this.pud.description;
 };
 
@@ -666,6 +694,28 @@ Editor.prototype.openUpgradeProperties=function() {
 
 	$("select_upgrades").selectedIndex=0;
 	this.fillUpgradeProperties();
+};
+
+Editor.prototype.openSelectionProperties=function() {
+	let select=$("select_selection");
+
+	while (select.lastChild) { // removes all children
+		select.removeChild(select.lastChild);
+	}
+
+	for (let i=0; i<this.selected.length; i++) {
+		let item=document.createElement("option");
+		item.value=i;
+
+		let type=this.selected[i].type;
+		item.textContent=data.units[type]||"Undefined";
+
+		select.appendChild(item);
+	}
+
+	select.selectedIndex=0;
+	this.fillSelectionProperties();
+	this.changeResource();
 };
 
 Editor.prototype.selectPlayer=function(player) {
@@ -718,7 +768,7 @@ Editor.prototype.changeUnitPalette=function() {
 	let select=$("select_unitsPalette");
 	let option=select.options[select.selectedIndex], group=option.value;
 
-	if (units[group]==undefined) {
+	if (data.icons[group]==undefined) {
 		return;
 	}
 
@@ -727,14 +777,14 @@ Editor.prototype.changeUnitPalette=function() {
 	let ul=document.createElement("ul");
 	ul.id="unitsPalette";
 
-	for (let type in units[group]) {
+	for (let type in data.icons[group]) {
 		let race=this.getRace();
 
-		if (units[group][type][race]==undefined) {
+		if (data.icons[group][type][race]==undefined) {
 			race="neutral";
 		}
 
-		let unit=units[group][type][race];
+		let unit=data.icons[group][type][race];
 
 		let li=document.createElement("li");
 		let button=document.createElement("button");
@@ -810,13 +860,51 @@ Editor.prototype.fillUpgradeProperties=function() {
 	$("number_upgradeIcon").value=this.pud.upgrades.icon[upgrade];
 	$("number_upgradeGroup").value=this.pud.upgrades.group[upgrade];
 
-	this.setSelect("number_upgradeEffect", this.pud.upgrades.effect[upgrade]);
+	this.setSelect("select_upgradeEffect", this.pud.upgrades.effect[upgrade]);
 
 	this.changeIcon(
 		$("number_upgradeIcon"),
 		$("img_upgradeIcon"),
 		$("select_upgrades")
 	);
+};
+
+Editor.prototype.fillSelectionProperties=function() {
+	let select=$("select_selection");
+	let option=select.options[select.selectedIndex], selection=option.value;
+
+	$("legend_selection").innerHTML=option.label;
+
+	let unit=this.selected[option.value];
+
+	$("text_unitX").value=unit.x;
+	$("text_unitY").value=unit.y;
+
+	this.setSelect("select_owner", unit.owner);
+
+	if (unit.type==92||unit.type==93) { // gold mine or oil patch
+		$("range_resource").disabled=false;
+		$("range_resource").value=unit.property;
+	} else {
+		$("range_resource").disabled=true;
+		$("range_resource").value=1;
+		this.changeResource();
+	}
+
+	let radios=document.getElementsByName("radio_ai");
+
+	if (unit.type<58) { // units, not buildings
+		for (let element of radios) {
+			element.disabled=false;
+		}
+
+		this.setRadio("radio_ai", unit.property);
+	} else {
+		for (let element of radios) {
+			element.disabled=true;
+			element.checked=false;
+		}
+	}
 };
 
 Editor.prototype.submitCreate=function() {
@@ -863,7 +951,7 @@ Editor.prototype.submitUnitProperties=function() {
 Editor.prototype.submitUpgradeProperties=function() {
 };
 
-Editor.prototype.submitSpecialProperties=function() {
+Editor.prototype.submitSelectionProperties=function() {
 };
 
 Editor.prototype.getRace=function() {
@@ -903,6 +991,10 @@ Editor.prototype.changeIcon=function(input, img, select) {
 
 	img.src="icons/"+this.getTileset(this.pud.tileset)+"/"+icon+".png";
 };
+
+Editor.prototype.changeResource=function() {
+	$("resource").textContent=$("range_resource").value*2500;
+}
 
 Editor.prototype.setRadio=function(name, compare) {
 	let radios=document.getElementsByName(name);
@@ -1550,6 +1642,11 @@ Files.prototype.getList=function() {
 Files.prototype.load=function(filename, callback) {
 	let xhr=new XMLHttpRequest();
 	let fullname=this.path.join("/")+"/"+filename;
+
+	// remove initial slash from file path if present
+	if (fullname.slice(0, 1)=="/") {
+		fullname=fullname.slice(1);
+	}
 
 	xhr.addEventListener("readystatechange", function() {
 		if (this.readyState==4&&this.status==200) {
