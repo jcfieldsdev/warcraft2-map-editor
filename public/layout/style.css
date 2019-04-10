@@ -98,16 +98,15 @@ button.action img {
 }
 
 button.unit img, img.icon {
-	float: left;
 	height: 38px;
 	width: 46px;
 }
 
-button.unit img, fieldset, img.icon, fieldset {
+button.unit img, div#terrain img, fieldset, img.icon, fieldset {
 	border: 2px solid #808080;
 }
 
-button.unit:hover img {
+button.unit img:hover, div#terrain img:hover {
 	border-color: #fff;
 }
 
@@ -159,7 +158,7 @@ canvas#select {
 	z-index: 4;
 }
 
-div#editor div, div#filename, div#map, input#text_height, input#text_width {
+div#editor div, div#filename, div#map, div#terrain {
 	text-align: center;
 }
 
@@ -172,6 +171,7 @@ div#editor img {
 
 div#filename {
 	margin-top: 1em;
+	overflow: hidden;
 	text-overflow: ellipsis;
 	white-space: nowrap;
 }
@@ -200,6 +200,20 @@ div#miniMap {
 div#miniMap canvas {
 	height: 200px;
 	width: 200px;
+}
+
+div#terrain img {
+	margin: 0 4px;
+}
+
+div#terrain img, ul#basic img {
+	height: 32px;
+	width: 32px;
+}
+
+div#terrain ul {
+	display: flex;
+	flex-wrap: wrap;
 }
 
 div#units select {
@@ -273,6 +287,10 @@ div.view fieldset {
 	height: 20em;
 	overflow: auto;
 	width: 30em;
+}
+
+div.view img.icon {
+	float: left;
 }
 
 div.view>select {
@@ -435,11 +453,6 @@ ul#basic button:hover, ul#mode button:hover, ul#players button:hover {
 ul#basic button:hover, ul#mode button.current, ul#players button.current {
 	background: #606060;
 	color: inherit;
-}
-
-ul#basic img {
-	height: 32px;
-	width: 32px;
 }
 
 ul#files {

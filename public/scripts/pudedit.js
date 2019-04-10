@@ -24,7 +24,6 @@ const MAPS_DIR="maps/";
 
 // mouse buttons
 const LEFT=0;
-const MIDDLE=1;
 const RIGHT=2;
 
 // objects
@@ -71,6 +70,7 @@ window.addEventListener("load", function() {
 	$("frame").addEventListener("mouseup", function(event) {
 		if (event.button==LEFT) {
 			editor.dragFrame=false;
+			editor.moveMap(event.clientX, event.clientY);
 		}
 	});
 	$("frame").addEventListener("mousemove", function(event) {
@@ -117,7 +117,7 @@ window.addEventListener("load", function() {
 	});
 	$("save").addEventListener("click", function() {
 		window.location.href+=MAPS_DIR+editor.fullname;
-		/*store.save(editor.pud);
+/*		store.save(editor.pud);
 
 		if (editor.pud==null) {
 			return;
@@ -229,8 +229,10 @@ window.addEventListener("load", function() {
 
 	window.addEventListener("keyup", function(event) {
 		if (event.keyCode==13) { // Enter
-			editor.openSelectionProperties();
-			overlays.selectionProperties.show();
+			if (editor.selected.length>0) {
+				editor.openSelectionProperties();
+				overlays.selectionProperties.show();
+			}
 		}
 
 		if (event.keyCode==27) { // Esc
@@ -758,7 +760,22 @@ Editor.prototype.changeTileset=function(tileset) {
 	this.tiles.addEventListener("load", this.drawTileMap.bind(this));
 
 	this.drawUnitMap();
+	this.changeTerrainPalette();
 	this.changeUnitPalette();
+};
+
+Editor.prototype.changeTerrainPalette=function() {
+	let icons=document.getElementsByClassName("terrain");
+
+	for (let element of icons) {
+		let icon=element.value+".png";
+
+		let img=new Image();
+		img.src="icons/terrain/"+this.getTileset(this.pud.tileset)+"/"+icon;
+		img.addEventListener("load", function() {
+			element.getElementsByTagName("img")[0].src=this.src;
+		});
+	}
 };
 
 Editor.prototype.changeUnitPalette=function() {
@@ -874,8 +891,8 @@ Editor.prototype.fillSelectionProperties=function() {
 
 	let unit=this.selected[option.value];
 
-	$("text_unitX").value=unit.x;
-	$("text_unitY").value=unit.y;
+	$("text_unitX").value=unit.x+1;
+	$("text_unitY").value=unit.y+1;
 
 	this.setSelect("select_owner", unit.owner);
 
@@ -1155,7 +1172,7 @@ Pud.prototype.save=function() {
 	let file=[];
 
 	for (let section in this.struct) {
-		file.push(this.strToHex(section));
+		file.push(section);
 	}
 
 	return new Blob([file], {
@@ -1168,17 +1185,6 @@ Pud.prototype.hexToStr=function(arr) {
 	return arr.reduce(function(str, hex) {
 		return str+String.fromCharCode(hex);
 	}, "");
-};
-
-// converts ASCII to hex
-Pud.prototype.strToHex=function(str) {
-	let arr=[];
-
-	for (let i=0; i<str.length; i++) {
-		arr.push(str.charCodeAt(i).toString());
-	}
-
-	return arr;
 };
 
 // parses little-endian number
@@ -1267,23 +1273,21 @@ Pud.prototype.readOwnr=function() {
 		return;
 	}
 
-	let controller=this.struct["OWNR"];
-
-	for (let i=0; i<controller.length; i++) {
-		if (controller[i]==0x01) { // computer
-			controller[i]=0x04;
-		}
-
-		if (controller[i]>=0x08) { // passive computer
-			controller[i]=0x00;
-		}
-
-		if (controller[i]>0xff) {
+	this.controller=this.struct["OWNR"].map(function(controller) {
+		if (controller>0xff) {
 			this.valid=false;
 		}
-	}
 
-	this.controller=controller;
+		if (controller==0x01) { // computer
+			return 0x04;
+		}
+
+		if (controller>=0x08) { // passive computer
+			return 0x00;
+		}
+
+		return controller;
+	}, this);
 };
 
 // gets tileset
@@ -1475,19 +1479,17 @@ Pud.prototype.readSide=function() {
 		return;
 	}
 
-	let races=this.struct["SIDE"];
-
-	for (let i=0; i<races.length; i++) {
-		if (races[i]>0xff) {
+	this.races=this.struct["SIDE"].map(function(race) {
+		if (race>0xff) {
 			this.valid=false;
 		}
 
-		if (races[i]>=0x03) { // neutral
-			races[i]=0x02;
+		if (race>=0x03) { // neutral
+			return 0x02;
 		}
-	}
 
-	this.races=races;
+		return race;
+	}, this);
 };
 
 // gets AI script of each player
@@ -1497,15 +1499,12 @@ Pud.prototype.readAipl=function() {
 		return;
 	}
 
-	let ai=this.struct["AIPL"];
-
-	for (let i=0; i<ai.length; i++) {
-		if (ai[i]>0x52) {
+	this.ai=this.struct["AIPL"];
+	this.ai.forEach(function(ai) {
+		if (ai>0x52) {
 			this.valid=false;
 		}
-	}
-
-	this.ai=ai;
+	}, this);
 };
 
 // gets unit map

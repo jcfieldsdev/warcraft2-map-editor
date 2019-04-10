@@ -49,22 +49,32 @@
 <label><input type="checkbox" value="unitMap" checked="checked" class="layer"> Units</label>
 <label><input type="checkbox" value="grid" class="layer"> Grid</label></div></div>
 <div id="terrain" class="palette">
+<div>Brightness:</div>
 <ul>
-	<li><button id="btn_mapBrushLight">Light</button></li>
-	<li><button id="btn_mapBrushDark">Dark</button></li>
-	<li><button id="btn_mapBrushPlain">Plain</button></li>
-	<li><button id="btn_mapBrushFiller">Filler</button></li>
-	<li><button id="btn_mapBrushRandom">Random</button></li>
-	<li><button id="btn_mapBrush1x1">1×1</button></li>
-	<li><button id="btn_mapBrush3x3">3×3</button></li>
-	<li><button id="btn_mapBrush5x5">5×5</button></li>
-	<li><button id="btn_mapBrushWater">Water</button></li>
-	<li><button id="btn_mapBrushMud">Mud</button></li>
-	<li><button id="btn_mapBrushDryMud">Dry Mud</button></li>
-	<li><button id="btn_mapBrushTree">Tree</button></li>
-	<li><button id="btn_mapBrushRock">Rock</button></li>
-	<li><button id="btn_mapBrushHumanWall">Human Wall</button></li>
-	<li><button id="btn_mapBrushOrcWall">Orc Wall</button></li>
+	<li><button value="brightness-light" id="btn_mapBrushLight"><img src="icons/terrain/brightness-light.svg" alt="[Light]"></button></li>
+	<li><button value="brightness-dark" id="btn_mapBrushDark"><img src="icons/terrain/brightness-dark.svg" alt="[Dark]"></button></li>
+</ul>
+<div>Fill Pattern:</div>
+<ul>
+	<li><button value="pattern-plain" id="btn_mapBrushPlain">Plain</button></li>
+	<li><button value="pattern-filler" id="btn_mapBrushFiller">Filler</button></li>
+	<li><button value="pattern-random" id="btn_mapBrushRandom">Random</button></li>
+</ul>
+<div>Brush Size:</div>
+<ul>
+	<li><button value="size-1x1" id="btn_mapBrush1x1">1×1</button></li>
+	<li><button value="size-3x3" id="btn_mapBrush3x3">3×3</button></li>
+	<li><button value="size-5x5" id="btn_mapBrush5x5">5×5</button></li>
+</ul>
+<div>Terrain Type:</div>
+<ul>
+	<li><button value="terrain-water" id="btn_mapBrushWater" class="terrain"><img src="icons/terrain/forest/terrain-water.png" alt="[Water]"></button></li>
+	<li><button value="terrain-dirt" id="btn_mapBrushDirt" class="terrain"><img src="icons/terrain/forest/terrain-dirt.png" alt="[Dirt]"></button></li>
+	<li><button value="terrain-grass" id="btn_mapBrushGrass" class="terrain"><img src="icons/terrain/forest/terrain-grass.png" alt="[Grass]"></button></li>
+	<li><button value="terrain-trees" id="btn_mapBrushTree" class="terrain"><img src="icons/terrain/forest/terrain-trees.png" alt="[Trees]"></button></li>
+	<li><button value="terrain-rocks" id="btn_mapBrushRocks" class="terrain"><img src="icons/terrain/forest/terrain-rocks.png" alt="[Rocks]"></button></li>
+	<li><button value="terrain-humanwall" id="btn_mapBrushHumanWall"><img src="icons/terrain/terrain-humanwall.png" alt="[Human Wall]"></button></li>
+	<li><button value="terrain-orcwall" id="btn_mapBrushOrcWall"><img src="icons/terrain/terrain-orcwall.png" alt="[Orc Wall]"></button></li>
 </ul></div>
 <div id="units" class="palette">
 <select id="select_unitsPalette">
