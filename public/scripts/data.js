@@ -1,4 +1,6 @@
-const colors=[
+const data={};
+
+data.colors=[
 	[ // player 1 (red)
 		{r: 164, g: 0, b: 0},
 		{r: 124, g: 0, b: 0},
@@ -42,7 +44,7 @@ const colors=[
 	]
 ];
 
-const tilesets=[
+data.tilesets=[
 	{ // forest
 		0x0010: {x: 165, y: 561},
 		0x0011: {x: 198, y: 561},
@@ -1608,7 +1610,7 @@ const tilesets=[
 	}
 ];
 
-const units={
+data.icons={
 	startLocation: {
 		startLocation: {
 			human: {
@@ -2142,3 +2144,106 @@ const units={
 		}
 	}
 };
+
+data.units={
+	0: "Footman",
+	1: "Grunt",
+	2: "Peasant",
+	3: "Peon",
+	4: "Ballista",
+	5: "Catapult",
+	6: "Knight",
+	7: "Ogre",
+	8: "Elven Archer",
+	9: "Troll Axethrower",
+	10: "Mage",
+	11: "Death Knight",
+	12: "Paladin",
+	13: "Ogre-Mage",
+	14: "Dwarven Demolition Squad",
+	15: "Goblin Sappers",
+	16: "Attack Peasant",
+	17: "Attack Peon",
+	18: "Elven Ranger",
+	19: "Troll Berserker",
+	20: "Alleria",
+	21: "Teron Gorefiend",
+	22: "Kurdran and Sky’ree",
+	23: "Dentarg",
+	24: "Khadgar",
+	25: "Grom Hellscream",
+	26: "Oil Tanker",
+	27: "Oil Tanker",
+	28: "Transport",
+	29: "Transport",
+	30: "Elven Destroyer",
+	31: "Troll Destroyer",
+	32: "Battleship",
+	33: "Ogre Juggernaught",
+	35: "Deathwing",
+	38: "Gnomish Submarine",
+	39: "Giant Turtle",
+	40: "Gnomish Flying Machine",
+	41: "Goblin Zeppelin",
+	42: "Gryphon Rider",
+	43: "Dragon",
+	44: "Turalyon",
+	45: "Eye of Kilrogg",
+	46: "Danath",
+	47: "Korgath Bladefist",
+	49: "Cho’gall",
+	50: "Lothar",
+	51: "Gul’dan",
+	52: "Uther Lightbringer",
+	53: "Zuljin",
+	55: "Skeleton",
+	56: "Daemon",
+	57: "Critter",
+	58: "Farm",
+	59: "Pig Farm",
+	60: "Barracks",
+	61: "Barracks",
+	62: "Church",
+	63: "Altar of Storms",
+	64: "Scout Tower",
+	65: "Watch Tower",
+	66: "Stables",
+	67: "Ogre Mound",
+	68: "Gnomish Inventor",
+	69: "Goblin Alchemist",
+	70: "Gryphon Aviary",
+	71: "Dragon Roost",
+	72: "Shipyard",
+	73: "Shipyard",
+	74: "Town Hall",
+	75: "Great Hall",
+	76: "Elven Lumber Mill",
+	77: "Troll Lumber Mill",
+	78: "Foundry",
+	79: "Foundry",
+	80: "Mage Tower",
+	81: "Temple of the Damned",
+	82: "Blacksmith",
+	83: "Blacksmith",
+	84: "Refinery",
+	85: "Refinery",
+	86: "Oil Platform",
+	87: "Oil Platform",
+	88: "Keep",
+	89: "Stronghold",
+	90: "Castle",
+	91: "Fortress",
+	92: "Gold Mine",
+	93: "Oil Patch",
+	94: "Human Start Location",
+	95: "Orc Start Location",
+	96: "Guard Tower",
+	97: "Guard Tower",
+	98: "Cannon Tower",
+	99: "Cannon Tower",
+	100: "Circle of Power",
+	101: "Dark Portal",
+	102: "Runestone",
+	103: "Wall",
+	104: "Wall"
+}
