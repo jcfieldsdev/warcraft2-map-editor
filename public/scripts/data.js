@@ -1,3 +1,5 @@
+"use strict";
+
 const data={};
 
 data.colors=[
@@ -2246,4 +2248,4 @@ data.units={
 	102: "Runestone",
 	103: "Wall",
 	104: "Wall"
-}
+};
