@@ -15,7 +15,7 @@ const TILE_SIZE=32;
 
 // layout/appearance
 const MINIMAP_SIZE=200;
-const LEFT_MARGIN=275;
+const LEFT_MARGIN=270;
 const FRAME_COLOR="#fff";
 const SELECT_COLOR="#0f0";
 
@@ -620,27 +620,27 @@ Editor.prototype.selectUnits=function(x, y, add=false, multiple=false) {
 		let gx1=unit.x, gy1=unit.y; // top left
 		let gx2=unit.x+unitSize.x-1, gy2=unit.y+unitSize.y-1; // bottom right
 
-		let condition=false;
+		let boundaries=false;
 
 		if (multiple) {
 			if (x2>x1&&y2>y1) {
 				// top left to bottom right
-				condition=(x1<=gx1&&y1<=gy1)&&(x2>=gx1&&y2>=gy1);
+				boundaries=(x1<=gx1&&y1<=gy1)&&(x2>=gx1&&y2>=gy1);
 			} else if (x1>x2&&y1>y2) {
 				// bottom right to top left
-				condition=(x2<=gx2&&y2<=gy2)&&(x1>=gx2&&y1>=gy2);
+				boundaries=(x2<=gx2&&y2<=gy2)&&(x1>=gx2&&y1>=gy2);
 			} else if (x2>x1&&y2<y1) {
 				// bottom left to top right
-				condition=(x1<=gx1&&y1>=gy2)&&(x2>=gx1&&y2<=gy2);
+				boundaries=(x1<=gx1&&y1>=gy2)&&(x2>=gx1&&y2<=gy2);
 			} else {
 				// top right to bottom left
-				condition=(x2<=gx2&&y2>=gy1)&&(x1>=gx2&&y1<=gy1);
+				boundaries=(x2<=gx2&&y2>=gy1)&&(x1>=gx2&&y1<=gy1);
 			}
 		} else { // single unit
-			condition=(x2>=gx1&&x2<=gx2)&&(y2>=gy1&&y2<=gy2);
+			boundaries=(x2>=gx1&&x2<=gx2)&&(y2>=gy1&&y2<=gy2);
 		}
 
-		if (condition&&(!add||!this.selected.includes(unit))) {
+		if (boundaries&&(!add||!this.selected.includes(unit))) {
 			this.select.beginPath();
 			this.select.rect(
 				gx1*TILE_SIZE, gy1*TILE_SIZE,
@@ -963,11 +963,7 @@ Editor.prototype.submitSelectionProperties=function() {
 
 Editor.prototype.getRace=function() {
 	if (this.player in this.pud.races) {
-		if (this.pud.races[this.player]) {
-			return "orc";
-		} else {
-			return "human";
-		}
+		return this.pud.races[this.player]?"orc":"human";
 	}
 };
 
