@@ -3,7 +3,7 @@
 
 import cgi, json, os
 
-mapdir="../maps/"
+root="../maps/"
 
 args=cgi.FieldStorage()
 dir=args.getvalue("dir") if "dir" in args else ""
@@ -18,8 +18,8 @@ dirs=[]
 files=[]
 
 try:
-	for f in os.listdir(mapdir+dir):
-		if os.path.isdir(mapdir+dir+f) and f!="templates":
+	for f in os.listdir(root+dir):
+		if os.path.isdir(root+dir+f) and f!="templates":
 			dirs.append(f)
 		elif f.endswith(".pud"):
 			files.append(f)
