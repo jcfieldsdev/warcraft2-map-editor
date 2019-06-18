@@ -488,7 +488,7 @@ Editor.prototype.drawUnitMap=function() {
 		}
 
 		let imageData=unitMap.getImageData(x, y, w, h);
-		owner=parseInt(owner);
+		owner=Number.parseInt(owner);
 
 		// changes player colors to match unit owner
 		for (let i=0; i<imageData.data.length; i+=4) { // 4 for RGBA
@@ -905,14 +905,14 @@ Editor.prototype.submitCreate=function() {
 	let tileset=this.saveRadio("radio_terrain");
 	let size=this.saveRadio("radio_size");
 
-	files.loadTemplate(this.getTileset(parseInt(tileset)), size);
+	files.loadTemplate(this.getTileset(Number.parseInt(tileset)), size);
 };
 
 Editor.prototype.submitMapProperties=function() {
 	this.pud.filename=$("text_filename").value;
 	this.pud.description=$("text_description").value;
 
-	let tileset=parseInt(this.saveRadio("radio_tileset"));
+	let tileset=Number.parseInt(this.saveRadio("radio_tileset"));
 
 	if (this.pud.tileset!=tileset){
 		this.changeTileset(tileset);
@@ -1003,7 +1003,7 @@ Editor.prototype.setSelect=function(id, compare) {
 };
 
 Editor.prototype.saveNumber=function(id, size) {
-	let max=1<<(8*size)-1, num=parseInt($(id).value);
+	let max=1<<(8*size)-1, num=Number.parseInt($(id).value);
 
 	if (num<0) {
 		return 0;
@@ -1313,8 +1313,8 @@ Pud.prototype.readDim=function() {
 		return;
 	}
 
-	let x=parseInt(dim.slice(0, BYTE));
-	let y=parseInt(dim.slice(2, 2+BYTE));
+	let x=Number.parseInt(dim.slice(0, BYTE));
+	let y=Number.parseInt(dim.slice(2, 2+BYTE));
 
 	if (x<=128&&y<=128) {
 		this.width=x;
@@ -1376,8 +1376,8 @@ Pud.prototype.readUdta=function() {
 
 		for (let i=0; i<data.length; i+=4) {
 			dim.push({
-				x: parseInt(data.slice(i, i+WORD)),
-				y: parseInt(data.slice(i+2, i+2+WORD))
+				x: Number.parseInt(data.slice(i, i+WORD)),
+				y: Number.parseInt(data.slice(i+2, i+2+WORD))
 			});
 		}
 
@@ -1539,7 +1539,7 @@ Overlays.prototype.closeAll=function() {
 	this.list.forEach(function(overlay) {
 		this.hide(overlay);
 	}, this);
-}
+};
 
 /*
  * Files prototype
