@@ -189,6 +189,10 @@ div#filename, h2 {
 	text-shadow: 2px 2px #000;
 }
 
+div#layers, div#terrain {
+	font-size: 0.75rem;
+}
+
 div#overlay_create fieldset {
 	width: 16em;
 }
@@ -206,8 +210,16 @@ div#miniMap canvas {
 	width: 200px;
 }
 
+div#terrain>div {
+	line-height: 100%;
+	margin: 0.5em 0;
+}
+
 div#terrain img {
-	margin: 0 4px;
+	background: #404040;
+	color: inherit;
+	margin: 0 2px;
+	padding: 2px;
 }
 
 div#terrain img, ul#basic img {
@@ -216,8 +228,15 @@ div#terrain img, ul#basic img {
 }
 
 div#terrain ul {
+	border-bottom: 2px solid #202020;
 	display: flex;
 	flex-wrap: wrap;
+	margin: 0 auto;
+	width: 220px;
+}
+
+div#terrain ul:last-child {
+	border-bottom: 0;
 }
 
 div#units select {
