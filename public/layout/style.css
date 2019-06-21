@@ -110,6 +110,11 @@ button.unit img:hover, div#terrain img:hover {
 	border-color: #fff;
 }
 
+button:disabled {
+	cursor: initial;
+	opacity: 0.5;
+}
+
 canvas#frame {
 	padding: 25px;
 }
