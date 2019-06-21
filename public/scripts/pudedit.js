@@ -31,11 +31,6 @@ const MAPS_DIR="maps/";
 const store=new Storage("pudedit");
 const editor=new Editor();
 const files=new Files("files");
-const overlays=new Overlays([
-	"about", "create", "browser", "link", "mapProperties", "playerProperties",
-	"startingConditions", "unitProperties", "upgradeProperties",
-	"selectionProperties"
-]);
 
 /*
  * initialization
@@ -92,7 +87,7 @@ window.addEventListener("load", function() {
 		} else if (event.button==RIGHT) {
 			if (editor.selected.length>0) {
 				editor.openSelectionProperties();
-				overlays.show("selectionProperties");
+				editor.show("selectionProperties");
 			}
 		}
 	});
@@ -107,11 +102,11 @@ window.addEventListener("load", function() {
 	// for palettes
 	$("create").addEventListener("click", function() {
 		editor.openCreate();
-		overlays.show("create");
+		editor.show("create");
 	});
 	$("open").addEventListener("click", function() {
 		files.getList();
-		overlays.show("browser");
+		editor.show("browser");
 	});
 	$("save").addEventListener("click", function() {
 		window.location.href+=MAPS_DIR+editor.fullname;
@@ -134,63 +129,18 @@ window.addEventListener("load", function() {
 		link+="?map="+editor.fullname;
 
 		$("text_link").value=link;
-		overlays.show("link");
+		editor.show("link");
 	});
 	$("copy").addEventListener("click", function() {
 		$(this.value).select();
 		document.execCommand("copy");
 	});
 	$("about").addEventListener("click", function() {
-		overlays.show("about");
+		editor.show("about");
 	});
 	$("filename").addEventListener("click", function() {
 		editor.openMapProperties();
-		overlays.show("mapProperties");
-	});
-	$("btn_mapProperties").addEventListener("click", function() {
-		editor.openMapProperties();
-		overlays.show("mapProperties");
-	});
-	$("btn_playerProperties").addEventListener("click", function() {
-		editor.openPlayerProperties();
-		overlays.show("playerProperties");
-	});
-	$("btn_startingConditions").addEventListener("click", function() {
-		editor.openStartingConditions();
-		overlays.show("startingConditions");
-	});
-	$("btn_unitProperties").addEventListener("click", function() {
-		editor.openUnitProperties();
-		overlays.show("unitProperties");
-	});
-	$("btn_upgradeProperties").addEventListener("click", function() {
-		editor.openUpgradeProperties();
-		overlays.show("upgradeProperties");
-	});
-	// for overlay save buttons
-	$("submit_create").addEventListener("click", function() {
-		editor.submitCreate();
-		overlays.hide("create");
-	});
-	$("submit_mapProperties").addEventListener("click", function() {
-		editor.submitMapProperties();
-		overlays.hide("mapProperties");
-	});
-	$("submit_playerProperties").addEventListener("click", function() {
-		editor.submitPlayerProperties();
-		overlays.hide("playerProperties");
-	});
-	$("submit_startingConditions").addEventListener("click", function() {
-		editor.submitStartingConditions();
-		overlays.hide("startingConditions");
-	});
-	$("submit_unitProperties").addEventListener("click", function() {
-		editor.submitUnitProperties();
-		overlays.hide("unitProperties");
-	});
-	$("submit_upgradeProperties").addEventListener("click", function() {
-		editor.submitUpgradeProperties();
-		overlays.hide("upgradeProperties");
+		editor.show("mapProperties");
 	});
 	// for overlay widgets
 	$("select_unitsPalette").addEventListener("input", function() {
@@ -219,58 +169,28 @@ window.addEventListener("load", function() {
 			let reader=new FileReader();
 			reader.addEventListener("load", function(event) {
 				editor.open(file.name, event.target.result);
-				overlays.hide("browser");
+				editor.hide("browser");
 			});
 			reader.readAsArrayBuffer(file);
 		}
 	});
 
 	window.addEventListener("keyup", function(event) {
-		if (event.keyCode==13) { // Enter
+		let key=event.keyCode;
+
+		if (key==13) { // Enter
 			if (editor.selected.length>0) {
 				editor.openSelectionProperties();
-				overlays.show("selectionProperties");
+				editor.show("selectionProperties");
 			}
 		}
 
-		if (event.keyCode==27) { // Esc
-			overlays.closeAll();
+		if (key==27) { // Esc
+			editor.closeAll();
 		}
 
-		if (event.keyCode==48) { // 0
-			editor.selectPlayer(15);
-		}
-
-		if (event.keyCode==49) { // 1
-			editor.selectPlayer(0);
-		}
-
-		if (event.keyCode==50) { // 2
-			editor.selectPlayer(1);
-		}
-
-		if (event.keyCode==51) { // 3
-			editor.selectPlayer(2);
-		}
-
-		if (event.keyCode==52) { // 4
-			editor.selectPlayer(3);
-		}
-
-		if (event.keyCode==53) { // 5
-			editor.selectPlayer(4);
-		}
-
-		if (event.keyCode==54) { // 6
-			editor.selectPlayer(5);
-		}
-
-		if (event.keyCode==55) { // 7
-			editor.selectPlayer(6);
-		}
-
-		if (event.keyCode==56) { // 8
-			editor.selectPlayer(7);
+		if (key>=48||key<=56) { // 0-8
+			editor.selectPlayer(key==48?15:key-49);
 		}
 	});
 	window.addEventListener("beforeunload", function() {
@@ -316,11 +236,31 @@ window.addEventListener("load", function() {
 		});
 	}
 
+	let properties=document.getElementsByClassName("properties");
+
+	for (let element of properties) {
+		element.addEventListener("click", function() {
+			let fn=element.value.charAt(0).toUpperCase()+element.value.slice(1);
+			editor["open"+fn]();
+			editor.show(element.value);
+		});
+	}
+
+	let save=document.getElementsByClassName("save");
+
+	for (let element of properties) {
+		element.addEventListener("click", function() {
+			let fn=element.value.charAt(0).toUpperCase()+element.value.slice(1);
+			editor["save"+fn]();
+			editor.hide(element.value);
+		});
+	}
+
 	let close=document.getElementsByClassName("close");
 
 	for (let element of close) {
 		element.addEventListener("click", function() {
-			overlays.hide(this.value);
+			editor.hide(this.value);
 		});
 	}
 });
@@ -976,14 +916,14 @@ Editor.prototype.fillSelectionProperties=function() {
 	}
 };
 
-Editor.prototype.submitCreate=function() {
+Editor.prototype.saveCreate=function() {
 	let tileset=this.saveRadio("radio_terrain");
 	let size=this.saveRadio("radio_size");
 
 	files.loadTemplate(this.getTileset(Number.parseInt(tileset)), size);
 };
 
-Editor.prototype.submitMapProperties=function() {
+Editor.prototype.saveMapProperties=function() {
 	this.pud.filename=$("text_filename").value;
 	this.pud.description=$("text_description").value;
 
@@ -996,7 +936,7 @@ Editor.prototype.submitMapProperties=function() {
 	$("filename").textContent=this.pud.filename;
 };
 
-Editor.prototype.submitPlayerProperties=function() {
+Editor.prototype.savePlayerProperties=function() {
 	for (let i=0; i<MAX_PLAYERS; i++) {
 		this.pud.races[i]=this.saveRadio("radio_race"+i);
 		this.pud.controller[i]=this.saveSelect("select_controller"+i);
@@ -1006,7 +946,7 @@ Editor.prototype.submitPlayerProperties=function() {
 	this.changeUnitPalette();
 };
 
-Editor.prototype.submitStartingConditions=function() {
+Editor.prototype.saveStartingConditions=function() {
 	for (let i=0; i<MAX_PLAYERS; i++) {
 		this.pud.startingGold[i]=this.saveNumber("number_startingGold"+i);
 		this.pud.startingLumber[i]=this.saveNumber("number_startingLumber"+i);
@@ -1014,13 +954,13 @@ Editor.prototype.submitStartingConditions=function() {
 	}
 };
 
-Editor.prototype.submitUnitProperties=function() {
+Editor.prototype.saveUnitProperties=function() {
 };
 
-Editor.prototype.submitUpgradeProperties=function() {
+Editor.prototype.saveUpgradeProperties=function() {
 };
 
-Editor.prototype.submitSelectionProperties=function() {
+Editor.prototype.saveSelectionProperties=function() {
 };
 
 Editor.prototype.getRace=function() {
@@ -1126,6 +1066,23 @@ Editor.prototype.saveImage=function() {
 		a.href=window.URL.createObjectURL(blob);
 		a.click();
 	}, "image/png");
+};
+
+Editor.prototype.show=function(id) {
+	this.closeAll();
+	$("overlay_"+id).classList.add("open");
+};
+
+Editor.prototype.hide=function(id) {
+	$("overlay_"+id).classList.remove("open");
+};
+
+Editor.prototype.closeAll=function() {
+	let overlays=document.getElementsByClassName("overlay");
+
+	Array.from(overlays).forEach(function(overlay) {
+		overlay.classList.remove("open");
+	}, this);
 };
 
 /*
@@ -1594,29 +1551,6 @@ Pud.prototype.readUnit=function() {
 };
 
 /*
- * Overlays prototype
- */
-
-function Overlays(list) {
-	this.list=list;
-}
-
-Overlays.prototype.show=function(id) {
-	this.closeAll();
-	$("overlay_"+id).classList.add("open");
-};
-
-Overlays.prototype.hide=function(id) {
-	$("overlay_"+id).classList.remove("open");
-};
-
-Overlays.prototype.closeAll=function() {
-	this.list.forEach(function(overlay) {
-		this.hide(overlay);
-	}, this);
-};
-
-/*
  * Files prototype
  */
 
@@ -1661,7 +1595,7 @@ Files.prototype.getList=function() {
 			for (let file of files) {
 				ul.appendChild(self.createItem("pud", file,
 					function() {
-						overlays.hide("browser");
+						editor.hide("browser");
 						self.load(file, editor.open.bind(editor));
 					})
 				);

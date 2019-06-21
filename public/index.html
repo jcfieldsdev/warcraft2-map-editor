@@ -90,11 +90,11 @@
 </select>
 <ul id="unitsPalette"></ul></div>
 <div id="map" class="palette"><ul>
-	<li><button id="btn_mapProperties">Map Properties</button></li>
-	<li><button id="btn_playerProperties">Player Properties</button></li>
-	<li><button id="btn_startingConditions">Starting Resources</button></li>
-	<li><button id="btn_unitProperties">Unit Properties</button></li>
-	<li><button id="btn_upgradeProperties">Upgrade Properties</button></li>
+	<li><button value="mapProperties" class="properties">Map Properties</button></li>
+	<li><button value="playerProperties" class="properties">Player Properties</button></li>
+	<li><button value="startingConditions" class="properties">Starting Resources</button></li>
+	<li><button value="unitProperties" class="properties">Unit Properties</button></li>
+	<li><button value="upgradeProperties" class="properties">Upgrade Properties</button></li>
 </ul></div></nav>
 <main><noscript><p>Must have JavaScript enabled.</p></noscript>
 <canvas id="tileMap"></canvas>
@@ -102,7 +102,7 @@
 <canvas id="grid" class="hidden"></canvas>
 <canvas id="select"></canvas>
 <div id="overlay_create" class="overlay"><div class="title"><h2>Create</h2>
-<button type="button" title="Create" id="submit_create"><img src="layout/widget-save.svg" alt="Create"></button>
+<button type="button" value="create" title="Create" class="save"><img src="layout/widget-save.svg" alt="Create"></button>
 <button type="button" value="create" title="Close" class="close"><img src="layout/widget-close.svg" alt="Close"></button></div>
 <div class="view"><fieldset><legend>Map Size:</legend>
 <div><label><input type="radio" value="128" name="radio_size"> Large (128×128)</label></div>
@@ -119,7 +119,7 @@
 <ul id="files"></ul>
 <div><label>Open local file: <input type="file" id="file" accept=".pud"></label></div></div>
 <div id="overlay_mapProperties" class="overlay"><div class="title"><h2>Map Properties</h2>
-<button type="button" id="submit_mapProperties" title="Save"><img src="layout/widget-save.svg" alt="Save"></button>
+<button type="button" value="mapProperties" title="Save" class="save"><img src="layout/widget-save.svg" alt="Save"></button>
 <button type="button" value="mapProperties" title="Close" class="close"><img src="layout/widget-close.svg" alt="Close"></button></div>
 <table><tr><td><label for="text_filename">File Name:</label></td><td><input type="text" size="32" maxlength="255" id="text_filename"></td></tr>
 <tr><td><label>Map Size:</label></td><td><input type="text" size="3" disabled="disabled" id="text_width">×<input type="text" size="3" disabled="disabled" id="text_height"></td></tr>
@@ -130,7 +130,7 @@
 <div><label><input type="radio" value="2" name="radio_tileset"> Wasteland</label></div>
 <div><label><input type="radio" value="3" name="radio_tileset"> Swamp</label></div></fieldset></div>
 <div id="overlay_playerProperties" class="overlay"><div class="title"><h2>Player Properties</h2>
-<button type="button" id="submit_playerProperties" title="Save"><img src="layout/widget-save.svg" alt="Save"></button>
+<button type="button" value="playerProperties" title="Save" class="save"><img src="layout/widget-save.svg" alt="Save"></button>
 <button type="button" value="playerProperties" title="Close" class="close"><img src="layout/widget-close.svg" alt="Close"></button></div>
 <table><tr><th></th><th>Race:</th><th>Controller:</th><th>A.I. Players:</th></tr>
 <tr><th class="player1">Player 1</th>
@@ -166,7 +166,7 @@
 <td><select id="select_controller7"><option value="5">Human</option><option value="4">Computer</option><option value="6">Rescuable (Passive)</option><option value="7">Rescuable (Active)</option></select></td>
 <td><select id="select_ai7" class="ai"></select></td></tr></table></div>
 <div id="overlay_startingConditions" class="overlay"><div class="title"><h2>Starting Resources</h2>
-<button type="button" id="submit_startingConditions" title="Save"><img src="layout/widget-save.svg" alt="Save"></button>
+<button type="button" value="startingConditions" title="Save" class="save"><img src="layout/widget-save.svg" alt="Save"></button>
 <button type="button" value="startingConditions" title="Close" class="close"><img src="layout/widget-close.svg" alt="Close"></button></div>
 <table><tr><th></th><th>Gold:</th><th>Lumber:</th><th>Oil:</th></tr>
 <tr><td class="player1">Player 1</td><td><input type="number" min="0" max="65535" id="number_startingGold0" class="gold"></td><td><input type="number" min="0" max="65535" id="number_startingLumber0" class="lumber"></td><td><input type="number" min="0" max="65535" id="number_startingOil0" class="oil"></td></tr>
@@ -178,7 +178,7 @@
 <tr><td class="player7">Player 7</td><td><input type="number" min="0" max="65535" id="number_startingGold6" class="gold"></td><td><input type="number" min="0" max="65535" id="number_startingLumber6" class="lumber"></td><td><input type="number" min="0" max="65535" id="number_startingOil6" class="oil"></td></tr>
 <tr><td class="player8">Player 8</td><td><input type="number" min="0" max="65535" id="number_startingGold7" class="gold"></td><td><input type="number" min="0" max="65535" id="number_startingLumber7" class="lumber"></td><td><input type="number" min="0" max="65535" id="number_startingOil7" class="oil"></td></tr></table></div>
 <div id="overlay_unitProperties" class="overlay"><div class="title"><h2>Unit Properties</h2>
-<button type="button" id="submit_unitProperties" title="Save"><img src="layout/widget-save.svg" alt="Save"></button>
+<button type="button" value="unitProperties" title="Save" class="save"><img src="layout/widget-save.svg" alt="Save"></button>
 <button type="button" value="unitProperties" title="Close" class="close"><img src="layout/widget-close.svg" alt="Close"></button></div>
 <div><label><input type="checkbox" id="checkbox_units"> Use default data.</label></div>
 <div class="view"><select size="10" id="select_units"></select>
@@ -211,7 +211,7 @@
 <tr><td><label for="number_canTarget">Targetable:</label></td><td><input type="number" min="0" max="4294967295" id="number_canTarget"></td></tr>
 <tr><td><label for="number_flags">Flags:</label></td><td><input type="number" min="0" max="4294967295" id="number_flags"></td></tr></table></fieldset></div></div>
 <div id="overlay_upgradeProperties" class="overlay"><div class="title"><h2>Upgrade Properties</h2>
-<button type="button" id="submit_upgradeProperties" title="Save"><img src="layout/widget-save.svg" alt="Save"></button>
+<button type="button" value="upgradeProperties" title="Save" class="save"><img src="layout/widget-save.svg" alt="Save"></button>
 <button type="button" value="upgradeProperties" title="Close" class="close"><img src="layout/widget-close.svg" alt="Close"></button></div>
 <div><label><input type="checkbox" id="checkbox_upgrades"> Use default data.</label></div>
 <div class="view"><select size="10" id="select_upgrades"></select>
@@ -227,7 +227,7 @@
 <button type="button" value="link" title="Close" class="close"><img src="layout/widget-close.svg" alt="Close"></button></div>
 <div><input type="text" id="text_link">&nbsp;<button type="button" value="text_link" id="copy" class="action"><img src="layout/icon-copy.svg" alt="[Copy]"></button></div></div>
 <div id="overlay_selectionProperties" class="overlay"><div class="title"><h2>Selection Properties</h2>
-<button type="button" id="submit_selectionProperties" title="Save"><img src="layout/widget-save.svg" alt="Save"></button>
+<button type="button" value="selectionProperties" title="Save" class="save"><img src="layout/widget-save.svg" alt="Save"></button>
 <button type="button" value="selectionProperties" title="Close" class="close"><img src="layout/widget-close.svg" alt="Close"></button></div>
 <div class="view">
 <select size="10" id="select_selection"></select>
