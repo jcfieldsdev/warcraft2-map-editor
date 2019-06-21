@@ -215,11 +215,16 @@ div#terrain>div {
 	margin: 0.5em 0;
 }
 
-div#terrain img {
+div#terrain button img {
 	background: #404040;
 	color: inherit;
 	margin: 0 2px;
 	padding: 2px;
+}
+
+div#terrain button.active img {
+	background: #606060;
+	color: inherit;
 }
 
 div#terrain img, ul#basic img {
