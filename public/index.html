@@ -51,18 +51,18 @@
 <div id="terrain" class="palette">
 <div>Brightness:</div>
 <ul>
-	<li><button value="brightness-light" id="btn_mapBrushLight"><img src="icons/terrain/brightness-light.svg" alt="[Light]"></button></li>
+	<li><button value="brightness-light" id="btn_mapBrushLight" class="active"><img src="icons/terrain/brightness-light.svg" alt="[Light]"></button></li>
 	<li><button value="brightness-dark" id="btn_mapBrushDark"><img src="icons/terrain/brightness-dark.svg" alt="[Dark]"></button></li>
 </ul>
 <div>Fill Pattern:</div>
 <ul>
-	<li><button value="pattern-plain" id="btn_mapBrushPlain"><img src="icons/terrain/pattern-plain.svg" alt="[Plain]"></button></li>
+	<li><button value="pattern-plain" id="btn_mapBrushPlain" class="active"><img src="icons/terrain/pattern-plain.svg" alt="[Plain]"></button></li>
 	<li><button value="pattern-filler" id="btn_mapBrushFiller"><img src="icons/terrain/pattern-filler.svg" alt="[Filler]"></button></li>
 	<li><button value="pattern-random" id="btn_mapBrushRandom"><img src="icons/terrain/pattern-random.svg" alt="[Random]"></button></li>
 </ul>
 <div>Brush Size:</div>
 <ul>
-	<li><button value="size-1x1" id="btn_mapBrush1x1"><img src="icons/terrain/size-1x1.svg" alt="[1×1]"></button></li>
+	<li><button value="size-1x1" id="btn_mapBrush1x1" class="active"><img src="icons/terrain/size-1x1.svg" alt="[1×1]"></button></li>
 	<li><button value="size-3x3" id="btn_mapBrush3x3"><img src="icons/terrain/size-3x3.svg" alt="[3×3]"></button></li>
 	<li><button value="size-5x5" id="btn_mapBrush5x5"><img src="icons/terrain/size-5x5.svg" alt="[5×5]"></button></li>
 </ul>
@@ -136,35 +136,35 @@
 <tr><th class="player1">Player 1</th>
 <td><label><input type="radio" value="0" name="radio_race0"> Human</label> <label><input type="radio" value="1" name="radio_race0"> Orc</label></td>
 <td><select id="select_controller0"><option value="5">Human</option><option value="4">Computer</option><option value="6">Rescuable (Passive)</option><option value="7">Rescuable (Active)</option></select></td>
-<td><select id="select_ai0"><option value="1">Passive</option><option value="0">Land Attack</option><option value="26">Air Attack</option><option value="25">Sea Attack</option><option value="3">Human 4</option><option value="5">Human 5</option><option value="7">Human 6</option><option value="9">Human 7</option><option value="11">Human 8</option><option value="13">Human 9</option><option value="15">Human 10</option><option value="17">Human 11</option><option value="19">Human 12</option><option value="21">Human 13</option><option value="27">Human 14 (Red)</option><option value="23">Human 14 (Orange)</option><option value="29">Human 14 (Black)</option><option value="28">Human 14 (White)</option><option value="2">Orc 3</option><option value="4">Orc 4</option><option value="6">Orc 5</option><option value="8">Orc 6</option><option value="10">Orc 7</option><option value="12">Orc 8</option><option value="14">Orc 9</option><option value="16">Orc 10</option><option value="18">Orc 11</option><option value="20">Orc 12</option><option value="22">Orc 13</option><option value="24">Orc 14 (Blue)</option><option value="30">Orc 14 (Green)</option><option value="31">Orc 14 (White)</option><option value="80">Expansion Orc 2</option><option value="82">Expansion Orc 3</option><option value="32">Expansion Orc 4</option><option value="33">Expansion Orc 5</option><option value="72">Expansion Orc 5b</option><option value="38">Expansion Orc 6a (Blue)</option><option value="39">Expansion Orc 6b (Green)</option><option value="34">Expansion Orc 7a (Green)</option><option value="81">Expansion Orc 7b (Blue)</option><option value="35">Expansion Orc 8</option><option value="36">Expansion Orc 10</option><option value="40">Expansion Orc 11a (White)</option><option value="41">Expansion Orc 11b (Violet)</option><option value="37">Expansion Orc 12</option><option value="76">Expansion Orc 12a (Green)</option><option value="77">Expansion Orc 12b (White)</option><option value="78">Expansion Orc 12c (Violet)</option><option value="79">Expansion Orc 12d (Blue)</option><option value="42">Expansion Human 2a (Red)</option><option value="43">Expansion Human 2b (Black)</option><option value="44">Expansion Human 2c (Yellow)</option><option value="45">Expansion Human 3a (Orange)</option><option value="46">Expansion Human 3b (Red)</option><option value="47">Expansion Human 3c (Violet)</option><option value="48">Expansion Human 4a (Black)</option><option value="49">Expansion Human 4b (Red)</option><option value="50">Expansion Human 4c (White)</option><option value="51">Expansion Human 5a (Green)</option><option value="52">Expansion Human 5b (Orange)</option><option value="53">Expansion Human 5c (Violet)</option><option value="54">Expansion Human 5d (Yellow)</option><option value="55">Expansion Human 6a (Green)</option><option value="56">Expansion Human 6b (Black)</option><option value="57">Expansion Human 6c (Orange)</option><option value="58">Expansion Human 6d (Red)</option><option value="73">Expansion Human 7a (Black)</option><option value="74">Expansion Human 7b</option><option value="75">Expansion Human 7c</option><option value="59">Expansion Human 8a (White)</option><option value="60">Expansion Human 8b (Yellow)</option><option value="61">Expansion Human 8c (Violet)</option><option value="62">Expansion Human 9a (Black)</option><option value="63">Expansion Human 9b (Red)</option><option value="64">Expansion Human 9c (Green)</option><option value="65">Expansion Human 9d (White)</option><option value="66">Expansion Human 10a (Violet)</option><option value="67">Expansion Human 10b (Green)</option><option value="68">Expansion Human 10c (Black)</option><option value="69">Expansion Human 11a</option><option value="70">Expansion Human 11b (Green)</option><option value="71">Expansion Human 12a (Green)</option></select></td></tr>
+<td><select id="select_ai0" class="ai"></select></td></tr>
 <tr><th class="player2">Player 2</th>
 <td><label><input type="radio" value="0" name="radio_race1"> Human</label> <label><input type="radio" value="1" name="radio_race1"> Orc</label></td>
 <td><select id="select_controller1"><option value="5">Human</option><option value="4">Computer</option><option value="6">Rescuable (Passive)</option><option value="7">Rescuable (Active)</option></select></td>
-<td><select id="select_ai1"><option value="1">Passive</option><option value="0">Land Attack</option><option value="26">Air Attack</option><option value="25">Sea Attack</option><option value="3">Human 4</option><option value="5">Human 5</option><option value="7">Human 6</option><option value="9">Human 7</option><option value="11">Human 8</option><option value="13">Human 9</option><option value="15">Human 10</option><option value="17">Human 11</option><option value="19">Human 12</option><option value="21">Human 13</option><option value="27">Human 14 (Red)</option><option value="23">Human 14 (Orange)</option><option value="29">Human 14 (Black)</option><option value="28">Human 14 (White)</option><option value="2">Orc 3</option><option value="4">Orc 4</option><option value="6">Orc 5</option><option value="8">Orc 6</option><option value="10">Orc 7</option><option value="12">Orc 8</option><option value="14">Orc 9</option><option value="16">Orc 10</option><option value="18">Orc 11</option><option value="20">Orc 12</option><option value="22">Orc 13</option><option value="24">Orc 14 (Blue)</option><option value="30">Orc 14 (Green)</option><option value="31">Orc 14 (White)</option><option value="80">Expansion Orc 2</option><option value="82">Expansion Orc 3</option><option value="32">Expansion Orc 4</option><option value="33">Expansion Orc 5</option><option value="72">Expansion Orc 5b</option><option value="38">Expansion Orc 6a (Blue)</option><option value="39">Expansion Orc 6b (Green)</option><option value="34">Expansion Orc 7a (Green)</option><option value="81">Expansion Orc 7b (Blue)</option><option value="35">Expansion Orc 8</option><option value="36">Expansion Orc 10</option><option value="40">Expansion Orc 11a (White)</option><option value="41">Expansion Orc 11b (Violet)</option><option value="37">Expansion Orc 12</option><option value="76">Expansion Orc 12a (Green)</option><option value="77">Expansion Orc 12b (White)</option><option value="78">Expansion Orc 12c (Violet)</option><option value="79">Expansion Orc 12d (Blue)</option><option value="42">Expansion Human 2a (Red)</option><option value="43">Expansion Human 2b (Black)</option><option value="44">Expansion Human 2c (Yellow)</option><option value="45">Expansion Human 3a (Orange)</option><option value="46">Expansion Human 3b (Red)</option><option value="47">Expansion Human 3c (Violet)</option><option value="48">Expansion Human 4a (Black)</option><option value="49">Expansion Human 4b (Red)</option><option value="50">Expansion Human 4c (White)</option><option value="51">Expansion Human 5a (Green)</option><option value="52">Expansion Human 5b (Orange)</option><option value="53">Expansion Human 5c (Violet)</option><option value="54">Expansion Human 5d (Yellow)</option><option value="55">Expansion Human 6a (Green)</option><option value="56">Expansion Human 6b (Black)</option><option value="57">Expansion Human 6c (Orange)</option><option value="58">Expansion Human 6d (Red)</option><option value="73">Expansion Human 7a (Black)</option><option value="74">Expansion Human 7b</option><option value="75">Expansion Human 7c</option><option value="59">Expansion Human 8a (White)</option><option value="60">Expansion Human 8b (Yellow)</option><option value="61">Expansion Human 8c (Violet)</option><option value="62">Expansion Human 9a (Black)</option><option value="63">Expansion Human 9b (Red)</option><option value="64">Expansion Human 9c (Green)</option><option value="65">Expansion Human 9d (White)</option><option value="66">Expansion Human 10a (Violet)</option><option value="67">Expansion Human 10b (Green)</option><option value="68">Expansion Human 10c (Black)</option><option value="69">Expansion Human 11a</option><option value="70">Expansion Human 11b (Green)</option><option value="71">Expansion Human 12a (Green)</option></select></td></tr>
+<td><select id="select_ai1" class="ai"></select></td></tr>
 <tr><th class="player3">Player 3</th>
 <td><label><input type="radio" value="0" name="radio_race2"> Human</label> <label><input type="radio" value="1" name="radio_race2"> Orc</label></td>
 <td><select id="select_controller2"><option value="5">Human</option><option value="4">Computer</option><option value="6">Rescuable (Passive)</option><option value="7">Rescuable (Active)</option></select></td>
-<td><select id="select_ai2"><option value="1">Passive</option><option value="0">Land Attack</option><option value="26">Air Attack</option><option value="25">Sea Attack</option><option value="3">Human 4</option><option value="5">Human 5</option><option value="7">Human 6</option><option value="9">Human 7</option><option value="11">Human 8</option><option value="13">Human 9</option><option value="15">Human 10</option><option value="17">Human 11</option><option value="19">Human 12</option><option value="21">Human 13</option><option value="27">Human 14 (Red)</option><option value="23">Human 14 (Orange)</option><option value="29">Human 14 (Black)</option><option value="28">Human 14 (White)</option><option value="2">Orc 3</option><option value="4">Orc 4</option><option value="6">Orc 5</option><option value="8">Orc 6</option><option value="10">Orc 7</option><option value="12">Orc 8</option><option value="14">Orc 9</option><option value="16">Orc 10</option><option value="18">Orc 11</option><option value="20">Orc 12</option><option value="22">Orc 13</option><option value="24">Orc 14 (Blue)</option><option value="30">Orc 14 (Green)</option><option value="31">Orc 14 (White)</option><option value="80">Expansion Orc 2</option><option value="82">Expansion Orc 3</option><option value="32">Expansion Orc 4</option><option value="33">Expansion Orc 5</option><option value="72">Expansion Orc 5b</option><option value="38">Expansion Orc 6a (Blue)</option><option value="39">Expansion Orc 6b (Green)</option><option value="34">Expansion Orc 7a (Green)</option><option value="81">Expansion Orc 7b (Blue)</option><option value="35">Expansion Orc 8</option><option value="36">Expansion Orc 10</option><option value="40">Expansion Orc 11a (White)</option><option value="41">Expansion Orc 11b (Violet)</option><option value="37">Expansion Orc 12</option><option value="76">Expansion Orc 12a (Green)</option><option value="77">Expansion Orc 12b (White)</option><option value="78">Expansion Orc 12c (Violet)</option><option value="79">Expansion Orc 12d (Blue)</option><option value="42">Expansion Human 2a (Red)</option><option value="43">Expansion Human 2b (Black)</option><option value="44">Expansion Human 2c (Yellow)</option><option value="45">Expansion Human 3a (Orange)</option><option value="46">Expansion Human 3b (Red)</option><option value="47">Expansion Human 3c (Violet)</option><option value="48">Expansion Human 4a (Black)</option><option value="49">Expansion Human 4b (Red)</option><option value="50">Expansion Human 4c (White)</option><option value="51">Expansion Human 5a (Green)</option><option value="52">Expansion Human 5b (Orange)</option><option value="53">Expansion Human 5c (Violet)</option><option value="54">Expansion Human 5d (Yellow)</option><option value="55">Expansion Human 6a (Green)</option><option value="56">Expansion Human 6b (Black)</option><option value="57">Expansion Human 6c (Orange)</option><option value="58">Expansion Human 6d (Red)</option><option value="73">Expansion Human 7a (Black)</option><option value="74">Expansion Human 7b</option><option value="75">Expansion Human 7c</option><option value="59">Expansion Human 8a (White)</option><option value="60">Expansion Human 8b (Yellow)</option><option value="61">Expansion Human 8c (Violet)</option><option value="62">Expansion Human 9a (Black)</option><option value="63">Expansion Human 9b (Red)</option><option value="64">Expansion Human 9c (Green)</option><option value="65">Expansion Human 9d (White)</option><option value="66">Expansion Human 10a (Violet)</option><option value="67">Expansion Human 10b (Green)</option><option value="68">Expansion Human 10c (Black)</option><option value="69">Expansion Human 11a</option><option value="70">Expansion Human 11b (Green)</option><option value="71">Expansion Human 12a (Green)</option></select></td></tr>
+<td><select id="select_ai2" class="ai"></select></td></tr>
 <tr><th class="player4">Player 4</th>
 <td><label><input type="radio" value="0" name="radio_race3"> Human</label> <label><input type="radio" value="1" name="radio_race3"> Orc</label></td>
 <td><select id="select_controller3"><option value="5">Human</option><option value="4">Computer</option><option value="6">Rescuable (Passive)</option><option value="7">Rescuable (Active)</option></select></td>
-<td><select id="select_ai3"><option value="1">Passive</option><option value="0">Land Attack</option><option value="26">Air Attack</option><option value="25">Sea Attack</option><option value="3">Human 4</option><option value="5">Human 5</option><option value="7">Human 6</option><option value="9">Human 7</option><option value="11">Human 8</option><option value="13">Human 9</option><option value="15">Human 10</option><option value="17">Human 11</option><option value="19">Human 12</option><option value="21">Human 13</option><option value="27">Human 14 (Red)</option><option value="23">Human 14 (Orange)</option><option value="29">Human 14 (Black)</option><option value="28">Human 14 (White)</option><option value="2">Orc 3</option><option value="4">Orc 4</option><option value="6">Orc 5</option><option value="8">Orc 6</option><option value="10">Orc 7</option><option value="12">Orc 8</option><option value="14">Orc 9</option><option value="16">Orc 10</option><option value="18">Orc 11</option><option value="20">Orc 12</option><option value="22">Orc 13</option><option value="24">Orc 14 (Blue)</option><option value="30">Orc 14 (Green)</option><option value="31">Orc 14 (White)</option><option value="80">Expansion Orc 2</option><option value="82">Expansion Orc 3</option><option value="32">Expansion Orc 4</option><option value="33">Expansion Orc 5</option><option value="72">Expansion Orc 5b</option><option value="38">Expansion Orc 6a (Blue)</option><option value="39">Expansion Orc 6b (Green)</option><option value="34">Expansion Orc 7a (Green)</option><option value="81">Expansion Orc 7b (Blue)</option><option value="35">Expansion Orc 8</option><option value="36">Expansion Orc 10</option><option value="40">Expansion Orc 11a (White)</option><option value="41">Expansion Orc 11b (Violet)</option><option value="37">Expansion Orc 12</option><option value="76">Expansion Orc 12a (Green)</option><option value="77">Expansion Orc 12b (White)</option><option value="78">Expansion Orc 12c (Violet)</option><option value="79">Expansion Orc 12d (Blue)</option><option value="42">Expansion Human 2a (Red)</option><option value="43">Expansion Human 2b (Black)</option><option value="44">Expansion Human 2c (Yellow)</option><option value="45">Expansion Human 3a (Orange)</option><option value="46">Expansion Human 3b (Red)</option><option value="47">Expansion Human 3c (Violet)</option><option value="48">Expansion Human 4a (Black)</option><option value="49">Expansion Human 4b (Red)</option><option value="50">Expansion Human 4c (White)</option><option value="51">Expansion Human 5a (Green)</option><option value="52">Expansion Human 5b (Orange)</option><option value="53">Expansion Human 5c (Violet)</option><option value="54">Expansion Human 5d (Yellow)</option><option value="55">Expansion Human 6a (Green)</option><option value="56">Expansion Human 6b (Black)</option><option value="57">Expansion Human 6c (Orange)</option><option value="58">Expansion Human 6d (Red)</option><option value="73">Expansion Human 7a (Black)</option><option value="74">Expansion Human 7b</option><option value="75">Expansion Human 7c</option><option value="59">Expansion Human 8a (White)</option><option value="60">Expansion Human 8b (Yellow)</option><option value="61">Expansion Human 8c (Violet)</option><option value="62">Expansion Human 9a (Black)</option><option value="63">Expansion Human 9b (Red)</option><option value="64">Expansion Human 9c (Green)</option><option value="65">Expansion Human 9d (White)</option><option value="66">Expansion Human 10a (Violet)</option><option value="67">Expansion Human 10b (Green)</option><option value="68">Expansion Human 10c (Black)</option><option value="69">Expansion Human 11a</option><option value="70">Expansion Human 11b (Green)</option><option value="71">Expansion Human 12a (Green)</option></select></td></tr>
+<td><select id="select_ai3" class="ai"></select></td></tr>
 <tr><th class="player5">Player 5</th>
 <td><label><input type="radio" value="0" name="radio_race4"> Human</label> <label><input type="radio" value="1" name="radio_race4"> Orc</label></td>
 <td><select id="select_controller4"><option value="5">Human</option><option value="4">Computer</option><option value="6">Rescuable (Passive)</option><option value="7">Rescuable (Active)</option></select></td>
-<td><select id="select_ai4"><option value="1">Passive</option><option value="0">Land Attack</option><option value="26">Air Attack</option><option value="25">Sea Attack</option><option value="3">Human 4</option><option value="5">Human 5</option><option value="7">Human 6</option><option value="9">Human 7</option><option value="11">Human 8</option><option value="13">Human 9</option><option value="15">Human 10</option><option value="17">Human 11</option><option value="19">Human 12</option><option value="21">Human 13</option><option value="27">Human 14 (Red)</option><option value="23">Human 14 (Orange)</option><option value="29">Human 14 (Black)</option><option value="28">Human 14 (White)</option><option value="2">Orc 3</option><option value="4">Orc 4</option><option value="6">Orc 5</option><option value="8">Orc 6</option><option value="10">Orc 7</option><option value="12">Orc 8</option><option value="14">Orc 9</option><option value="16">Orc 10</option><option value="18">Orc 11</option><option value="20">Orc 12</option><option value="22">Orc 13</option><option value="24">Orc 14 (Blue)</option><option value="30">Orc 14 (Green)</option><option value="31">Orc 14 (White)</option><option value="80">Expansion Orc 2</option><option value="82">Expansion Orc 3</option><option value="32">Expansion Orc 4</option><option value="33">Expansion Orc 5</option><option value="72">Expansion Orc 5b</option><option value="38">Expansion Orc 6a (Blue)</option><option value="39">Expansion Orc 6b (Green)</option><option value="34">Expansion Orc 7a (Green)</option><option value="81">Expansion Orc 7b (Blue)</option><option value="35">Expansion Orc 8</option><option value="36">Expansion Orc 10</option><option value="40">Expansion Orc 11a (White)</option><option value="41">Expansion Orc 11b (Violet)</option><option value="37">Expansion Orc 12</option><option value="76">Expansion Orc 12a (Green)</option><option value="77">Expansion Orc 12b (White)</option><option value="78">Expansion Orc 12c (Violet)</option><option value="79">Expansion Orc 12d (Blue)</option><option value="42">Expansion Human 2a (Red)</option><option value="43">Expansion Human 2b (Black)</option><option value="44">Expansion Human 2c (Yellow)</option><option value="45">Expansion Human 3a (Orange)</option><option value="46">Expansion Human 3b (Red)</option><option value="47">Expansion Human 3c (Violet)</option><option value="48">Expansion Human 4a (Black)</option><option value="49">Expansion Human 4b (Red)</option><option value="50">Expansion Human 4c (White)</option><option value="51">Expansion Human 5a (Green)</option><option value="52">Expansion Human 5b (Orange)</option><option value="53">Expansion Human 5c (Violet)</option><option value="54">Expansion Human 5d (Yellow)</option><option value="55">Expansion Human 6a (Green)</option><option value="56">Expansion Human 6b (Black)</option><option value="57">Expansion Human 6c (Orange)</option><option value="58">Expansion Human 6d (Red)</option><option value="73">Expansion Human 7a (Black)</option><option value="74">Expansion Human 7b</option><option value="75">Expansion Human 7c</option><option value="59">Expansion Human 8a (White)</option><option value="60">Expansion Human 8b (Yellow)</option><option value="61">Expansion Human 8c (Violet)</option><option value="62">Expansion Human 9a (Black)</option><option value="63">Expansion Human 9b (Red)</option><option value="64">Expansion Human 9c (Green)</option><option value="65">Expansion Human 9d (White)</option><option value="66">Expansion Human 10a (Violet)</option><option value="67">Expansion Human 10b (Green)</option><option value="68">Expansion Human 10c (Black)</option><option value="69">Expansion Human 11a</option><option value="70">Expansion Human 11b (Green)</option><option value="71">Expansion Human 12a (Green)</option></select></td></tr>
+<td><select id="select_ai4" class="ai"></select></td></tr>
 <tr><th class="player6">Player 6</th>
 <td><label><input type="radio" value="0" name="radio_race5"> Human</label> <label><input type="radio" value="1" name="radio_race5"> Orc</label></td>
 <td><select id="select_controller5"><option value="5">Human</option><option value="4">Computer</option><option value="6">Rescuable (Passive)</option><option value="7">Rescuable (Active)</option></select></td>
-<td><select id="select_ai5"><option value="1">Passive</option><option value="0">Land Attack</option><option value="26">Air Attack</option><option value="25">Sea Attack</option><option value="3">Human 4</option><option value="5">Human 5</option><option value="7">Human 6</option><option value="9">Human 7</option><option value="11">Human 8</option><option value="13">Human 9</option><option value="15">Human 10</option><option value="17">Human 11</option><option value="19">Human 12</option><option value="21">Human 13</option><option value="27">Human 14 (Red)</option><option value="23">Human 14 (Orange)</option><option value="29">Human 14 (Black)</option><option value="28">Human 14 (White)</option><option value="2">Orc 3</option><option value="4">Orc 4</option><option value="6">Orc 5</option><option value="8">Orc 6</option><option value="10">Orc 7</option><option value="12">Orc 8</option><option value="14">Orc 9</option><option value="16">Orc 10</option><option value="18">Orc 11</option><option value="20">Orc 12</option><option value="22">Orc 13</option><option value="24">Orc 14 (Blue)</option><option value="30">Orc 14 (Green)</option><option value="31">Orc 14 (White)</option><option value="80">Expansion Orc 2</option><option value="82">Expansion Orc 3</option><option value="32">Expansion Orc 4</option><option value="33">Expansion Orc 5</option><option value="72">Expansion Orc 5b</option><option value="38">Expansion Orc 6a (Blue)</option><option value="39">Expansion Orc 6b (Green)</option><option value="34">Expansion Orc 7a (Green)</option><option value="81">Expansion Orc 7b (Blue)</option><option value="35">Expansion Orc 8</option><option value="36">Expansion Orc 10</option><option value="40">Expansion Orc 11a (White)</option><option value="41">Expansion Orc 11b (Violet)</option><option value="37">Expansion Orc 12</option><option value="76">Expansion Orc 12a (Green)</option><option value="77">Expansion Orc 12b (White)</option><option value="78">Expansion Orc 12c (Violet)</option><option value="79">Expansion Orc 12d (Blue)</option><option value="42">Expansion Human 2a (Red)</option><option value="43">Expansion Human 2b (Black)</option><option value="44">Expansion Human 2c (Yellow)</option><option value="45">Expansion Human 3a (Orange)</option><option value="46">Expansion Human 3b (Red)</option><option value="47">Expansion Human 3c (Violet)</option><option value="48">Expansion Human 4a (Black)</option><option value="49">Expansion Human 4b (Red)</option><option value="50">Expansion Human 4c (White)</option><option value="51">Expansion Human 5a (Green)</option><option value="52">Expansion Human 5b (Orange)</option><option value="53">Expansion Human 5c (Violet)</option><option value="54">Expansion Human 5d (Yellow)</option><option value="55">Expansion Human 6a (Green)</option><option value="56">Expansion Human 6b (Black)</option><option value="57">Expansion Human 6c (Orange)</option><option value="58">Expansion Human 6d (Red)</option><option value="73">Expansion Human 7a (Black)</option><option value="74">Expansion Human 7b</option><option value="75">Expansion Human 7c</option><option value="59">Expansion Human 8a (White)</option><option value="60">Expansion Human 8b (Yellow)</option><option value="61">Expansion Human 8c (Violet)</option><option value="62">Expansion Human 9a (Black)</option><option value="63">Expansion Human 9b (Red)</option><option value="64">Expansion Human 9c (Green)</option><option value="65">Expansion Human 9d (White)</option><option value="66">Expansion Human 10a (Violet)</option><option value="67">Expansion Human 10b (Green)</option><option value="68">Expansion Human 10c (Black)</option><option value="69">Expansion Human 11a</option><option value="70">Expansion Human 11b (Green)</option><option value="71">Expansion Human 12a (Green)</option></select></td></tr>
+<td><select id="select_ai5" class="ai"></select></td></tr>
 <tr><th class="player7">Player 7</th>
 <td><label><input type="radio" value="0" name="radio_race6"> Human</label> <label><input type="radio" value="1" name="radio_race6"> Orc</label></td>
 <td><select id="select_controller6"><option value="5">Human</option><option value="4">Computer</option><option value="6">Rescuable (Passive)</option><option value="7">Rescuable (Active)</option></select></td>
-<td><select id="select_ai6"><option value="1">Passive</option><option value="0">Land Attack</option><option value="26">Air Attack</option><option value="25">Sea Attack</option><option value="3">Human 4</option><option value="5">Human 5</option><option value="7">Human 6</option><option value="9">Human 7</option><option value="11">Human 8</option><option value="13">Human 9</option><option value="15">Human 10</option><option value="17">Human 11</option><option value="19">Human 12</option><option value="21">Human 13</option><option value="27">Human 14 (Red)</option><option value="23">Human 14 (Orange)</option><option value="29">Human 14 (Black)</option><option value="28">Human 14 (White)</option><option value="2">Orc 3</option><option value="4">Orc 4</option><option value="6">Orc 5</option><option value="8">Orc 6</option><option value="10">Orc 7</option><option value="12">Orc 8</option><option value="14">Orc 9</option><option value="16">Orc 10</option><option value="18">Orc 11</option><option value="20">Orc 12</option><option value="22">Orc 13</option><option value="24">Orc 14 (Blue)</option><option value="30">Orc 14 (Green)</option><option value="31">Orc 14 (White)</option><option value="80">Expansion Orc 2</option><option value="82">Expansion Orc 3</option><option value="32">Expansion Orc 4</option><option value="33">Expansion Orc 5</option><option value="72">Expansion Orc 5b</option><option value="38">Expansion Orc 6a (Blue)</option><option value="39">Expansion Orc 6b (Green)</option><option value="34">Expansion Orc 7a (Green)</option><option value="81">Expansion Orc 7b (Blue)</option><option value="35">Expansion Orc 8</option><option value="36">Expansion Orc 10</option><option value="40">Expansion Orc 11a (White)</option><option value="41">Expansion Orc 11b (Violet)</option><option value="37">Expansion Orc 12</option><option value="76">Expansion Orc 12a (Green)</option><option value="77">Expansion Orc 12b (White)</option><option value="78">Expansion Orc 12c (Violet)</option><option value="79">Expansion Orc 12d (Blue)</option><option value="42">Expansion Human 2a (Red)</option><option value="43">Expansion Human 2b (Black)</option><option value="44">Expansion Human 2c (Yellow)</option><option value="45">Expansion Human 3a (Orange)</option><option value="46">Expansion Human 3b (Red)</option><option value="47">Expansion Human 3c (Violet)</option><option value="48">Expansion Human 4a (Black)</option><option value="49">Expansion Human 4b (Red)</option><option value="50">Expansion Human 4c (White)</option><option value="51">Expansion Human 5a (Green)</option><option value="52">Expansion Human 5b (Orange)</option><option value="53">Expansion Human 5c (Violet)</option><option value="54">Expansion Human 5d (Yellow)</option><option value="55">Expansion Human 6a (Green)</option><option value="56">Expansion Human 6b (Black)</option><option value="57">Expansion Human 6c (Orange)</option><option value="58">Expansion Human 6d (Red)</option><option value="73">Expansion Human 7a (Black)</option><option value="74">Expansion Human 7b</option><option value="75">Expansion Human 7c</option><option value="59">Expansion Human 8a (White)</option><option value="60">Expansion Human 8b (Yellow)</option><option value="61">Expansion Human 8c (Violet)</option><option value="62">Expansion Human 9a (Black)</option><option value="63">Expansion Human 9b (Red)</option><option value="64">Expansion Human 9c (Green)</option><option value="65">Expansion Human 9d (White)</option><option value="66">Expansion Human 10a (Violet)</option><option value="67">Expansion Human 10b (Green)</option><option value="68">Expansion Human 10c (Black)</option><option value="69">Expansion Human 11a</option><option value="70">Expansion Human 11b (Green)</option><option value="71">Expansion Human 12a (Green)</option></select></td></tr>
+<td><select id="select_ai6" class="ai"></select></td></tr>
 <tr><th class="player8">Player 8</th>
 <td><label><input type="radio" value="0" name="radio_race7"> Human</label> <label><input type="radio" value="1" name="radio_race7"> Orc</label></td>
 <td><select id="select_controller7"><option value="5">Human</option><option value="4">Computer</option><option value="6">Rescuable (Passive)</option><option value="7">Rescuable (Active)</option></select></td>
-<td><select id="select_ai7"><option value="1">Passive</option><option value="0">Land Attack</option><option value="26">Air Attack</option><option value="25">Sea Attack</option><option value="3">Human 4</option><option value="5">Human 5</option><option value="7">Human 6</option><option value="9">Human 7</option><option value="11">Human 8</option><option value="13">Human 9</option><option value="15">Human 10</option><option value="17">Human 11</option><option value="19">Human 12</option><option value="21">Human 13</option><option value="27">Human 14 (Red)</option><option value="23">Human 14 (Orange)</option><option value="29">Human 14 (Black)</option><option value="28">Human 14 (White)</option><option value="2">Orc 3</option><option value="4">Orc 4</option><option value="6">Orc 5</option><option value="8">Orc 6</option><option value="10">Orc 7</option><option value="12">Orc 8</option><option value="14">Orc 9</option><option value="16">Orc 10</option><option value="18">Orc 11</option><option value="20">Orc 12</option><option value="22">Orc 13</option><option value="24">Orc 14 (Blue)</option><option value="30">Orc 14 (Green)</option><option value="31">Orc 14 (White)</option><option value="80">Expansion Orc 2</option><option value="82">Expansion Orc 3</option><option value="32">Expansion Orc 4</option><option value="33">Expansion Orc 5</option><option value="72">Expansion Orc 5b</option><option value="38">Expansion Orc 6a (Blue)</option><option value="39">Expansion Orc 6b (Green)</option><option value="34">Expansion Orc 7a (Green)</option><option value="81">Expansion Orc 7b (Blue)</option><option value="35">Expansion Orc 8</option><option value="36">Expansion Orc 10</option><option value="40">Expansion Orc 11a (White)</option><option value="41">Expansion Orc 11b (Violet)</option><option value="37">Expansion Orc 12</option><option value="76">Expansion Orc 12a (Green)</option><option value="77">Expansion Orc 12b (White)</option><option value="78">Expansion Orc 12c (Violet)</option><option value="79">Expansion Orc 12d (Blue)</option><option value="42">Expansion Human 2a (Red)</option><option value="43">Expansion Human 2b (Black)</option><option value="44">Expansion Human 2c (Yellow)</option><option value="45">Expansion Human 3a (Orange)</option><option value="46">Expansion Human 3b (Red)</option><option value="47">Expansion Human 3c (Violet)</option><option value="48">Expansion Human 4a (Black)</option><option value="49">Expansion Human 4b (Red)</option><option value="50">Expansion Human 4c (White)</option><option value="51">Expansion Human 5a (Green)</option><option value="52">Expansion Human 5b (Orange)</option><option value="53">Expansion Human 5c (Violet)</option><option value="54">Expansion Human 5d (Yellow)</option><option value="55">Expansion Human 6a (Green)</option><option value="56">Expansion Human 6b (Black)</option><option value="57">Expansion Human 6c (Orange)</option><option value="58">Expansion Human 6d (Red)</option><option value="73">Expansion Human 7a (Black)</option><option value="74">Expansion Human 7b</option><option value="75">Expansion Human 7c</option><option value="59">Expansion Human 8a (White)</option><option value="60">Expansion Human 8b (Yellow)</option><option value="61">Expansion Human 8c (Violet)</option><option value="62">Expansion Human 9a (Black)</option><option value="63">Expansion Human 9b (Red)</option><option value="64">Expansion Human 9c (Green)</option><option value="65">Expansion Human 9d (White)</option><option value="66">Expansion Human 10a (Violet)</option><option value="67">Expansion Human 10b (Green)</option><option value="68">Expansion Human 10c (Black)</option><option value="69">Expansion Human 11a</option><option value="70">Expansion Human 11b (Green)</option><option value="71">Expansion Human 12a (Green)</option></select></td></tr></table></div>
+<td><select id="select_ai7" class="ai"></select></td></tr></table></div>
 <div id="overlay_startingConditions" class="overlay"><div class="title"><h2>Starting Resources</h2>
 <button type="button" id="submit_startingConditions" title="Save"><img src="layout/widget-save.svg" alt="Save"></button>
 <button type="button" value="startingConditions" title="Close" class="close"><img src="layout/widget-close.svg" alt="Close"></button></div>
@@ -181,112 +181,7 @@
 <button type="button" id="submit_unitProperties" title="Save"><img src="layout/widget-save.svg" alt="Save"></button>
 <button type="button" value="unitProperties" title="Close" class="close"><img src="layout/widget-close.svg" alt="Close"></button></div>
 <div><label><input type="checkbox" id="checkbox_units"> Use default data.</label></div>
-<div class="view">
-<select size="10" id="select_units">
-	<optgroup label="Human">
-		<option value="2">Peasant</option>
-		<option value="0">Footman</option>
-		<option value="8">Elven Archer</option>
-		<option value="18">Elven Ranger</option>
-		<option value="6">Knight</option>
-		<option value="12">Paladin</option>
-		<option value="4">Ballista</option>
-		<option value="14">Dwarven Demolition Squad</option>
-		<option value="10">Mage</option>
-		<option value="16">Attack Peasant</option>
-		<option value="40">Gnomish Flying Machine</option>
-		<option value="42">Gryphon Rider</option>
-		<option value="26">Oil Tanker</option>
-		<option value="28">Transport</option>
-		<option value="30">Elven Destroyer</option>
-		<option value="32">Battleship</option>
-		<option value="38">Gnomish Submarine</option>
-		<option value="58">Farm</option>
-		<option value="74">Town Hall</option>
-		<option value="88">Keep</option>
-		<option value="90">Castle</option>
-		<option value="60">Barracks</option>
-		<option value="76">Elven Lumber Mill</option>
-		<option value="82">Blacksmith</option>
-		<option value="66">Stables</option>
-		<option value="62">Church</option>
-		<option value="68">Gnomish Inventor</option>
-		<option value="70">Gryphon Aviary</option>
-		<option value="80">Mage Tower</option>
-		<option value="64">Scout Tower</option>
-		<option value="96">Guard Tower</option>
-		<option value="98">Cannon Tower</option>
-		<option value="72">Shipyard</option>
-		<option value="86">Oil Platform</option>
-		<option value="84">Refinery</option>
-		<option value="78">Foundry</option>
-		<option value="52">Uther Lightbringer</option>
-		<option value="50">Lothar</option>
-		<option value="20">Alleria</option>
-		<option value="22">Kurdran and Sky’ree</option>
-		<option value="24">Khadgar</option>
-		<option value="44">Turalyon</option>
-		<option value="46">Danath</option>
-		<option value="103">Wall</option>
-	</optgroup>
-	<optgroup label="Orc"><option value="3">Peon</option>
-		<option value="1">Grunt</option>
-		<option value="9">Troll Axethrower</option>
-		<option value="19">Troll Berserker</option>
-		<option value="7">Ogre</option>
-		<option value="13">Ogre-Mage</option>
-		<option value="45">Eye of Kilrogg</option>
-		<option value="5">Catapult</option>
-		<option value="15">Goblin Sappers</option>
-		<option value="11">Death Knight</option>
-		<option value="17">Attack Peon</option>
-		<option value="41">Goblin Zeppelin</option>
-		<option value="43">Dragon</option>
-		<option value="27">Oil Tanker</option>
-		<option value="29">Transport</option>
-		<option value="31">Troll Destroyer</option>
-		<option value="33">Ogre Juggernaught</option>
-		<option value="39">Giant Turtle</option>
-		<option value="59">Pig Farm</option>
-		<option value="75">Great Hall</option>
-		<option value="89">Stronghold</option>
-		<option value="91">Fortress</option>
-		<option value="61">Barracks</option>
-		<option value="77">Troll Lumber Mill</option>
-		<option value="83">Blacksmith</option>
-		<option value="67">Ogre Mound</option>
-		<option value="63">Altar of Storms</option>
-		<option value="69">Goblin Alchemist</option>
-		<option value="71">Dragon Roost</option>
-		<option value="81">Temple of the Damned</option>
-		<option value="65">Watch Tower</option>
-		<option value="97">Guard Tower</option>
-		<option value="99">Cannon Tower</option>
-		<option value="73">Shipyard</option>
-		<option value="87">Oil Platform</option>
-		<option value="85">Refinery</option>
-		<option value="79">Foundry</option>
-		<option value="53">Zuljin</option>
-		<option value="49">Cho’gall</option>
-		<option value="51">Gul’dan</option>
-		<option value="21">Teron Gorefiend</option>
-		<option value="23">Dentarg</option>
-		<option value="25">Grom Hellscream</option>
-		<option value="47">Korgath Bladefist</option>
-		<option value="35">Deathwing</option>
-		<option value="104">Wall</option>
-	</optgroup>
-	<optgroup label="Neutral">
-		<option value="57">Critter</option>
-		<option value="55">Skeleton</option>
-		<option value="56">Daemon</option>
-		<option value="92">Gold Mine</option>
-		<option value="93">Oil Patch</option>
-		<option value="100">Circle of Power</option>
-		<option value="101">Dark Portal</option>
-		<option value="102">Runestone</option>
-	</optgroup>
-</select>
+<div class="view"><select size="10" id="select_units"></select>
 <fieldset><legend id="legend_unit"></legend>
 <table><tr><td><label for="number_buildTime">Build time:</label></td><td><input type="number" min="0" max="255" id="number_buildTime"></td></tr>
 <tr><td><label for="number_hp">Hit points:</label></td><td><input type="number" min="0" max="65535" id="number_hp"></td></tr>
@@ -319,65 +214,7 @@
 <button type="button" id="submit_upgradeProperties" title="Save"><img src="layout/widget-save.svg" alt="Save"></button>
 <button type="button" value="upgradeProperties" title="Close" class="close"><img src="layout/widget-close.svg" alt="Close"></button></div>
 <div><label><input type="checkbox" id="checkbox_upgrades"> Use default data.</label></div>
-<div class="view">
-<select size="10" id="select_upgrades">
-	<optgroup label="Human">
-		<option value="0">Upgrade Sword Strength 1</option>
-		<option value="1">Upgrade Sword Strength 2</option>
-		<option value="4">Upgrade Arrow Strength 1</option>
-		<option value="5">Upgrade Arrow Strength 2</option>
-		<option value="8">Upgrade Shield Strength 1</option>
-		<option value="9">Upgrade Shield Strength 2</option>
-		<option value="12">Upgrade Ship Attack 1</option>
-		<option value="13">Upgrade Ship Attack 2</option>
-		<option value="16">Upgrade Ship Armor 1</option>
-		<option value="17">Upgrade Ship Armor 2</option>
-		<option value="22">Upgrade Ballista Attack 1</option>
-		<option value="23">Upgrade Ballista Attack 2</option>
-		<option value="24">Elven Ranger Training</option>
-		<option value="25">Ranger: Longbow</option>
-		<option value="26">Ranger: Scouting</option>
-		<option value="27">Ranger: Marksmanship</option>
-		<option value="33">Upgrade Knights to Paladins</option>
-		<option value="34">Paladin: Holy Vision</option>
-		<option value="35">Paladin: Healing</option>
-		<option value="36">Paladin: Exorcism</option>
-		<option value="38">Mage: Fireball </option>
-		<option value="39">Mage: Slow</option>
-		<option value="37">Mage: Flame Shield</option>
-		<option value="40">Mage: Invisibility</option>
-		<option value="41">Mage: Polymorph</option>
-		<option value="42">Mage: Blizzard</option>
-	</optgroup>
-	<optgroup label="Orc">
-		<option value="2">Upgrade Axe Strength 1</option>
-		<option value="3">Upgrade Axe Strength 2</option>
-		<option value="6">Upgrade Throwing Axe Strength 1</option>
-		<option value="7">Upgrade Throwing Axe Strength 2</option>
-		<option value="10">Upgrade Shield Strength 1</option>
-		<option value="11">Upgrade Shield Strength 2</option>
-		<option value="14">Upgrade Ship Attack 1</option>
-		<option value="15">Upgrade Ship Attack 2</option>
-		<option value="18">Upgrade Ship Armor 1</option>
-		<option value="19">Upgrade Ship Armor 2</option>
-		<option value="20">Upgrade Catapult Attack 1</option>
-		<option value="21">Upgrade Catapult Attack 2</option>
-		<option value="28">Troll Berserker Training</option>
-		<option value="29">Berserker: Lighter Axes</option>
-		<option value="30">Berserker: Scouting</option>
-		<option value="31">Berserker: Regeneration</option>
-		<option value="32">Upgrade Ogres to Ogre-Mages</option>
-		<option value="43">Ogre-Magi: Eye of Kilrogg</option>
-		<option value="44">Ogre-Magi: Bloodlust</option>
-		<option value="50">Ogre-Magi: Runes</option>
-		<option value="46">Death Knight: Death Coil</option>
-		<option value="48">Death Knight: Haste</option>
-		<option value="45">Death Knight: Raise Dead</option>
-		<option value="47">Death Knight: Whirlwind</option>
-		<option value="49">Death Knight: Unholy Armor</option>
-		<option value="51">Death Knight: Death and Decay</option>
-	</optgroup>
-</select>
+<div class="view"><select size="10" id="select_upgrades"></select>
 <fieldset><legend id="legend_upgrade"></legend>
 <table><tr><td><label for="number_upgradeTime">Research time:</label></td><td><input type="number" min="0" max="255" id="number_upgradeTime"></td></tr>
 <tr><td><label for="number_upgradeGold">Gold cost:</label></td><td><input type="number" min="0" max="65535" id="number_upgradeGold" class="gold"></td></tr>

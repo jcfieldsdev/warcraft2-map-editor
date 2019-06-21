@@ -9,6 +9,11 @@ const BYTE=1;
 const WORD=2;
 const LONG=4;
 
+// factions
+const HUMAN="human";
+const ORC="orc";
+const NEUTRAL="neutral";
+
 // game mechanics
 const MAX_PLAYERS=8;
 const TILE_SIZE=32;
@@ -655,6 +660,17 @@ Editor.prototype.openMapProperties=function() {
 };
 
 Editor.prototype.openPlayerProperties=function() {
+	let ais=document.getElementsByClassName("ai");
+
+	for (let element of ais) {
+		for (let [id, name] of data.ai) {
+			let option=document.createElement("option");
+			option.value=id;
+			option.textContent=name;
+			element.appendChild(option);
+		}
+	}
+
 	for (let i=0; i<MAX_PLAYERS; i++) {
 		this.setRadio("radio_race"+i, this.pud.races[i]);
 		this.setSelect("select_controller"+i, this.pud.controller[i]);
@@ -671,6 +687,43 @@ Editor.prototype.openStartingConditions=function() {
 };
 
 Editor.prototype.openUnitProperties=function() {
+	let units={};
+
+	Object.keys(data.units).forEach(function(category) {
+		Object.keys(data.units[category]).forEach(function(type) {
+			Object.keys(data.units[category][type]).forEach(function(race) {
+				if (units[race]==undefined) {
+					units[race]=[];
+				}
+
+				let unit=data.units[category][type][race];
+
+				if (unit.skip) {
+					return;
+				}
+
+				units[race].push(unit);
+			});
+		});
+	});
+
+	Object.keys(units).forEach(function(race) {
+		let optgroup=document.createElement("optgroup");
+		let label=race.charAt(0).toUpperCase()+race.slice(1);
+		optgroup.setAttribute("label", label);
+
+		units[race].sort();
+
+		for (let unit of units[race]) {
+			let option=document.createElement("option");
+			option.value=unit.id;
+			option.textContent=unit.name;
+			optgroup.appendChild(option);
+		}
+
+		$("select_units").appendChild(optgroup);
+	});
+
 	$("checkbox_units").checked=this.pud.defaultUnits;
 
 	$("select_units").selectedIndex=0;
@@ -678,6 +731,21 @@ Editor.prototype.openUnitProperties=function() {
 };
 
 Editor.prototype.openUpgradeProperties=function() {
+	Object.keys(data.upgrades).forEach(function(race) {
+		let optgroup=document.createElement("optgroup");
+		let label=race.charAt(0).toUpperCase()+race.slice(1);
+		optgroup.setAttribute("label", label);
+
+		for (let [id, name] of data.upgrades[race]) {
+			let option=document.createElement("option");
+			option.value=id;
+			option.textContent=name;
+			optgroup.appendChild(option);
+		}
+
+		$("select_upgrades").appendChild(optgroup);
+	});
+
 	$("checkbox_upgrades").checked=this.pud.defaultUpgrades;
 
 	$("select_upgrades").selectedIndex=0;
@@ -685,16 +753,25 @@ Editor.prototype.openUpgradeProperties=function() {
 };
 
 Editor.prototype.openSelectionProperties=function() {
-	let select=$("select_selection");
+	let select=$("select_selection"), units={};
 
 	while (select.lastChild) { // removes all children
 		select.removeChild(select.lastChild);
 	}
 
+	Object.keys(data.units).forEach(function(category) {
+		Object.keys(data.units[category]).forEach(function(type) {
+			Object.keys(data.units[category][type]).forEach(function(race) {
+				let unit=data.units[category][type][race];
+				units[unit.id]=unit.name;
+			});
+		});
+	});
+
 	this.selected.forEach(function(selection, i) {
 		let item=document.createElement("option");
 		item.value=i;
-		item.textContent=data.units[selection.type]||"Undefined";
+		item.textContent=units[selection.type]||"Undefined";
 
 		select.appendChild(item);
 	});
@@ -769,7 +846,7 @@ Editor.prototype.changeUnitPalette=function() {
 	let select=$("select_unitsPalette");
 	let option=select.options[select.selectedIndex], group=option.value;
 
-	if (data.icons[group]==undefined) {
+	if (data.units[group]==undefined) {
 		return;
 	}
 
@@ -778,14 +855,14 @@ Editor.prototype.changeUnitPalette=function() {
 	let ul=document.createElement("ul");
 	ul.id="unitsPalette";
 
-	for (let type in data.icons[group]) {
+	for (let type in data.units[group]) {
 		let race=this.getRace();
 
-		if (data.icons[group][type][race]==undefined) {
-			race="neutral";
+		if (data.units[group][type][race]==undefined) {
+			race=NEUTRAL;
 		}
 
-		let unit=data.icons[group][type][race];
+		let unit=data.units[group][type][race];
 
 		let li=document.createElement("li");
 		let button=document.createElement("button");
@@ -891,8 +968,6 @@ Editor.prototype.fillSelectionProperties=function() {
 		this.changeResource();
 	}
 
-	let radios=document.getElementsByName("radio_ai");
-
 	if (unit.type<58) { // units, not buildings
 		$("row_ai").classList.remove("hidden");
 		this.setRadio("radio_ai", unit.property);
@@ -950,7 +1025,7 @@ Editor.prototype.submitSelectionProperties=function() {
 
 Editor.prototype.getRace=function() {
 	if (this.player in this.pud.races) {
-		return this.pud.races[this.player]?"orc":"human";
+		return this.pud.races[this.player]?ORC:HUMAN;
 	}
 };
 
