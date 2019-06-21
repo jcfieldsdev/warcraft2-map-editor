@@ -1622,7 +1622,7 @@ data.tilesets=[
 	}
 ];
 
-data.ai=new Map([ // using map to guarantee order
+data.ai=new Map([
 	[1,  "Passive"],
 	[0,  "Land Attack"],
 	[26, "Air Attack"],
@@ -2345,11 +2345,13 @@ data.units={
 		wall: {
 			human: {
 				id:   103,
-				name: "Wall"
+				name: "Wall",
+				skip: true
 			},
 			orc: {
 				id:   104,
-				name: "Wall"
+				name: "Wall",
+				skip: true
 			}
 		}
 	}
