@@ -42,10 +42,10 @@ window.addEventListener("load", function() {
 	if (query=="") {
 		files.loadTemplate("forest", 128);
 	} else {
-		let path=query.split("/");
-		let filename=decodeURIComponent(path.pop());
+		let dirs=query.split("/");
+		let filename=decodeURIComponent(dirs.pop());
 
-		files.path=path;
+		files.dirs=dirs;
 		files.load(filename, editor.open.bind(editor));
 	}
 
@@ -109,7 +109,7 @@ window.addEventListener("load", function() {
 		editor.show("browser");
 	});
 	$("save").addEventListener("click", function() {
-		window.location.href+=MAPS_DIR+editor.fullname;
+		window.location.href+=MAPS_DIR+editor.path;
 /*		store.save(editor.pud);
 
 		if (editor.pud==null) {
@@ -125,11 +125,13 @@ window.addEventListener("load", function() {
 		editor.saveImage();
 	});
 	$("link").addEventListener("click", function() {
-		let link=window.location.href.split("?")[0];
-		link+="?map="+editor.fullname;
+		if (editor.path) {
+			let link=window.location.href.split("?")[0];
+			link+="?map="+editor.path;
 
-		$("text_link").value=link;
-		editor.show("link");
+			$("text_link").value=link;
+			editor.show("link");
+		}
 	});
 	$("copy").addEventListener("click", function() {
 		$(this.value).select();
@@ -168,7 +170,7 @@ window.addEventListener("load", function() {
 		if (file) {
 			let reader=new FileReader();
 			reader.addEventListener("load", function(event) {
-				editor.open(file.name, event.target.result);
+				editor.open(file.name, "", event.target.result);
 				editor.hide("browser");
 			});
 			reader.readAsArrayBuffer(file);
@@ -189,7 +191,7 @@ window.addEventListener("load", function() {
 			editor.closeAll();
 		}
 
-		if (key>=48||key<=56) { // 0-8
+		if (key>=48&&key<=56) { // 0-8
 			editor.selectPlayer(key==48?15:key-49);
 		}
 	});
@@ -240,19 +242,19 @@ window.addEventListener("load", function() {
 
 	for (let element of properties) {
 		element.addEventListener("click", function() {
-			let fn=element.value.charAt(0).toUpperCase()+element.value.slice(1);
+			let fn=this.value.charAt(0).toUpperCase()+this.value.slice(1);
 			editor["open"+fn]();
-			editor.show(element.value);
+			editor.show(this.value);
 		});
 	}
 
 	let save=document.getElementsByClassName("save");
 
-	for (let element of properties) {
+	for (let element of save) {
 		element.addEventListener("click", function() {
-			let fn=element.value.charAt(0).toUpperCase()+element.value.slice(1);
+			let fn=this.value.charAt(0).toUpperCase()+this.value.slice(1);
 			editor["save"+fn]();
-			editor.hide(element.value);
+			editor.hide(this.value);
 		});
 	}
 
@@ -275,7 +277,7 @@ function $(id) {
 
 function Editor() {
 	this.pud=null;
-	this.fullname="";
+	this.path="";
 
 	this.tileMap=null;
 	this.unitMap=null;
@@ -304,13 +306,19 @@ function Editor() {
 	this.upgrades=[];
 }
 
-Editor.prototype.open=function(filename, fullname, buffer) {
+Editor.prototype.open=function(filename, path, buffer) {
 	window.scrollTo(0, 0);
-
-	this.fullname=fullname;
 
 	this.pud=new Pud();
 	this.pud.load(filename, buffer);
+
+	if (!this.pud.valid) {
+		this.show("error");
+		return;
+	}
+
+	this.path=path;
+	$("link").disabled=!Boolean(path);
 
 	$("filename").innerHTML=this.pud.filename;
 
@@ -629,14 +637,14 @@ Editor.prototype.openStartingConditions=function() {
 Editor.prototype.openUnitProperties=function() {
 	let units={};
 
-	Object.keys(data.units).forEach(function(category) {
-		Object.keys(data.units[category]).forEach(function(type) {
-			Object.keys(data.units[category][type]).forEach(function(race) {
+	Object.keys(data.units).forEach(function(group) {
+		Object.keys(data.units[group]).forEach(function(type) {
+			Object.keys(data.units[group][type]).forEach(function(race) {
 				if (units[race]==undefined) {
 					units[race]=[];
 				}
 
-				let unit=data.units[category][type][race];
+				let unit=data.units[group][type][race];
 
 				if (unit.skip) {
 					return;
@@ -699,10 +707,10 @@ Editor.prototype.openSelectionProperties=function() {
 		select.removeChild(select.lastChild);
 	}
 
-	Object.keys(data.units).forEach(function(category) {
-		Object.keys(data.units[category]).forEach(function(type) {
-			Object.keys(data.units[category][type]).forEach(function(race) {
-				let unit=data.units[category][type][race];
+	Object.keys(data.units).forEach(function(group) {
+		Object.keys(data.units[group]).forEach(function(type) {
+			Object.keys(data.units[group][type]).forEach(function(race) {
+				let unit=data.units[group][type][race];
 				units[unit.id]=unit.name;
 			});
 		});
@@ -970,24 +978,24 @@ Editor.prototype.getRace=function() {
 };
 
 Editor.prototype.getTileset=function(num) {
-	let tileset="";
-
 	switch (num) {
-		case 1: tileset="winter"; break;
-		case 2: tileset="wasteland"; break;
-		case 3: tileset="swamp"; break;
-		default: tileset="forest";
+		case 1:
+			return "winter";
+		case 2:
+			return "wasteland";
+		case 3:
+			return "swamp";
+		default:
+			return "forest";
 	}
-
-	return tileset;
 };
 
 Editor.prototype.changeIcon=function(input, img, select) {
-	if (input.value<0) {
+	if (input.value<0) { // lower boundary
 		input.value=0;
 	}
 
-	if (input.value>195) {
+	if (input.value>195) { // upper boundary
 		input.value=195;
 	}
 
@@ -1229,6 +1237,19 @@ Pud.prototype.getArray=function(data, size) {
 	return arr;
 };
 
+// breaks section into arrays of smaller chunks of given size
+Pud.prototype.getAttr=function(arr, addr, schema) {
+	let obj={};
+
+	for (let [key, value] of schema) {
+		let [len, size]=value;
+		obj[key]=arr.slice(addr, addr+len*size);
+		addr+=len*size;
+	}
+
+	return obj;
+};
+
 // identifies as PUD file and gets unique map ID
 Pud.prototype.readType=function() {
 	if (this.struct["TYPE"]==undefined) {
@@ -1260,7 +1281,7 @@ Pud.prototype.readVer=function() {
 		return;
 	}
 
-	const STANDARD_SCENARIO=0x11;
+	const STANDARD_SCENARIO =0x11;
 	const EXPANSION_SCENARIO=0x13;
 
 	let ver=this.parseNum(this.struct["VER "]);
@@ -1345,10 +1366,12 @@ Pud.prototype.readDim=function() {
 		return;
 	}
 
+	const MAX_WIDTH=128, MAX_HEIGHT=128;
+
 	let x=Number.parseInt(dim.slice(0, BYTE));
 	let y=Number.parseInt(dim.slice(2, 2+BYTE));
 
-	if (x<=128&&y<=128) {
+	if (x<=MAX_WIDTH&&y<=MAX_HEIGHT) {
 		this.width=x;
 		this.height=y;
 	}
@@ -1361,47 +1384,47 @@ Pud.prototype.readUdta=function() {
 		return;
 	}
 
-	let udta=this.struct["UDTA"], addr=0, units={};
+	let udta=this.getAttr(this.struct["UDTA"], 1236, new Map([
+		["defaultUnits",      [1,   WORD]],
+		["sight",             [110, LONG]],
+		["hp",                [110, WORD]],
+		["magic",             [110, BYTE]],
+		["buildTime",         [110, BYTE]],
+		["gold",              [110, BYTE]],
+		["lumber",            [110, BYTE]],
+		["oil",               [110, BYTE]],
+		["unitSize",          [110, LONG]],
+		["boxSize",           [110, LONG]],
+		["range",             [110, BYTE]],
+		["reactComputer",     [110, BYTE]],
+		["reactHuman",        [110, BYTE]],
+		["armor",             [110, BYTE]],
+		["selectable",        [110, BYTE]],
+		["priority",          [110, BYTE]],
+		["basicDamage",       [110, BYTE]],
+		["piercingDamage",    [110, BYTE]],
+		["weaponsUpgradable", [110, BYTE]],
+		["armorUpgradable",   [110, BYTE]],
+		["missile",           [110, BYTE]],
+		["type",              [110, BYTE]],
+		["decayRate",         [110, BYTE]],
+		["annoyFactor",       [110, BYTE]],
+		["rmbAction",         [58,  BYTE]],
+		["points",            [110, WORD]],
+		["canTarget",         [110, BYTE]],
+		["flags",             [110, LONG]]
+	]));
 
-	this.defaultUnits=Boolean(getAttr(1, WORD));
+	udta.sight   =this.getArray(udta.sight,  LONG);
+	udta.hp      =this.getArray(udta.hp,     WORD);
+	udta.points  =this.getArray(udta.points, WORD);
+	udta.flags   =this.getArray(udta.flags,  LONG);
 
-	addr=1238;
-	units.sight=this.getArray(getAttr(110, LONG), LONG);
-	units.hp=this.getArray(getAttr(110, WORD), WORD);
-	units.magic=getAttr(110, BYTE);
-	units.buildTime=getAttr(110, BYTE);
-	units.gold=getAttr(110, BYTE);
-	units.lumber=getAttr(110, BYTE);
-	units.oil=getAttr(110, BYTE);
-	units.unitSize=parseDim(getAttr(110, LONG));
-	units.boxSize=parseDim(getAttr(110, LONG));
-	units.range=getAttr(110, BYTE);
-	units.reactComputer=getAttr(110, BYTE);
-	units.reactHuman=getAttr(110, BYTE);
-	units.armor=getAttr(110, BYTE);
-	units.selectable=getAttr(110, BYTE);
-	units.priority=getAttr(110, BYTE);
-	units.basicDamage=getAttr(110, BYTE);
-	units.piercingDamage=getAttr(110, BYTE);
-	units.weaponsUpgradable=getAttr(110, BYTE);
-	units.armorUpgradable=getAttr(110, BYTE);
-	units.missile=getAttr(110, BYTE);
-	units.type=getAttr(110, BYTE);
-	units.decayRate=getAttr(110, BYTE);
-	units.annoyFactor=getAttr(110, BYTE);
-	units.rmbAction=getAttr(58, BYTE);
-	units.points=this.getArray(getAttr(110, WORD), WORD);
-	units.canTarget=getAttr(110, BYTE);
-	units.flags=this.getArray(getAttr(110, LONG), LONG);
+	udta.unitSize=parseDim(udta.unitSize);
+	udta.boxSize =parseDim(udta.boxSize);
 
-	this.units=units;
-
-	function getAttr(len, size) {
-		let arr=udta.slice(addr, addr+len*size);
-		addr+=len*size;
-
-		return arr;
-	}
+	this.defaultUnits=Boolean(udta.defaultUnits);
+	this.units=udta;
 
 	function parseDim(data) {
 		let dim=[];
@@ -1423,30 +1446,30 @@ Pud.prototype.readAlow=function() {
 		return;
 	}
 
-	let alow=this.struct["ALOW"], addr=0, restrictions={};
+	let alow=this.getAttr(this.struct["ALOW"], 0, new Map([
+		["units",               [16, LONG]],
+		["spellsResearched",    [16, LONG]],
+		["spells",              [16, LONG]],
+		["spellsResearching",   [16, LONG]],
+		["upgrades",            [16, LONG]],
+		["upgradesResearching", [16, LONG]]
+	]));
 
-	restrictions.units=this.getArray(getAttr(16, LONG), LONG);
-	restrictions.spellsResearched=this.getArray(getAttr(16, LONG), LONG);
-	restrictions.spells=this.getArray(getAttr(16, LONG), LONG);
-	restrictions.spellsResearching=this.getArray(getAttr(16, LONG), LONG);
-	restrictions.upgrades=this.getArray(getAttr(16, LONG), LONG);
-	restrictions.upgradesResearching=this.getArray(getAttr(16, LONG), LONG);
+	alow.units              =this.getArray(alow.units,               LONG);
+	alow.spellsResearched   =this.getArray(alow.spellsResearched,    LONG);
+	alow.spells             =this.getArray(alow.spells,              LONG);
+	alow.spellsResearching  =this.getArray(alow.spellsResearching,   LONG);
+	alow.upgrades           =this.getArray(alow.upgrades,            LONG);
+	alow.upgradesResearching=this.getArray(alow.upgradesResearching, LONG);
 
-	restrictions.units=readBits(restrictions.units);
-	restrictions.spellsResearched=readBits(restrictions.spellsResearched);
-	restrictions.spells=readBits(restrictions.spells);
-	restrictions.spellsResearching=readBits(restrictions.spellsResearching);
-	restrictions.upgrades=readBits(restrictions.upgrades);
-	restrictions.upgradesResearching=readBits(restrictions.upgradesResearching);
+	alow.units              =readBits(alow.units);
+	alow.spellsResearched   =readBits(alow.spellsResearched);
+	alow.spells             =readBits(alow.spells);
+	alow.spellsResearching  =readBits(alow.spellsResearching);
+	alow.upgrades           =readBits(alow.upgrades);
+	alow.upgradesResearching=readBits(alow.upgradesResearching);
 
-	this.restrictions=restrictions;
-
-	function getAttr(len, size) {
-		let arr=alow.slice(addr, addr+len*size);
-		addr+=len*size;
-
-		return arr;
-	}
+	this.restrictions=alow;
 
 	function readBits(arr) {
 		for (let i=0; i<arr.length; i++) {
@@ -1470,26 +1493,26 @@ Pud.prototype.readUgrd=function() {
 		return;
 	}
 
-	let ugrd=this.struct["UGRD"], addr=0, upgrades={};
+	let ugrd=this.getAttr(this.struct["UGRD"], 0, new Map([
+		["defaultUpgrades", [1,  WORD]],
+		["time",            [52, BYTE]],
+		["gold",            [52, WORD]],
+		["lumber",          [52, WORD]],
+		["oil",             [52, WORD]],
+		["icon",            [52, WORD]],
+		["group",           [52, WORD]],
+		["effect",          [52, LONG]]
+	]));
 
-	this.defaultUpgrades=Boolean(getAttr(1, WORD));
+	ugrd.gold  =this.getArray(ugrd.gold,   WORD);
+	ugrd.lumber=this.getArray(ugrd.lumber, WORD);
+	ugrd.oil   =this.getArray(ugrd.oil,    WORD);
+	ugrd.icon  =this.getArray(ugrd.icon,   WORD);
+	ugrd.group =this.getArray(ugrd.group,  WORD);
+	ugrd.effect=this.getArray(ugrd.effect, LONG);
 
-	upgrades.time=getAttr(52, BYTE);
-	upgrades.gold=this.getArray(getAttr(52, WORD), WORD);
-	upgrades.lumber=this.getArray(getAttr(52, WORD), WORD);
-	upgrades.oil=this.getArray(getAttr(52, WORD), WORD);
-	upgrades.icon=this.getArray(getAttr(52, WORD), WORD);
-	upgrades.group=this.getArray(getAttr(52, WORD), WORD);
-	upgrades.effect=this.getArray(getAttr(52, LONG), LONG);
-
-	this.upgrades=upgrades;
-
-	function getAttr(len, size) {
-		let arr=ugrd.slice(addr, addr+len*size);
-		addr+=len*size;
-
-		return arr;
-	}
+	this.defaultUpgrades=Boolean(ugrd.defaultUpgrades);
+	this.upgrades=ugrd;
 };
 
 // identifies race of each player
@@ -1556,15 +1579,15 @@ Pud.prototype.readUnit=function() {
 
 function Files(id) {
 	this.id=id;
-	this.path=[];
+	this.dirs=[];
 }
 
 Files.prototype.getList=function() {
 	let xhr=new XMLHttpRequest();
 	let self=this;
 
-	if (this.path.includes("templates")) {
-		this.path=[];
+	if (this.dirs.includes("templates")) {
+		this.dirs=[];
 	}
 
 	xhr.addEventListener("readystatechange", function() {
@@ -1574,10 +1597,10 @@ Files.prototype.getList=function() {
 			let ul=document.createElement("ul");
 			ul.id=self.id;
 
-			if (self.path.length>0) { // except root directory
+			if (self.dirs.length>0) { // except root directory
 				ul.appendChild(self.createItem("dir", "[..]",
 					function() {
-						self.path.pop();
+						self.dirs.pop();
 						self.getList();
 					})
 				);
@@ -1586,7 +1609,7 @@ Files.prototype.getList=function() {
 			for (let dir of dirs) {
 				ul.appendChild(self.createItem("dir", "["+dir+"]",
 					function() {
-						self.path.push(dir);
+						self.dirs.push(dir);
 						self.getList();
 					})
 				);
@@ -1604,32 +1627,32 @@ Files.prototype.getList=function() {
 			$(self.id).replaceWith(ul);
 		}
 	});
-	xhr.open("GET", MAPS_DIR+this.path.join("/")+"/index.json", true);
+	xhr.open("GET", MAPS_DIR+this.dirs.join("/")+"/index.json", true);
 	xhr.responseType="json";
 	xhr.send();
 };
 
 Files.prototype.load=function(filename, callback) {
 	let xhr=new XMLHttpRequest();
-	let fullname=this.path.join("/")+"/"+filename;
+	let path=this.dirs.join("/")+"/"+filename;
 
 	// remove initial slash from file path if present
-	if (fullname.slice(0, 1)=="/") {
-		fullname=fullname.slice(1);
+	if (path.slice(0, 1)=="/") {
+		path=path.slice(1);
 	}
 
 	xhr.addEventListener("readystatechange", function() {
 		if (this.readyState==4&&this.status==200) {
-			callback(filename, fullname, this.response);
+			callback(filename, path, this.response);
 		}
 	});
-	xhr.open("GET", MAPS_DIR+fullname, true);
+	xhr.open("GET", MAPS_DIR+path, true);
 	xhr.responseType="arraybuffer";
 	xhr.send();
 };
 
 Files.prototype.loadTemplate=function(tileset, size) {
-	this.path=["templates", tileset];
+	this.dirs=["templates", tileset];
 	this.load(size+"x"+size+".pud", editor.open.bind(editor));
 };
 
