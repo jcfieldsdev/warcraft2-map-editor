@@ -85,7 +85,7 @@ window.addEventListener("load", function() {
 				editor.selectMultiple
 			);
 		} else if (event.button==RIGHT) {
-			if (editor.selected.length>0) {
+			if (Object.keys(editor.selected).length>0) {
 				editor.openSelectionProperties();
 				editor.show("selectionProperties");
 			}
@@ -154,13 +154,13 @@ window.addEventListener("load", function() {
 	$("select_upgrades").addEventListener("input", function() {
 		editor.fillUpgradeProperties();
 	});
-	$("number_upgradeIcon").addEventListener("input", function() {
-		editor.changeIcon(this, $("img_upgradeIcon"), $("select_upgrades"));
+	$("number_icon").addEventListener("input", function() {
+		editor.changeIcon(this, $("icon"), $("select_upgrades"));
 	});
 	$("select_selection").addEventListener("input", function() {
 		editor.fillSelectionProperties();
 	});
-	$("range_resource").addEventListener("input", function() {
+	$("range_property").addEventListener("input", function() {
 		editor.changeResource();
 	});
 	// for file browser in open overlay
@@ -181,7 +181,7 @@ window.addEventListener("load", function() {
 		let key=event.keyCode;
 
 		if (key==13) { // Enter
-			if (editor.selected.length>0) {
+			if (Object.keys(editor.selected).length>0) {
 				editor.openSelectionProperties();
 				editor.show("selectionProperties");
 			}
@@ -289,7 +289,7 @@ function Editor() {
 
 	this.dragSelect=false;
 	this.selectMultiple=false;
-	this.selected=[];
+	this.selected={};
 	this.selectX=0;
 	this.selectY=0;
 
@@ -304,6 +304,9 @@ function Editor() {
 
 	this.units=[];
 	this.upgrades=[];
+
+	this.index=-1;
+	this.working={};
 }
 
 Editor.prototype.open=function(filename, path, buffer) {
@@ -324,11 +327,11 @@ Editor.prototype.open=function(filename, path, buffer) {
 
 	setSize("tileMap", this.pud.width*TILE_SIZE, this.pud.height*TILE_SIZE);
 	setSize("unitMap", this.pud.width*TILE_SIZE, this.pud.height*TILE_SIZE);
-	setSize("grid", this.pud.width*TILE_SIZE, this.pud.height*TILE_SIZE);
-	setSize("select", this.pud.width*TILE_SIZE, this.pud.height*TILE_SIZE);
+	setSize("grid",    this.pud.width*TILE_SIZE, this.pud.height*TILE_SIZE);
+	setSize("select",  this.pud.width*TILE_SIZE, this.pud.height*TILE_SIZE);
 	setSize("miniUnitMap", MINIMAP_SIZE, MINIMAP_SIZE);
 	setSize("miniTileMap", MINIMAP_SIZE, MINIMAP_SIZE);
-	setSize("frame", MINIMAP_SIZE, MINIMAP_SIZE);
+	setSize("frame",       MINIMAP_SIZE, MINIMAP_SIZE);
 
 	this.tileMap=$("tileMap").getContext("2d");
 	this.unitMap=$("unitMap").getContext("2d");
@@ -447,11 +450,11 @@ Editor.prototype.drawUnitMap=function() {
 		for (let i=0; i<imageData.data.length; i+=4) { // 4 for RGBA
 			for (let j=0; j<4; j++) { // 4 colors for each player
 				if (
-					imageData.data[i]==data.colors[0][j].r&&
+					imageData.data[i]  ==data.colors[0][j].r&&
 					imageData.data[i+1]==data.colors[0][j].g&&
 					imageData.data[i+2]==data.colors[0][j].b
 				) {
-					imageData.data[i]=data.colors[owner][j].r;
+					imageData.data[i]  =data.colors[owner][j].r;
 					imageData.data[i+1]=data.colors[owner][j].g;
 					imageData.data[i+2]=data.colors[owner][j].b;
 				}
@@ -533,7 +536,7 @@ Editor.prototype.selectUnits=function(x, y, add=false, multiple=false) {
 	this.selectMultiple=false;
 
 	if (!add) {
-		this.selected=[];
+		this.selected={};
 
 		this.select.clearRect(0, 0, $("select").width, $("select").height);
 		this.select.lineWidth=1;
@@ -550,7 +553,7 @@ Editor.prototype.selectUnits=function(x, y, add=false, multiple=false) {
 	x2=Math.floor((window.scrollX+x-LEFT_MARGIN)/TILE_SIZE);
 	y2=Math.floor((window.scrollY+y)/TILE_SIZE);
 
-	Object.values(this.pud.unitMap).forEach(function(unit) {
+	Object.values(this.pud.unitMap).forEach(function(unit, i) {
 		let unitSize=this.pud.units.unitSize[unit.type];
 
 		if (unitSize==undefined) {
@@ -580,7 +583,7 @@ Editor.prototype.selectUnits=function(x, y, add=false, multiple=false) {
 			boundaries=(x2>=gx1&&x2<=gx2)&&(y2>=gy1&&y2<=gy2);
 		}
 
-		if (boundaries&&(!add||!this.selected.includes(unit))) {
+		if (boundaries&&(!add||!this.selected.hasOwnProperty(i))) {
 			this.select.beginPath();
 			this.select.rect(
 				gx1*TILE_SIZE, gy1*TILE_SIZE,
@@ -588,7 +591,7 @@ Editor.prototype.selectUnits=function(x, y, add=false, multiple=false) {
 			);
 			this.select.stroke();
 
-			this.selected.push(unit);
+			this.selected[i]=unit;
 		}
 	}, this);
 };
@@ -601,9 +604,9 @@ Editor.prototype.openCreate=function() {
 Editor.prototype.openMapProperties=function() {
 	this.setRadio("radio_tileset", this.pud.tileset);
 
-	$("text_filename").value=this.pud.filename;
-	$("text_width").value=this.pud.width;
-	$("text_height").value=this.pud.height;
+	$("text_filename").value   =this.pud.filename;
+	$("text_width").value      =this.pud.width;
+	$("text_height").value     =this.pud.height;
 	$("text_description").value=this.pud.description;
 };
 
@@ -628,9 +631,9 @@ Editor.prototype.openPlayerProperties=function() {
 
 Editor.prototype.openStartingConditions=function() {
 	for (let i=0; i<MAX_PLAYERS; i++) {
-		$("number_startingGold"+i).value=this.pud.startingGold[i];
+		$("number_startingGold"+i).value  =this.pud.startingGold[i];
 		$("number_startingLumber"+i).value=this.pud.startingLumber[i];
-		$("number_startingOil"+i).value=this.pud.startingOil[i];
+		$("number_startingOil"+i).value   =this.pud.startingOil[i];
 	}
 };
 
@@ -640,7 +643,7 @@ Editor.prototype.openUnitProperties=function() {
 	Object.keys(data.units).forEach(function(group) {
 		Object.keys(data.units[group]).forEach(function(type) {
 			Object.keys(data.units[group][type]).forEach(function(race) {
-				if (units[race]==undefined) {
+				if (!units.hasOwnProperty(race)) {
 					units[race]=[];
 				}
 
@@ -716,10 +719,10 @@ Editor.prototype.openSelectionProperties=function() {
 		});
 	});
 
-	this.selected.forEach(function(selection, i) {
+	Object.entries(this.selected).forEach(function([key, value]) {
 		let item=document.createElement("option");
-		item.value=i;
-		item.textContent=units[selection.type]||"Undefined";
+		item.value=key;
+		item.textContent=units[value.type]||"Unknown";
 
 		select.appendChild(item);
 	});
@@ -791,10 +794,9 @@ Editor.prototype.changeTerrainPalette=function() {
 };
 
 Editor.prototype.changeUnitPalette=function() {
-	let select=$("select_unitsPalette");
-	let option=select.options[select.selectedIndex], group=option.value;
+	let group=$("select_unitsPalette").value;
 
-	if (data.units[group]==undefined) {
+	if (!data.units.hasOwnProperty(group)) {
 		return;
 	}
 
@@ -806,7 +808,7 @@ Editor.prototype.changeUnitPalette=function() {
 	for (let type in data.units[group]) {
 		let race=this.getRace();
 
-		if (data.units[group][type][race]==undefined) {
+		if (!data.units[group][type].hasOwnProperty(race)) {
 			race=NEUTRAL;
 		}
 
@@ -835,107 +837,93 @@ Editor.prototype.changeUnitPalette=function() {
 
 Editor.prototype.fillUnitProperties=function() {
 	let select=$("select_units");
-	let option=select.options[select.selectedIndex], unit=option.value;
+	let option=select.options[select.selectedIndex], index=option.value;
 
 	$("legend_unit").innerHTML=option.label;
 
-	$("number_sight").value=this.pud.units.sight[unit];
-	$("number_hp").value=this.pud.units.hp[unit];
-	$("number_magic").value=this.pud.units.magic[unit];
-	$("number_buildTime").value=this.pud.units.buildTime[unit];
-	$("number_unitGold").value=this.pud.units.gold[unit];
-	$("number_unitLumber").value=this.pud.units.lumber[unit];
-	$("number_unitOil").value=this.pud.units.oil[unit];
-	$("number_unitSizeX").value=this.pud.units.unitSize[unit].x;
-	$("number_unitSizeY").value=this.pud.units.unitSize[unit].y;
-	$("number_boxSizeX").value=this.pud.units.boxSize[unit].x;
-	$("number_boxSizeY").value=this.pud.units.boxSize[unit].y;
-	$("number_range").value=this.pud.units.range[unit];
-	$("number_reactComputer").value=this.pud.units.reactComputer[unit];
-	$("number_reactHuman").value=this.pud.units.reactHuman[unit];
-	$("number_armor").value=this.pud.units.armor[unit];
-	$("number_selectable").value=this.pud.units.selectable[unit];
-	$("number_priority").value=this.pud.units.priority[unit];
-	$("number_basicDamage").value=this.pud.units.basicDamage[unit];
-	$("number_piercingDamage").value=this.pud.units.piercingDamage[unit];
-	$("number_weaponsUpgradable").value=this.pud.units.weaponsUpgradable[unit];
-	$("number_armorUpgradable").value=this.pud.units.armorUpgradable[unit];
-	$("number_missile").value=this.pud.units.missile[unit];
-	$("number_type").value=this.pud.units.type[unit];
-	$("number_decayRate").value=this.pud.units.decayRate[unit];
-	$("number_annoyFactor").value=this.pud.units.annoyFactor[unit];
-	$("number_points").value=this.pud.units.points[unit];
-	$("number_canTarget").value=this.pud.units.canTarget[unit];
-	$("number_flags").value=this.pud.units.flags[unit];
+	this.saveWorking("units");
+	this.getProperties("units", index);
 
-	if (unit<58) { // units, not buildings
-		$("number_rmbAction").value=this.pud.units.rmbAction[unit];
-	}
+	$("number_rmbAction").disabled=index>=58; // units, not buildings
+
+	this.index=index;
 };
 
 Editor.prototype.fillUpgradeProperties=function() {
 	let select=$("select_upgrades");
-	let option=select.options[select.selectedIndex], upgrade=option.value;
+	let option=select.options[select.selectedIndex], index=option.value;
 
 	$("legend_upgrade").innerHTML=option.label;
 
-	$("number_upgradeTime").value=this.pud.upgrades.time[upgrade];
-	$("number_upgradeGold").value=this.pud.upgrades.gold[upgrade];
-	$("number_upgradeLumber").value=this.pud.upgrades.lumber[upgrade];
-	$("number_upgradeOil").value=this.pud.upgrades.oil[upgrade];
-	$("number_upgradeIcon").value=this.pud.upgrades.icon[upgrade];
-	$("number_upgradeGroup").value=this.pud.upgrades.group[upgrade];
+	this.saveWorking("upgrades");
+	this.getProperties("upgrades", index);
 
-	this.setSelect("select_upgradeEffect", this.pud.upgrades.effect[upgrade]);
+	this.changeIcon($("number_icon"), $("icon"), $("select_upgrades"));
 
-	this.changeIcon(
-		$("number_upgradeIcon"),
-		$("img_upgradeIcon"),
-		$("select_upgrades")
-	);
+	this.index=index;
 };
 
 Editor.prototype.fillSelectionProperties=function() {
 	let select=$("select_selection");
-	let option=select.options[select.selectedIndex];
+	let option=select.options[select.selectedIndex], index=option.value;
 
 	$("legend_selection").innerHTML=option.label;
 
-	let unit=this.selected[option.value];
+	this.saveWorking("unitMap");
 
-	$("text_unitX").value=unit.x+1;
-	$("text_unitY").value=unit.y+1;
+	let unit=this.selected[index];
+	let inputs=document.getElementsByClassName("unitMap"), value="";
 
-	this.setSelect("select_owner", unit.owner);
+	for (let element of inputs) {
+		let [type, id]=element.id.split(/_/);
+
+		if (this.selected.hasOwnProperty(index)) {
+			if (this.selected[index].hasOwnProperty(id)) {
+				value=this.selected[index][id];
+			}
+		}
+
+		if (this.working.hasOwnProperty(index)) {
+			if (this.working[index].hasOwnProperty(id)) {
+				value=this.working[index][id];
+			}
+		}
+
+		$(element.id).value=value;
+	}
 
 	if (unit.type==92||unit.type==93) { // gold mine or oil patch
 		$("row_resource").classList.remove("hidden");
-		$("range_resource").value=unit.property;
+		$("range_property").disabled=false;
 	} else {
 		$("row_resource").classList.add("hidden");
+		$("range_property").disabled=true;
 		this.changeResource();
 	}
 
 	if (unit.type<58) { // units, not buildings
 		$("row_ai").classList.remove("hidden");
-		this.setRadio("radio_ai", unit.property);
+		$("select_property").disabled=false;
 	} else {
 		$("row_ai").classList.add("hidden");
+		$("select_property").disabled=true;
 	}
+
+	this.index=index;
 };
 
 Editor.prototype.saveCreate=function() {
 	let tileset=this.saveRadio("radio_terrain");
 	let size=this.saveRadio("radio_size");
 
-	files.loadTemplate(this.getTileset(Number.parseInt(tileset)), size);
+	files.loadTemplate(this.getTileset(tileset), size);
 };
 
 Editor.prototype.saveMapProperties=function() {
 	this.pud.filename=$("text_filename").value;
 	this.pud.description=$("text_description").value;
 
-	let tileset=Number.parseInt(this.saveRadio("radio_tileset"));
+	let tileset=this.saveRadio("radio_tileset");
 
 	if (this.pud.tileset!=tileset){
 		this.changeTileset(tileset);
@@ -946,9 +934,9 @@ Editor.prototype.saveMapProperties=function() {
 
 Editor.prototype.savePlayerProperties=function() {
 	for (let i=0; i<MAX_PLAYERS; i++) {
-		this.pud.races[i]=this.saveRadio("radio_race"+i);
+		this.pud.races[i]     =this.saveRadio("radio_race"+i);
 		this.pud.controller[i]=this.saveSelect("select_controller"+i);
-		this.pud.ai[i]=this.saveSelect("select_ai"+i);
+		this.pud.ai[i]        =this.saveSelect("select_ai"+i);
 	}
 
 	this.changeUnitPalette();
@@ -956,19 +944,130 @@ Editor.prototype.savePlayerProperties=function() {
 
 Editor.prototype.saveStartingConditions=function() {
 	for (let i=0; i<MAX_PLAYERS; i++) {
-		this.pud.startingGold[i]=this.saveNumber("number_startingGold"+i);
+		this.pud.startingGold[i]  =this.saveNumber("number_startingGold"+i);
 		this.pud.startingLumber[i]=this.saveNumber("number_startingLumber"+i);
-		this.pud.startingOil[i]=this.saveNumber("number_startingOil"+i);
+		this.pud.startingOil[i]   =this.saveNumber("number_startingOil"+i);
 	}
 };
 
 Editor.prototype.saveUnitProperties=function() {
+	this.saveWorking("units");
+	this.mergeWorking("units");
 };
 
 Editor.prototype.saveUpgradeProperties=function() {
+	this.saveWorking("upgrades");
+	this.mergeWorking("upgrades");
 };
 
 Editor.prototype.saveSelectionProperties=function() {
+	this.saveWorking("unitMap");
+
+	Object.keys(this.working).forEach(function(index) {
+		Object.keys(this.working[index]).forEach(function(property) {
+			if (!this.pud.unitMap.hasOwnProperty(index)) {
+				return;
+			}
+
+			if (!this.pud.unitMap[index].hasOwnProperty(property)) {
+				return;
+			}
+
+			this.pud.unitMap[index][property]=this.working[index][property];
+		}, this);
+	}, this);
+};
+
+Editor.prototype.saveWorking=function(key) {
+	if (this.index<0) {
+		return;
+	}
+
+	let inputs=document.getElementsByClassName(key);
+	this.working[this.index]=Array.from(inputs).reduce(function(obj, element) {
+		if (!element.disabled) {
+			let [type, id, sub]=element.id.split(/_/g);
+
+			if (sub==undefined) {
+				obj[id]=Number.parseInt(element.value);
+			} else {
+				if (!obj.hasOwnProperty(id)) {
+					obj[id]={};
+				}
+
+				obj[id][sub]=Number.parseInt(element.value);
+			}
+		}
+
+		return obj;
+	}, {});
+};
+
+Editor.prototype.mergeWorking=function(key) {
+	if (!this.pud.hasOwnProperty(key)) {
+		return;
+	}
+
+	Object.keys(this.working).forEach(function(index) {
+		Object.keys(this.working[index]).forEach(function(property) {
+			if (!this.pud[key].hasOwnProperty(property)) {
+				return;
+			}
+
+			if (!this.pud[key][property].hasOwnProperty(index)) {
+				return;
+			}
+
+			this.pud[key][property][index]=this.working[index][property];
+		}, this);
+	}, this);
+};
+
+Editor.prototype.resetWorking=function() {
+	this.index=-1;
+	this.working={};
+};
+
+Editor.prototype.getProperties=function(key, index) {
+	if (!this.pud.hasOwnProperty(key)) {
+		return;
+	}
+
+	let inputs=document.getElementsByClassName(key), value="";
+
+	for (let element of inputs) {
+		let [type, id, sub]=element.id.split(/_/);
+
+		if (this.pud[key].hasOwnProperty(id)) {
+			if (this.pud[key][id].hasOwnProperty(index)) {
+				if (sub&&this.pud[key][id][index].hasOwnProperty(sub)) {
+					value=this.pud[key][id][index][sub];
+				}
+
+				value=this.pud[key][id][index];
+			}
+		}
+
+		if (this.working.hasOwnProperty(index)) {
+			if (this.working[index].hasOwnProperty(id)) {
+				if (sub&&this.working[index][id].hasOwnProperty(sub)) {
+					value=this.working[index][id][sub];
+				}
+
+				value=this.working[index][id];
+			}
+		}
+
+		if (sub) {
+			for (let property in value) {
+				if (property==sub) {
+					$(element.id).value=value[property];
+				}
+			}
+		} else {
+			$(element.id).value=value;
+		}
+	}
 };
 
 Editor.prototype.getRace=function() {
@@ -1004,7 +1103,7 @@ Editor.prototype.changeIcon=function(input, img, select) {
 };
 
 Editor.prototype.changeResource=function() {
-	$("resource").textContent=$("range_resource").value*2500;
+	$("resource").textContent=$("range_property").value*2500;
 };
 
 Editor.prototype.setRadio=function(name, compare) {
@@ -1015,11 +1114,11 @@ Editor.prototype.setRadio=function(name, compare) {
 	}
 };
 
-Editor.prototype.setSelect=function(id, compare) {
+Editor.prototype.setSelect=function(id, value) {
 	let select=$(id), options=select.options;
 
-	for (let i=0; i<options.length; i++) {
-		if (options[i].value==compare) {
+	for (let i in options) {
+		if (options[i].value==value) {
 			select.selectedIndex=i;
 		}
 	}
@@ -1044,15 +1143,13 @@ Editor.prototype.saveRadio=function(name) {
 
 	for (let element of radios) {
 		if (element.checked) {
-			return element.value;
+			return Number.parseInt(element.value);
 		}
 	}
 };
 
 Editor.prototype.saveSelect=function(id) {
-	let select=$(id);
-
-	return select.options[select.selectedIndex].value;
+	return $(id).value;
 };
 
 Editor.prototype.saveImage=function() {
@@ -1082,6 +1179,7 @@ Editor.prototype.show=function(id) {
 };
 
 Editor.prototype.hide=function(id) {
+	this.resetWorking();
 	$("overlay_"+id).classList.remove("open");
 };
 
@@ -1090,7 +1188,7 @@ Editor.prototype.closeAll=function() {
 
 	Array.from(overlays).forEach(function(overlay) {
 		overlay.classList.remove("open");
-	}, this);
+	});
 };
 
 /*
@@ -1390,9 +1488,9 @@ Pud.prototype.readUdta=function() {
 		["hp",                [110, WORD]],
 		["magic",             [110, BYTE]],
 		["buildTime",         [110, BYTE]],
-		["gold",              [110, BYTE]],
-		["lumber",            [110, BYTE]],
-		["oil",               [110, BYTE]],
+		["unitGold",          [110, BYTE]],
+		["unitLumber",        [110, BYTE]],
+		["unitOil",           [110, BYTE]],
 		["unitSize",          [110, LONG]],
 		["boxSize",           [110, LONG]],
 		["range",             [110, BYTE]],
@@ -1495,21 +1593,21 @@ Pud.prototype.readUgrd=function() {
 
 	let ugrd=this.getAttr(this.struct["UGRD"], 0, new Map([
 		["defaultUpgrades", [1,  WORD]],
-		["time",            [52, BYTE]],
-		["gold",            [52, WORD]],
-		["lumber",          [52, WORD]],
-		["oil",             [52, WORD]],
+		["upgradeTime",     [52, BYTE]],
+		["upgradeGold",     [52, WORD]],
+		["upgradeLumber",   [52, WORD]],
+		["upgradeOil",      [52, WORD]],
 		["icon",            [52, WORD]],
 		["group",           [52, WORD]],
 		["effect",          [52, LONG]]
 	]));
 
-	ugrd.gold  =this.getArray(ugrd.gold,   WORD);
-	ugrd.lumber=this.getArray(ugrd.lumber, WORD);
-	ugrd.oil   =this.getArray(ugrd.oil,    WORD);
-	ugrd.icon  =this.getArray(ugrd.icon,   WORD);
-	ugrd.group =this.getArray(ugrd.group,  WORD);
-	ugrd.effect=this.getArray(ugrd.effect, LONG);
+	ugrd.upgradeGold  =this.getArray(ugrd.upgradeGold,   WORD);
+	ugrd.upgradeLumber=this.getArray(ugrd.upgradeLumber, WORD);
+	ugrd.upgradeOil   =this.getArray(ugrd.upgradeOil,    WORD);
+	ugrd.icon         =this.getArray(ugrd.icon,          WORD);
+	ugrd.group        =this.getArray(ugrd.group,         WORD);
+	ugrd.effect       =this.getArray(ugrd.effect,        LONG);
 
 	this.defaultUpgrades=Boolean(ugrd.defaultUpgrades);
 	this.upgrades=ugrd;

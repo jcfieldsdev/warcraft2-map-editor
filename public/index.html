@@ -183,46 +183,46 @@
 <div><label><input type="checkbox" id="checkbox_units"> Use default data.</label></div>
 <div class="view"><select size="10" id="select_units"></select>
 <fieldset><legend id="legend_unit"></legend>
-<table><tr><td><label for="number_buildTime">Build time:</label></td><td><input type="number" min="0" max="255" id="number_buildTime"></td></tr>
-<tr><td><label for="number_hp">Hit points:</label></td><td><input type="number" min="0" max="65535" id="number_hp"></td></tr>
-<tr><td><label for="number_unitGold">Gold cost:</label></td><td><input type="number" min="0" max="255" id="number_unitGold" class="gold"></td></tr>
-<tr><td><label for="number_unitLumber">Lumber cost:</label></td><td><input type="number" min="0" max="255" id="number_unitLumber" class="lumber"></td></tr>
-<tr><td><label for="number_unitOil">Oil cost:</label></td><td><input type="number" min="0" max="255" id="number_unitOil" class="oil"></td></tr>
-<tr><td><label for="number_sight">Sight range:</label></td><td><input type="number" min="0" max="9" id="number_sight"></td></tr>
-<tr><td><label for="number_magic">Magic:</label></td><td><input type="number" min="0" max="255" id="number_magic"></td></tr>
-<tr><td><label for="number_unitSizeX">Unit size:</label></td><td><input type="number" size="1" id="number_unitSizeX">×<input type="number" size="1" id="number_unitSizeY"></td></tr>
-<tr><td><label for="number_boxSizeX">Box size:</label></td><td><input type="number" size="1" id="number_boxSizeX">×<input type="number" size="1" id="number_boxSizeY"></td></tr>
-<tr><td><label for="number_range">Attack range:</label></td><td><input type="number" min="0" max="255" id="number_range"></td></tr>
-<tr><td><label for="number_reactComputer">React range (computer):</label></td><td><input type="number" min="0" max="255" id="number_reactComputer"></td></tr>
-<tr><td><label for="number_reactHuman">React range (human):</label></td><td><input type="number" min="0" max="255" id="number_reactHuman"></td></tr>
-<tr><td><label for="number_armor">Armor:</label></td><td><input type="number" min="0" max="255" id="number_armor"></td></tr>
-<tr><td><label for="number_selectable">Selectable:</label></td><td><input type="number" min="0" max="255" id="number_selectable"></td></tr>
-<tr><td><label for="number_priority">Priority:</label></td><td><input type="number" min="0" max="255" id="number_priority"></td></tr>
-<tr><td><label for="number_basicDamage">Basic damage:</label></td><td><input type="number" min="0" max="255" id="number_basicDamage"></td></tr>
-<tr><td><label for="number_piercingDamage">Piercing damage:</label></td><td><input type="number" min="0" max="255" id="number_piercingDamage"></td></tr>
-<tr><td><label for="number_weaponsUpgradable">Weapons upgradable:</label></td><td><input type="number" min="0" max="255" id="number_weaponsUpgradable"></td></tr>
-<tr><td><label for="number_armorUpgradable">Armor upgradable:</label></td><td><input type="number" min="0" max="255" id="number_armorUpgradable"></td></tr>
-<tr><td><label for="number_missile">Missile:</label></td><td><input type="number" min="0" max="65535" id="number_missile"></td></tr>
-<tr><td><label for="number_type">Unit type:</label></td><td><input type="number" min="0" max="255" id="number_type"></td></tr>
-<tr><td><label for="number_decayRate">Decay rate:</label></td><td><input type="number" min="0" max="4294967295" id="number_decayRate"></td></tr>
-<tr><td><label for="number_annoyFactor">Annoy factor:</label></td><td><input type="number" min="0" max="4294967295" id="number_annoyFactor"></td></tr>
-<tr><td><label for="number_rmbAction">RMB action:</label></td><td><input type="number" min="0" max="4294967295" id="number_rmbAction"></td></tr>
-<tr><td><label for="number_points">Points:</label></td><td><input type="number" min="0" max="4294967295" id="number_points"></td></tr>
-<tr><td><label for="number_canTarget">Targetable:</label></td><td><input type="number" min="0" max="4294967295" id="number_canTarget"></td></tr>
-<tr><td><label for="number_flags">Flags:</label></td><td><input type="number" min="0" max="4294967295" id="number_flags"></td></tr></table></fieldset></div></div>
+<table><tr><td><label for="number_buildTime">Build time:</label></td><td><input type="number" min="0" max="255" id="number_buildTime" class="units"></td></tr>
+<tr><td><label for="number_hp">Hit points:</label></td><td><input type="number" min="0" max="65535" id="number_hp" class="units"></td></tr>
+<tr><td><label for="number_unitGold">Gold cost:</label></td><td><input type="number" min="0" max="255" id="number_unitGold" class="units gold"></td></tr>
+<tr><td><label for="number_unitLumber">Lumber cost:</label></td><td><input type="number" min="0" max="255" id="number_unitLumber" class="units lumber"></td></tr>
+<tr><td><label for="number_unitOil">Oil cost:</label></td><td><input type="number" min="0" max="255" id="number_unitOil" class="units oil"></td></tr>
+<tr><td><label for="number_sight">Sight range:</label></td><td><input type="number" min="0" max="9" id="number_sight" class="units"></td></tr>
+<tr><td><label for="number_magic">Magic:</label></td><td><input type="number" min="0" max="255" id="number_magic" class="units"></td></tr>
+<tr><td><label for="number_unitSize_x">Unit size:</label></td><td><input type="number" size="1" id="number_unitSize_x" class="units">×<input type="number" size="1" id="number_unitSize_y" class="units"></td></tr>
+<tr><td><label for="number_boxSize_x">Box size:</label></td><td><input type="number" size="1" id="number_boxSize_x" class="units">×<input type="number" size="1" id="number_boxSize_y" class="units"></td></tr>
+<tr><td><label for="number_range">Attack range:</label></td><td><input type="number" min="0" max="255" id="number_range" class="units"></td></tr>
+<tr><td><label for="number_reactComputer">React range (computer):</label></td><td><input type="number" min="0" max="255" id="number_reactComputer" class="units"></td></tr>
+<tr><td><label for="number_reactHuman">React range (human):</label></td><td><input type="number" min="0" max="255" id="number_reactHuman" class="units"></td></tr>
+<tr><td><label for="number_armor">Armor:</label></td><td><input type="number" min="0" max="255" id="number_armor" class="units"></td></tr>
+<tr><td><label for="number_selectable">Selectable:</label></td><td><input type="number" min="0" max="255" id="number_selectable" class="units"></td></tr>
+<tr><td><label for="number_priority">Priority:</label></td><td><input type="number" min="0" max="255" id="number_priority" class="units"></td></tr>
+<tr><td><label for="number_basicDamage">Basic damage:</label></td><td><input type="number" min="0" max="255" id="number_basicDamage" class="units"></td></tr>
+<tr><td><label for="number_piercingDamage">Piercing damage:</label></td><td><input type="number" min="0" max="255" id="number_piercingDamage" class="units"></td></tr>
+<tr><td><label for="number_weaponsUpgradable">Weapons upgradable:</label></td><td><input type="number" min="0" max="255" id="number_weaponsUpgradable" class="units"></td></tr>
+<tr><td><label for="number_armorUpgradable">Armor upgradable:</label></td><td><input type="number" min="0" max="255" id="number_armorUpgradable" class="units"></td></tr>
+<tr><td><label for="number_missile">Missile:</label></td><td><input type="number" min="0" max="65535" id="number_missile" class="units"></td></tr>
+<tr><td><label for="number_type">Unit type:</label></td><td><input type="number" min="0" max="255" id="number_type" class="units"></td></tr>
+<tr><td><label for="number_decayRate">Decay rate:</label></td><td><input type="number" min="0" max="4294967295" id="number_decayRate" class="units"></td></tr>
+<tr><td><label for="number_annoyFactor">Annoy factor:</label></td><td><input type="number" min="0" max="4294967295" id="number_annoyFactor" class="units"></td></tr>
+<tr><td><label for="number_rmbAction">RMB action:</label></td><td><input type="number" min="0" max="4294967295" id="number_rmbAction" class="units"></td></tr>
+<tr><td><label for="number_points">Points:</label></td><td><input type="number" min="0" max="4294967295" id="number_points" class="units"></td></tr>
+<tr><td><label for="number_canTarget">Targetable:</label></td><td><input type="number" min="0" max="4294967295" id="number_canTarget" class="units"></td></tr>
+<tr><td><label for="number_flags">Flags:</label></td><td><input type="number" min="0" max="4294967295" id="number_flags" class="units"></td></tr></table></fieldset></div></div>
 <div id="overlay_upgradeProperties" class="overlay"><div class="title"><h2>Upgrade Properties</h2>
 <button type="button" value="upgradeProperties" title="Save" class="save"><img src="layout/widget-save.svg" alt="Save"></button>
 <button type="button" value="upgradeProperties" title="Close" class="close"><img src="layout/widget-close.svg" alt="Close"></button></div>
 <div><label><input type="checkbox" id="checkbox_upgrades"> Use default data.</label></div>
 <div class="view"><select size="10" id="select_upgrades"></select>
 <fieldset><legend id="legend_upgrade"></legend>
-<table><tr><td><label for="number_upgradeTime">Research time:</label></td><td><input type="number" min="0" max="255" id="number_upgradeTime"></td></tr>
-<tr><td><label for="number_upgradeGold">Gold cost:</label></td><td><input type="number" min="0" max="65535" id="number_upgradeGold" class="gold"></td></tr>
-<tr><td><label for="number_upgradeLumber">Lumber cost:</label></td><td><input type="number" min="0" max="65535" id="number_upgradeLumber" class="lumber"></td></tr>
-<tr><td><label for="number_upgradeOil">Oil cost:</label></td><td><input type="number" min="0" max="65535" id="number_upgradeOil" class="oil"></td></tr>
-<tr><td><label for="number_upgradeIcon">Icon:</label></td><td><img src="icons/forest/0000.png" alt="[Upgrade icon]" id="img_upgradeIcon" class="icon"><input type="number" min="0" max="65535" id="number_upgradeIcon"></td></tr>
-<tr><td><label for="number_upgradeGroup">Group:</label></td><td><input type="number" min="0" max="65535" id="number_upgradeGroup"></td></tr>
-<tr><td><label for="select_upgradeEffect">Effect:</label></td><td><select id="select_upgradeEffect"><option value="1">0</option><option value="2">1</option><option value="4">2</option><option value="8">3</option><option value="16">4</option><option value="32">5</option><option value="64">6</option><option value="128">7</option><option value="256">8</option><option value="512">9</option><option value="1024">10</option><option value="2048">11</option><option value="4096">12</option><option value="8192">13</option><option value="16384">14</option><option value="32768">15</option><option value="65536">16</option><option value="131072">17</option><option value="262144">18</option><option value="524288">19</option><option value="1048576">20</option></select></td></tr></table></fieldset></div></div>
+<table><tr><td><label for="number_upgradeTime">Research time:</label></td><td><input type="number" min="0" max="255" id="number_upgradeTime" class="upgrades"></td></tr>
+<tr><td><label for="number_upgradeGold">Gold cost:</label></td><td><input type="number" min="0" max="65535" id="number_upgradeGold" class="upgrades gold"></td></tr>
+<tr><td><label for="number_upgradeLumber">Lumber cost:</label></td><td><input type="number" min="0" max="65535" id="number_upgradeLumber" class="upgrades lumber"></td></tr>
+<tr><td><label for="number_upgradeOil">Oil cost:</label></td><td><input type="number" min="0" max="65535" id="number_upgradeOil" class="upgrades oil"></td></tr>
+<tr><td><label for="number_icon">Icon:</label></td><td><img src="icons/forest/0000.png" alt="[Upgrade icon]" id="icon" class="icon"><input type="number" min="0" max="65535" id="number_icon" class="upgrades"></td></tr>
+<tr><td><label for="number_group">Group:</label></td><td><input type="number" min="0" max="65535" id="number_group" class="upgrades"></td></tr>
+<tr><td><label for="select_effect">Effect:</label></td><td><select id="select_effect" class="upgrades"><option value="1">0</option><option value="2">1</option><option value="4">2</option><option value="8">3</option><option value="16">4</option><option value="32">5</option><option value="64">6</option><option value="128">7</option><option value="256">8</option><option value="512">9</option><option value="1024">10</option><option value="2048">11</option><option value="4096">12</option><option value="8192">13</option><option value="16384">14</option><option value="32768">15</option><option value="65536">16</option><option value="131072">17</option><option value="262144">18</option><option value="524288">19</option><option value="1048576">20</option></select></td></tr></table></fieldset></div></div>
 <div id="overlay_link" class="overlay"><div class="title"><h2>Link to Map</h2>
 <button type="button" value="link" title="Close" class="close"><img src="layout/widget-close.svg" alt="Close"></button></div>
 <div><input type="text" id="text_link">&nbsp;<button type="button" value="text_link" id="copy" class="action"><img src="layout/icon-copy.svg" alt="[Copy]"></button></div></div>
@@ -232,9 +232,9 @@
 <div class="view">
 <select size="10" id="select_selection"></select>
 <fieldset><legend id="legend_selection"></legend>
-<table><tr><td>Position:</td><td><input type="text" size="3" disabled="disabled" id="text_unitX">×<input type="text" size="3" disabled="disabled" id="text_unitY"></td></tr>
+<table><tr><td>Position:</td><td><input type="text" size="3" disabled="disabled" id="text_x">×<input type="text" size="3" disabled="disabled" id="text_y"></td></tr>
 <tr><td>Owner:</td><td>
-<select id="select_owner">
+<select id="select_owner" class="unitMap">
 	<option value="0" class="player1">Player 1</option>
 	<option value="1" class="player2">Player 2</option>
 	<option value="2" class="player3">Player 3</option>
@@ -245,9 +245,8 @@
 	<option value="7" class="player8">Player 8</option>
 	<option value="15" class="player15">Neutral</option>
 </select></td></tr>
-<tr id="row_resource"><td>Resources:</td><td><input type="range" min="1" max="255" value="6" id="range_resource"> <span id="resource"></span></td></tr>
-<tr id="row_ai"><td>A.I.:</td><td><label><input type="radio" value="1" name="radio_ai"> Active</label>
-<label><input type="radio" value="0" name="radio_ai"> Passive</label></td></tr></table></fieldset></div></div>
+<tr id="row_resource"><td>Resources:</td><td><input type="range" min="1" max="255" value="6" id="range_property" class="unitMap"> <span id="resource"></span></td></tr>
+<tr id="row_ai"><td>A.I.:</td><td><select id="select_property" class="unitMap"><option value="1">Active</option><option value="0">Passive</option></select></td></tr></table></fieldset></div></div>
 <div id="overlay_about" class="overlay"><div class="title"><h2>About</h2>
 <button type="button" value="about" title="Close" class="close"><img src="layout/widget-close.svg" alt="Close"></button></div>
 <p>Created by <a href="mailto:jcfields+pudedit@gmail.com">J.C. Fields</a>. Hosted by <a href="https://gitlab.com/jcfields/warcraft2-map-editor">GitLab</a>.</p>
