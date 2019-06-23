@@ -9,6 +9,11 @@ const BYTE=1;
 const WORD=2;
 const LONG=4;
 
+// file format
+const FILE_SIGNATURE="WAR2 MAP\x00\x00\x0a\xff";
+const STANDARD_SCENARIO =0x11;
+const EXPANSION_SCENARIO=0x13;
+
 // factions
 const HUMAN="human";
 const ORC="orc";
@@ -108,15 +113,14 @@ window.addEventListener("load", function() {
 		editor.show("browser");
 	});
 	$("save").addEventListener("click", function() {
-		window.location.href+=MAPS_DIR+editor.path;
-/*		if (editor.pud==null) {
+		if (editor.pud==null) {
 			return;
 		}
 
 		let a=document.getElementById("download");
 		a.download=editor.pud.filename;
 		a.href=window.URL.createObjectURL(editor.pud.save());
-		a.click();*/
+		a.click();
 	});
 	$("saveImage").addEventListener("click", function() {
 		editor.saveImage();
@@ -144,12 +148,6 @@ window.addEventListener("load", function() {
 	// for overlay widgets
 	$("select_unitsPalette").addEventListener("input", function() {
 		editor.changeUnitPalette();
-	});
-	$("select_units").addEventListener("input", function() {
-		editor.fillUnitProperties();
-	});
-	$("select_upgrades").addEventListener("input", function() {
-		editor.fillUpgradeProperties();
 	});
 	$("number_icon").addEventListener("input", function() {
 		editor.changeIcon(this, $("icon"), $("select_upgrades"));
@@ -247,6 +245,22 @@ window.addEventListener("load", function() {
 		});
 	}
 
+	// property sheet select boxes
+	let fill=document.getElementsByClassName("fill");
+
+	for (let element of fill) {
+		element.addEventListener("input", function() {
+			let key=this.id.replace("select_", "");
+			let select=$("select_"+key);
+			let option=select.options[select.selectedIndex];
+
+			$("legend_"+key).innerHTML=option.label;
+
+			editor.saveWorking(key);
+			editor.fillProperties(key);
+		});
+	}
+
 	// overlay save buttons
 	let save=document.getElementsByClassName("save");
 
@@ -267,12 +281,12 @@ window.addEventListener("load", function() {
 		});
 	}
 
-	// property sheet "Reset to Defaults" buttons
-	let reset=document.getElementsByClassName("reset");
+	// property sheet revert buttons
+	let revert=document.getElementsByClassName("revert");
 
-	for (let element of reset) {
+	for (let element of revert) {
 		element.addEventListener("click", function() {
-			editor.resetProperties(this.value);
+			editor.revertProperties(this.value);
 		});
 	}
 });
@@ -634,9 +648,9 @@ Editor.prototype.openPlayerProperties=function() {
 	}
 
 	for (let i=0; i<MAX_PLAYERS; i++) {
-		this.setRadio("radio_race"+i, this.pud.races[i]);
+		this.setRadio("radio_race"+i,         this.pud.races[i]);
 		this.setSelect("select_controller"+i, this.pud.controller[i]);
-		this.setSelect("select_ai"+i, this.pud.ai[i]);
+		this.setSelect("select_ai"+i,         this.pud.ai[i]);
 	}
 };
 
@@ -689,7 +703,7 @@ Editor.prototype.openUnitProperties=function() {
 	$("checkbox_units").checked=this.pud.defaultUnits;
 
 	$("select_units").selectedIndex=0;
-	this.fillUnitProperties();
+	this.fillProperties("units");
 };
 
 Editor.prototype.openUpgradeProperties=function() {
@@ -711,7 +725,7 @@ Editor.prototype.openUpgradeProperties=function() {
 	$("checkbox_upgrades").checked=this.pud.defaultUpgrades;
 
 	$("select_upgrades").selectedIndex=0;
-	this.fillUpgradeProperties();
+	this.fillProperties("upgrades");
 };
 
 Editor.prototype.openSelectionProperties=function() {
@@ -854,34 +868,6 @@ Editor.prototype.changeUnitPalette=function() {
 	}
 
 	$("unitsPalette").replaceWith(ul);
-};
-
-Editor.prototype.fillUnitProperties=function() {
-	let select=$("select_units");
-	let option=select.options[select.selectedIndex], index=option.value;
-
-	$("legend_unit").innerHTML=option.label;
-
-	this.saveWorking("units");
-	this.getProperties("units", index);
-
-	$("number_rmbAction").disabled=index>=58; // units, not buildings
-
-	this.index=index;
-};
-
-Editor.prototype.fillUpgradeProperties=function() {
-	let select=$("select_upgrades");
-	let option=select.options[select.selectedIndex], index=option.value;
-
-	$("legend_upgrade").innerHTML=option.label;
-
-	this.saveWorking("upgrades");
-	this.getProperties("upgrades", index);
-
-	this.changeIcon($("number_icon"), $("icon"), $("select_upgrades"));
-
-	this.index=index;
 };
 
 Editor.prototype.fillSelectionProperties=function() {
@@ -1049,12 +1035,13 @@ Editor.prototype.resetWorking=function() {
 	this.working={};
 };
 
-Editor.prototype.getProperties=function(key, index) {
+Editor.prototype.fillProperties=function(key) {
 	if (!this.pud.hasOwnProperty(key)) {
 		return;
 	}
 
 	let inputs=document.getElementsByClassName(key), value="";
+	let index=$("select_"+key).value;
 
 	for (let element of inputs) {
 		let [type, id, sub]=element.id.split(/_/);
@@ -1089,12 +1076,22 @@ Editor.prototype.getProperties=function(key, index) {
 			$(element.id).value=value;
 		}
 	}
+
+	if (key=="units") {
+		$("number_rmbAction").disabled=index>=58; // units, not buildings
+	}
+
+	if (key=="upgrades") {
+		this.changeIcon($("number_icon"), $("icon"), $("select_upgrades"));
+	}
+
+	this.index=index;
 };
 
-Editor.prototype.resetProperties=function(key) {
+Editor.prototype.revertProperties=function(key) {
 	let index=$("select_"+key).value;
 	delete this.working[index];
-	this.getProperties(key, index);
+	this.fillProperties(key);
 };
 
 Editor.prototype.getRace=function() {
@@ -1229,7 +1226,7 @@ function Pud(filename="", struct={}) {
 	this.valid=true;
 
 	this.id="";
-	this.expansion=false;
+	this.version=STANDARD_SCENARIO;
 	this.description="";
 	this.width=0;
 	this.height=0;
@@ -1294,6 +1291,7 @@ Pud.prototype.load=function(filename, buffer) {
 
 	this.tileMap    =readSection("MTXM", WORD);
 	this.movementMap=readSection("SQM ", WORD);
+	this.oilMap     =readSection("OILM", WORD); // unused
 	this.actionMap  =readSection("REGM", WORD);
 
 	function readSection(section, size) {
@@ -1307,36 +1305,98 @@ Pud.prototype.load=function(filename, buffer) {
 };
 
 Pud.prototype.save=function() {
-/*	this.saveType();
-	this.saveVer();
-	this.saveDesc();
-	this.saveOwnr();
-	this.saveEra();
-	this.saveDim();
-	this.saveUdta();
-	this.saveAlow();
-	this.saveUgrd();
-	this.saveSide();
-	this.saveAipl();
-	this.saveUnit();
+	let self=this;
+	let sections={
+		"TYPE": saveType(),
+		"VER ": saveVer(),
+		"DESC": saveDesc(),
+		"OWNR": this.controller,
+		"ERA ": saveEra(STANDARD_SCENARIO),
+		"ERAX": saveEra(EXPANSION_SCENARIO)
+	};
+/*	saveDim();
+	saveUdta();
+	saveAlow();
+	saveUgrd();
+	saveSide();
+	saveAipl();
+	saveUnit();
 
-	this.startingGold=this.saveSection("SGLD", WORD);
-	this.startingLumber=this.saveSection("SLBR", WORD);
-	this.startingOil=this.saveSection("SOIL", WORD);
+	this.startingGold  =saveSection("SGLD", WORD);
+	this.startingLumber=saveSection("SLBR", WORD);
+	this.startingOil   =saveSection("SOIL", WORD);
 
-	this.tileMap=this.saveSection("MTXM", WORD);
-	this.movementMap=this.saveSection("SQM ", WORD);
-	this.actionMap=this.saveSection("REGM", WORD);*/
+	this.tileMap    =saveSection("MTXM", WORD);
+	this.movementMap=saveSection("SQM ", WORD);
+	this.actionMap  =saveSection("REGM", WORD);*/
 
-	let file=[];
+	let length=Object.values(sections).reduce(function(length, contents) {
+		if (contents==undefined) {
+			return length;
+		}
 
-	for (let section in this.struct) {
-		file.push(section);
+		return length+2*LONG+contents.length;
+	}, 0);
+
+	let file=new Uint8Array(length), pos=0;
+
+	Object.entries(sections).forEach(function([section, contents]) {
+		if (contents==undefined) {
+			return;
+		}
+
+		for (let i=0; i<LONG; i++, pos++) { // section name
+			file[pos]=section.charCodeAt(i);
+		}
+
+		for (let i=0; i<LONG; i++, pos++) { // section length
+			file[pos]=contents.length&0xff<<i*8;
+		}
+
+		for (let i=0; i<contents.length; i++, pos++) {
+			file[pos]=contents[i];
+		}
+	});
+
+	return new Blob([file], {type: "application/x-warcraft2-scenario"});
+
+	function saveType() {
+		let len=FILE_SIGNATURE.length;
+		let arr=new Uint8Array(len+LONG);
+
+		for (let i=0; i<len; i++) {
+			arr[i]=FILE_SIGNATURE.charCodeAt(i);
+		}
+
+		for (let i=0; i<self.id.length; i++) {
+			arr[i+len]=self.id[i];
+		}
+
+		return arr;
 	}
 
-	return new Blob([file], {
-		type: "application/warcraft2-scenario"
-	});
+	function saveVer() {
+		return self.convertNum(self.version, WORD);
+	}
+
+	function saveDesc() {
+		let arr=new Uint8Array(32);
+		self.description=self.description.slice(0, 30);
+
+		for (let i=0; i<self.description.length; i++) {
+			arr[i]=self.description.charCodeAt(i);
+		}
+
+		return arr;
+	}
+
+	function saveEra(version) {
+		if (self.version!=version) {
+			return;
+		}
+
+		return self.convertNum(self.tileset, WORD);
+	}
 };
 
 // converts hex to ASCII
@@ -1346,11 +1406,30 @@ Pud.prototype.hexToStr=function(arr) {
 	}, "");
 };
 
-// parses little-endian number
+// parses typed array to little-endian number
 Pud.prototype.parseNum=function(arr) {
 	return arr.reduce(function(num, hex, i) {
 		return num+(hex<<i*8);
 	}, 0);
+};
+
+// converts number to big-endian typed array
+Pud.prototype.convertNum=function(num, size) {
+	if (size==WORD) {
+		num=(num&0xff)<<8|(num>>8)&0xff;
+	}
+
+	if (size==LONG) {
+		num=(num&0xff<<24)|(num&0xff00)<<8|(num>>8)&0xff00|(num>>24)&0xff;
+	}
+
+	let arr=new Uint8Array(size);
+
+	for (let i=0; i<arr.length; i++) {
+		arr[i]=num&0xff<<i*8;
+	}
+
+	return arr;
 };
 
 // breaks array buffer into array with elements of given size
@@ -1384,8 +1463,6 @@ Pud.prototype.readType=function() {
 		return;
 	}
 
-	const FILE_SIGNATURE="WAR2 MAP\x00\x00\x0a\xff";
-
 	let type=this.struct["TYPE"];
 
 	// checks for file format magic number
@@ -1408,16 +1485,9 @@ Pud.prototype.readVer=function() {
 		return;
 	}
 
-	const STANDARD_SCENARIO =0x11;
-	const EXPANSION_SCENARIO=0x13;
+	this.expansion=this.parseNum(this.struct["VER "]);
 
-	let ver=this.parseNum(this.struct["VER "]);
-
-	if (ver==STANDARD_SCENARIO) {
-		this.expansion=false;
-	} else if (ver==EXPANSION_SCENARIO) {
-		this.expansion=true;
-	} else {
+	if (this.expansion!=STANDARD_SCENARIO&&this.expansion!=EXPANSION_SCENARIO) {
 		this.valid=false;
 	}
 };
