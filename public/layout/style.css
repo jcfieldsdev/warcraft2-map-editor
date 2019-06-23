@@ -97,7 +97,7 @@ button.action img {
 	width: 1em;
 }
 
-button.reset {
+button.revert {
 	background: #808080 linear-gradient(#808080, #404040);
 	border: 2px solid #a0a0a0;
 	border-radius: 1em;

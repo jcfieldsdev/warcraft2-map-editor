@@ -123,7 +123,7 @@
 <button type="button" value="mapProperties" title="Close" class="close"><img src="layout/widget-close.svg" alt="Close"></button></div>
 <table><tr><td><label for="text_filename">File Name:</label></td><td><input type="text" size="32" maxlength="255" id="text_filename"></td></tr>
 <tr><td><label>Map Size:</label></td><td><input type="text" size="3" disabled="disabled" id="text_width">×<input type="text" size="3" disabled="disabled" id="text_height"></td></tr>
-<tr><td><label for="text_description">Map Description:</label></td><td><input type="text" size="32" maxlength="32" id="text_description"></td></tr></table>
+<tr><td><label for="text_description">Map Description:</label></td><td><input type="text" size="32" maxlength="31" id="text_description"></td></tr></table>
 <fieldset><legend>Terrain Type:</legend>
 <div><label><input type="radio" value="0" name="radio_tileset"> Forest</label></div>
 <div><label><input type="radio" value="1" name="radio_tileset"> Winter</label></div>
@@ -181,8 +181,8 @@
 <button type="button" value="unitProperties" title="Save" class="save"><img src="layout/widget-save.svg" alt="Save"></button>
 <button type="button" value="unitProperties" title="Close" class="close"><img src="layout/widget-close.svg" alt="Close"></button></div>
 <div><label><input type="checkbox" id="checkbox_units"> Use default data.</label></div>
-<div class="view"><select size="10" id="select_units"></select>
-<fieldset><legend id="legend_unit"></legend>
+<div class="view"><select size="10" id="select_units" class="fill"></select>
+<fieldset><legend id="legend_units"></legend>
 <table><tr><td><label for="number_buildTime">Build time:</label></td><td><input type="number" min="0" max="255" id="number_buildTime" class="units"></td></tr>
 <tr><td><label for="number_hp">Hit points:</label></td><td><input type="number" min="0" max="65535" id="number_hp" class="units"></td></tr>
 <tr><td><label for="number_unitGold">Gold cost:</label></td><td><input type="number" min="0" max="255" id="number_unitGold" class="units gold"></td></tr>
@@ -210,13 +210,13 @@
 <tr><td><label for="number_points">Points:</label></td><td><input type="number" min="0" max="4294967295" id="number_points" class="units"></td></tr>
 <tr><td><label for="number_canTarget">Targetable:</label></td><td><input type="number" min="0" max="4294967295" id="number_canTarget" class="units"></td></tr>
 <tr><td><label for="number_flags">Flags:</label></td><td><input type="number" min="0" max="4294967295" id="number_flags" class="units"></td></tr></table>
-<p><button type="button" value="units" class="reset">Reset to Defaults</button></p></fieldset></div></div>
+<p><button type="button" value="units" class="revert">Revert</button></p></fieldset></div></div>
 <div id="overlay_upgradeProperties" class="overlay"><div class="title"><h2>Upgrade Properties</h2>
 <button type="button" value="upgradeProperties" title="Save" class="save"><img src="layout/widget-save.svg" alt="Save"></button>
 <button type="button" value="upgradeProperties" title="Close" class="close"><img src="layout/widget-close.svg" alt="Close"></button></div>
 <div><label><input type="checkbox" id="checkbox_upgrades"> Use default data.</label></div>
-<div class="view"><select size="10" id="select_upgrades"></select>
-<fieldset><legend id="legend_upgrade"></legend>
+<div class="view"><select size="10" id="select_upgrades" class="fill"></select>
+<fieldset><legend id="legend_upgrades"></legend>
 <table><tr><td><label for="number_upgradeTime">Research time:</label></td><td><input type="number" min="0" max="255" id="number_upgradeTime" class="upgrades"></td></tr>
 <tr><td><label for="number_upgradeGold">Gold cost:</label></td><td><input type="number" min="0" max="65535" id="number_upgradeGold" class="upgrades gold"></td></tr>
 <tr><td><label for="number_upgradeLumber">Lumber cost:</label></td><td><input type="number" min="0" max="65535" id="number_upgradeLumber" class="upgrades lumber"></td></tr>
@@ -224,7 +224,7 @@
 <tr><td><label for="number_icon">Icon:</label></td><td><img src="icons/forest/0000.png" alt="[Upgrade icon]" id="icon" class="icon"><input type="number" min="0" max="65535" id="number_icon" class="upgrades"></td></tr>
 <tr><td><label for="number_group">Group:</label></td><td><input type="number" min="0" max="65535" id="number_group" class="upgrades"></td></tr>
 <tr><td><label for="select_effect">Effect:</label></td><td><select id="select_effect" class="upgrades"><option value="1">0</option><option value="2">1</option><option value="4">2</option><option value="8">3</option><option value="16">4</option><option value="32">5</option><option value="64">6</option><option value="128">7</option><option value="256">8</option><option value="512">9</option><option value="1024">10</option><option value="2048">11</option><option value="4096">12</option><option value="8192">13</option><option value="16384">14</option><option value="32768">15</option><option value="65536">16</option><option value="131072">17</option><option value="262144">18</option><option value="524288">19</option><option value="1048576">20</option></select></td></tr></table>
-<p><button type="button" value="upgrades" class="reset">Reset to Defaults</button></p></fieldset></div></div>
+<p><button type="button" value="upgrades" class="revert">Revert</button></p></fieldset></div></div>
 <div id="overlay_link" class="overlay"><div class="title"><h2>Link to Map</h2>
 <button type="button" value="link" title="Close" class="close"><img src="layout/widget-close.svg" alt="Close"></button></div>
 <div><input type="text" id="text_link">&nbsp;<button type="button" value="text_link" id="copy" class="action"><img src="layout/icon-copy.svg" alt="[Copy]"></button></div></div>
