@@ -97,6 +97,15 @@ button.action img {
 	width: 1em;
 }
 
+button.reset {
+	background: #808080 linear-gradient(#808080, #404040);
+	border: 2px solid #a0a0a0;
+	border-radius: 1em;
+	color: inherit;
+	line-height: 125%;
+	padding: 0 1em;
+}
+
 button.unit img, img.icon {
 	height: 38px;
 	width: 46px;
@@ -288,7 +297,7 @@ div.palette {
 	padding: 1em 0;
 }
 
-div.palette, ul#basic button, ul#mode button, ul#players button {
+div.palette, ul#basic button, ul#players button, ul#tab button {
 	border-color: #404040;
 	border-style: solid;
 }
@@ -468,7 +477,7 @@ ul#basic, ul#players {
 	justify-content: space-evenly;
 }
 
-ul#basic, ul#mode, ul#players {
+ul#basic, ul#players, ul#tab {
 	display: flex;
 }
 
@@ -479,11 +488,11 @@ ul#basic button {
 	padding: 0.5em;
 }
 
-ul#basic button:hover, ul#mode button:hover, ul#players button:hover {
+ul#basic button:hover, ul#players button:hover, ul#tab button:hover {
 	border-color: #c0c0c0;
 }
 
-ul#basic button:hover, ul#mode button.current, ul#players button.current {
+ul#basic button:hover, ul#players button.current, ul#tab button.current {
 	background: #606060;
 	color: inherit;
 }
@@ -499,27 +508,27 @@ ul#files a {
 	padding-left: 1.5em;
 }
 
-ul#mode {
-	line-height: 150%;
-	margin: 1em 0.5em 0;
-}
-
-ul#mode button {
-	border-radius: 0.5em 0.5em 0 0;
-	border-width: 2px 2px 0 2px;
-	margin-right: 0.1em;
-	padding: 0.25em;
-}
-
-ul#mode button.current, ul#players button.current {
-	border-color: #fff;
-}
-
 ul#players button {
 	border-radius: 1em;
 	border-width: 2px;
 	height: 1.25em;
 	width: 1.25em;
+}
+
+ul#players button.current, ul#tab button.current {
+	border-color: #fff;
+}
+
+ul#tab {
+	line-height: 150%;
+	margin: 1em 0.5em 0;
+}
+
+ul#tab button {
+	border-radius: 0.5em 0.5em 0 0;
+	border-width: 2px 2px 0 2px;
+	margin-right: 0.1em;
+	padding: 0.25em;
 }
 
 ul#unitsPalette {

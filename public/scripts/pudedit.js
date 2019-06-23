@@ -28,7 +28,6 @@ const SELECT_COLOR="#0f0";
 const MAPS_DIR="maps/";
 
 // objects
-const store=new Storage("pudedit");
 const editor=new Editor();
 const files=new Files("files");
 
@@ -105,14 +104,12 @@ window.addEventListener("load", function() {
 		editor.show("create");
 	});
 	$("open").addEventListener("click", function() {
-		files.getList();
+		files.browse();
 		editor.show("browser");
 	});
 	$("save").addEventListener("click", function() {
 		window.location.href+=MAPS_DIR+editor.path;
-/*		store.save(editor.pud);
-
-		if (editor.pud==null) {
+/*		if (editor.pud==null) {
 			return;
 		}
 
@@ -195,9 +192,6 @@ window.addEventListener("load", function() {
 			editor.selectPlayer(key==48?15:key-49);
 		}
 	});
-	window.addEventListener("beforeunload", function() {
-	//	store.save(editor.pud);
-	});
 	window.addEventListener("resize", function() {
 		editor.drawFrame();
 	});
@@ -206,6 +200,7 @@ window.addEventListener("load", function() {
 		editor.drawFrame();
 	});
 
+	// new/open/save buttons
 	let basic=document.getElementsByClassName("basic");
 
 	for (let element of basic) {
@@ -214,6 +209,7 @@ window.addEventListener("load", function() {
 		});
 	}
 
+	// player buttons under minimap
 	let players=document.getElementsByClassName("player");
 
 	for (let element of players) {
@@ -222,14 +218,16 @@ window.addEventListener("load", function() {
 		});
 	}
 
-	let modes=document.getElementsByClassName("mode");
+	// tool palette tabs
+	let tabs=document.getElementsByClassName("tab");
 
-	for (let element of modes) {
+	for (let element of tabs) {
 		element.addEventListener("click", function() {
 			editor.selectPalette(this.value);
 		});
 	}
 
+	// layer toggles
 	let toggles=document.getElementsByClassName("layer");
 
 	for (let element of toggles) {
@@ -238,6 +236,7 @@ window.addEventListener("load", function() {
 		});
 	}
 
+	// property sheet open buttons
 	let properties=document.getElementsByClassName("properties");
 
 	for (let element of properties) {
@@ -248,6 +247,7 @@ window.addEventListener("load", function() {
 		});
 	}
 
+	// overlay save buttons
 	let save=document.getElementsByClassName("save");
 
 	for (let element of save) {
@@ -258,11 +258,21 @@ window.addEventListener("load", function() {
 		});
 	}
 
+	// overlay close buttons
 	let close=document.getElementsByClassName("close");
 
 	for (let element of close) {
 		element.addEventListener("click", function() {
 			editor.hide(this.value);
+		});
+	}
+
+	// property sheet "Reset to Defaults" buttons
+	let reset=document.getElementsByClassName("reset");
+
+	for (let element of reset) {
+		element.addEventListener("click", function() {
+			editor.resetProperties(this.value);
 		});
 	}
 });
@@ -279,6 +289,10 @@ function Editor() {
 	this.pud=null;
 	this.path="";
 
+	// current player
+	this.player=0;
+
+	// canvases
 	this.tileMap=null;
 	this.unitMap=null;
 	this.select=null;
@@ -287,12 +301,14 @@ function Editor() {
 	this.frame=null;
 	this.tiles=null;
 
+	// box selection
 	this.dragSelect=false;
 	this.selectMultiple=false;
 	this.selected={};
 	this.selectX=0;
 	this.selectY=0;
 
+	// minimap frame
 	this.dragFrame=false;
 	this.pos=null;
 	this.x=0;
@@ -300,11 +316,7 @@ function Editor() {
 	this.scaleX=0;
 	this.scaleY=0;
 
-	this.player=0;
-
-	this.units=[];
-	this.upgrades=[];
-
+	// property sheet working object
 	this.index=-1;
 	this.working={};
 }
@@ -554,12 +566,11 @@ Editor.prototype.selectUnits=function(x, y, add=false, multiple=false) {
 	y2=Math.floor((window.scrollY+y)/TILE_SIZE);
 
 	Object.values(this.pud.unitMap).forEach(function(unit, i) {
-		let unitSize=this.pud.units.unitSize[unit.type];
-
-		if (unitSize==undefined) {
+		if (!this.pud.units.unitSize.hasOwnProperty(unit.type)) {
 			return;
 		}
 
+		let unitSize=this.pud.units.unitSize[unit.type];
 		let gx1=unit.x, gy1=unit.y; // top left
 		let gx2=unit.x+unitSize.x-1, gy2=unit.y+unitSize.y-1; // bottom right
 
@@ -597,7 +608,7 @@ Editor.prototype.selectUnits=function(x, y, add=false, multiple=false) {
 };
 
 Editor.prototype.openCreate=function() {
-	this.setRadio("radio_size", this.pud.width);
+	this.setRadio("radio_size",    this.pud.width);
 	this.setRadio("radio_terrain", this.pud.tileset);
 };
 
@@ -739,6 +750,16 @@ Editor.prototype.selectPlayer=function(player) {
 		element.classList.toggle("current", element.value==player);
 	}
 
+	player=Number.parseInt(player);
+
+	// changes owner of selected units
+	Object.values(this.selected).forEach(function(unit) {
+		// does not change ownership of gold mines or oil patches
+		if (unit.type!=92&&unit.type!=93) {
+			unit.owner=player;
+		}
+	}, this);
+
 	this.player=player;
 	this.changeUnitPalette();
 };
@@ -750,9 +771,9 @@ Editor.prototype.selectPalette=function(palette) {
 		element.classList.toggle("open", element.id==palette);
 	}
 
-	let modes=document.getElementsByClassName("mode");
+	let tabs=document.getElementsByClassName("tab");
 
-	for (let element of modes) {
+	for (let element of tabs) {
 		element.classList.toggle("current", element.value==palette);
 	}
 };
@@ -1070,6 +1091,12 @@ Editor.prototype.getProperties=function(key, index) {
 	}
 };
 
+Editor.prototype.resetProperties=function(key) {
+	let index=$("select_"+key).value;
+	delete this.working[index];
+	this.getProperties(key, index);
+};
+
 Editor.prototype.getRace=function() {
 	if (this.player in this.pud.races) {
 		return this.pud.races[this.player]?ORC:HUMAN;
@@ -1154,7 +1181,7 @@ Editor.prototype.saveSelect=function(id) {
 
 Editor.prototype.saveImage=function() {
 	let canvas=document.createElement("canvas");
-	canvas.width=$("tileMap").width;
+	canvas.width =$("tileMap").width;
 	canvas.height=$("tileMap").height;
 
 	let context=canvas.getContext("2d");
@@ -1259,13 +1286,24 @@ Pud.prototype.load=function(filename, buffer) {
 	this.readAipl();
 	this.readUnit();
 
-	this.startingGold=this.readSection("SGLD", WORD);
-	this.startingLumber=this.readSection("SLBR", WORD);
-	this.startingOil=this.readSection("SOIL", WORD);
+	let self=this;
 
-	this.tileMap=this.readSection("MTXM", WORD);
-	this.movementMap=this.readSection("SQM ", WORD);
-	this.actionMap=this.readSection("REGM", WORD);
+	this.startingGold  =readSection("SGLD", WORD);
+	this.startingLumber=readSection("SLBR", WORD);
+	this.startingOil   =readSection("SOIL", WORD);
+
+	this.tileMap    =readSection("MTXM", WORD);
+	this.movementMap=readSection("SQM ", WORD);
+	this.actionMap  =readSection("REGM", WORD);
+
+	function readSection(section, size) {
+		if (!self.struct.hasOwnProperty(section)) {
+			self.valid=false;
+			return;
+		}
+
+		return self.getArray(self.struct[section], size);
+	}
 };
 
 Pud.prototype.save=function() {
@@ -1315,15 +1353,6 @@ Pud.prototype.parseNum=function(arr) {
 	}, 0);
 };
 
-Pud.prototype.readSection=function(section, size) {
-	if (this.struct[section]==undefined) {
-		this.valid=false;
-		return;
-	}
-
-	return this.getArray(this.struct[section], size);
-};
-
 // breaks array buffer into array with elements of given size
 Pud.prototype.getArray=function(data, size) {
 	let arr=[];
@@ -1335,8 +1364,8 @@ Pud.prototype.getArray=function(data, size) {
 	return arr;
 };
 
-// breaks section into arrays of smaller chunks of given size
-Pud.prototype.getAttr=function(arr, addr, schema) {
+// breaks array buffer into named chunks containing arrays of given size
+Pud.prototype.getMap=function(arr, addr, schema) {
 	let obj={};
 
 	for (let [key, value] of schema) {
@@ -1482,7 +1511,7 @@ Pud.prototype.readUdta=function() {
 		return;
 	}
 
-	let udta=this.getAttr(this.struct["UDTA"], 1236, new Map([
+	let udta=this.getMap(this.struct["UDTA"], 1236, new Map([
 		["defaultUnits",      [1,   WORD]],
 		["sight",             [110, LONG]],
 		["hp",                [110, WORD]],
@@ -1538,13 +1567,13 @@ Pud.prototype.readUdta=function() {
 	}
 };
 
-// reads unit/ability/upgrade restrictions (optional section)
+// reads unit/ability/upgrade restrictions
 Pud.prototype.readAlow=function() {
 	if (this.struct["ALOW"]==undefined) {
-		return;
+		return; // optional section
 	}
 
-	let alow=this.getAttr(this.struct["ALOW"], 0, new Map([
+	let alow=this.getMap(this.struct["ALOW"], 0, new Map([
 		["units",               [16, LONG]],
 		["spellsResearched",    [16, LONG]],
 		["spells",              [16, LONG]],
@@ -1591,7 +1620,7 @@ Pud.prototype.readUgrd=function() {
 		return;
 	}
 
-	let ugrd=this.getAttr(this.struct["UGRD"], 0, new Map([
+	let ugrd=this.getMap(this.struct["UGRD"], 0, new Map([
 		["defaultUpgrades", [1,  WORD]],
 		["upgradeTime",     [52, BYTE]],
 		["upgradeGold",     [52, WORD]],
@@ -1680,7 +1709,7 @@ function Files(id) {
 	this.dirs=[];
 }
 
-Files.prototype.getList=function() {
+Files.prototype.browse=function() {
 	let xhr=new XMLHttpRequest();
 	let self=this;
 
@@ -1699,7 +1728,7 @@ Files.prototype.getList=function() {
 				ul.appendChild(self.createItem("dir", "[..]",
 					function() {
 						self.dirs.pop();
-						self.getList();
+						self.browse();
 					})
 				);
 			}
@@ -1708,7 +1737,7 @@ Files.prototype.getList=function() {
 				ul.appendChild(self.createItem("dir", "["+dir+"]",
 					function() {
 						self.dirs.push(dir);
-						self.getList();
+						self.browse();
 					})
 				);
 			}
@@ -1764,40 +1793,4 @@ Files.prototype.createItem=function(className, file, callback) {
 	li.appendChild(a);
 
 	return li;
-};
-
-/*
- * Storage prototype
- */
-
-function Storage(name) {
-	this.name=name;
-}
-
-Storage.prototype.load=function() {
-	try {
-		let contents=localStorage.getItem(this.name);
-
-		if (contents!=null) {
-			return JSON.parse(contents);
-		}
-	} catch (err) {
-		console.error(err);
-	}
-};
-
-Storage.prototype.save=function(data) {
-	try {
-		localStorage.setItem(this.name, JSON.stringify(data));
-	} catch (err) {
-		console.error(err);
-	}
-};
-
-Storage.prototype.reset=function() {
-	try {
-		localStorage.removeItem(this.name);
-	} catch (err) {
-		console.error(err);
-	}
 };

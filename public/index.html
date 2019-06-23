@@ -31,11 +31,11 @@
 	<li><button value="7" title="Player 8 (Yellow)" class="player player8">8</button></li>
 	<li><button value="15" title="Neutral" class="player player15">0</button></li>
 </ul>
-<ul id="mode">
-	<li><button value="editor" class="mode">Editor</button></li>
-	<li><button value="terrain" class="mode">Terrain</button></li>
-	<li><button value="units" class="mode">Units</button></li>
-	<li><button value="map" class="mode">Map</button></li>
+<ul id="tab">
+	<li><button value="editor" class="tab">Editor</button></li>
+	<li><button value="terrain" class="tab">Terrain</button></li>
+	<li><button value="units" class="tab">Units</button></li>
+	<li><button value="map" class="tab">Map</button></li>
 </ul>
 <div id="editor" class="palette"><ul>
 	<li><button id="create"><img src="layout/icon-create.svg" alt="[Create]"> Create</button></li>
@@ -209,7 +209,8 @@
 <tr><td><label for="number_rmbAction">RMB action:</label></td><td><input type="number" min="0" max="4294967295" id="number_rmbAction" class="units"></td></tr>
 <tr><td><label for="number_points">Points:</label></td><td><input type="number" min="0" max="4294967295" id="number_points" class="units"></td></tr>
 <tr><td><label for="number_canTarget">Targetable:</label></td><td><input type="number" min="0" max="4294967295" id="number_canTarget" class="units"></td></tr>
-<tr><td><label for="number_flags">Flags:</label></td><td><input type="number" min="0" max="4294967295" id="number_flags" class="units"></td></tr></table></fieldset></div></div>
+<tr><td><label for="number_flags">Flags:</label></td><td><input type="number" min="0" max="4294967295" id="number_flags" class="units"></td></tr></table>
+<p><button type="button" value="units" class="reset">Reset to Defaults</button></p></fieldset></div></div>
 <div id="overlay_upgradeProperties" class="overlay"><div class="title"><h2>Upgrade Properties</h2>
 <button type="button" value="upgradeProperties" title="Save" class="save"><img src="layout/widget-save.svg" alt="Save"></button>
 <button type="button" value="upgradeProperties" title="Close" class="close"><img src="layout/widget-close.svg" alt="Close"></button></div>
@@ -222,7 +223,8 @@
 <tr><td><label for="number_upgradeOil">Oil cost:</label></td><td><input type="number" min="0" max="65535" id="number_upgradeOil" class="upgrades oil"></td></tr>
 <tr><td><label for="number_icon">Icon:</label></td><td><img src="icons/forest/0000.png" alt="[Upgrade icon]" id="icon" class="icon"><input type="number" min="0" max="65535" id="number_icon" class="upgrades"></td></tr>
 <tr><td><label for="number_group">Group:</label></td><td><input type="number" min="0" max="65535" id="number_group" class="upgrades"></td></tr>
-<tr><td><label for="select_effect">Effect:</label></td><td><select id="select_effect" class="upgrades"><option value="1">0</option><option value="2">1</option><option value="4">2</option><option value="8">3</option><option value="16">4</option><option value="32">5</option><option value="64">6</option><option value="128">7</option><option value="256">8</option><option value="512">9</option><option value="1024">10</option><option value="2048">11</option><option value="4096">12</option><option value="8192">13</option><option value="16384">14</option><option value="32768">15</option><option value="65536">16</option><option value="131072">17</option><option value="262144">18</option><option value="524288">19</option><option value="1048576">20</option></select></td></tr></table></fieldset></div></div>
+<tr><td><label for="select_effect">Effect:</label></td><td><select id="select_effect" class="upgrades"><option value="1">0</option><option value="2">1</option><option value="4">2</option><option value="8">3</option><option value="16">4</option><option value="32">5</option><option value="64">6</option><option value="128">7</option><option value="256">8</option><option value="512">9</option><option value="1024">10</option><option value="2048">11</option><option value="4096">12</option><option value="8192">13</option><option value="16384">14</option><option value="32768">15</option><option value="65536">16</option><option value="131072">17</option><option value="262144">18</option><option value="524288">19</option><option value="1048576">20</option></select></td></tr></table>
+<p><button type="button" value="upgrades" class="reset">Reset to Defaults</button></p></fieldset></div></div>
 <div id="overlay_link" class="overlay"><div class="title"><h2>Link to Map</h2>
 <button type="button" value="link" title="Close" class="close"><img src="layout/widget-close.svg" alt="Close"></button></div>
 <div><input type="text" id="text_link">&nbsp;<button type="button" value="text_link" id="copy" class="action"><img src="layout/icon-copy.svg" alt="[Copy]"></button></div></div>
@@ -232,7 +234,7 @@
 <div class="view">
 <select size="10" id="select_selection"></select>
 <fieldset><legend id="legend_selection"></legend>
-<table><tr><td>Position:</td><td><input type="text" size="3" disabled="disabled" id="text_x">×<input type="text" size="3" disabled="disabled" id="text_y"></td></tr>
+<table><tr><td>Position:</td><td><input type="text" size="3" disabled="disabled" id="text_x" class="unitMap">×<input type="text" size="3" disabled="disabled" id="text_y" class="unitMap"></td></tr>
 <tr><td>Owner:</td><td>
 <select id="select_owner" class="unitMap">
 	<option value="0" class="player1">Player 1</option>
