@@ -11,8 +11,8 @@ const LONG=4;
 
 // file format
 const FILE_SIGNATURE="WAR2 MAP\x00\x00\x0a\xff";
-const STANDARD_SCENARIO =0x11;
-const EXPANSION_SCENARIO=0x13;
+const STANDARD =0x11;
+const EXPANSION=0x13;
 
 // factions
 const HUMAN="human";
@@ -1226,7 +1226,7 @@ function Pud(filename="", struct={}) {
 	this.valid=true;
 
 	this.id="";
-	this.version=STANDARD_SCENARIO;
+	this.version=STANDARD;
 	this.description="";
 	this.width=0;
 	this.height=0;
@@ -1257,10 +1257,10 @@ Pud.prototype.load=function(filename, buffer) {
 
 	while (pos<buffer.byteLength) {
 		try {
-			let section=this.hexToStr(new Uint8Array(buffer, pos, LONG));
+			let key=hexToStr(new Uint8Array(buffer, pos, LONG));
 			let length=new DataView(buffer, pos+4, LONG).getInt32(0, true);
 
-			this.struct[section]=new Uint8Array(buffer, pos+8, length);
+			this.struct[key]=new Uint8Array(buffer, pos+8, length);
 			pos+=length+8;
 		} catch (err) {
 			console.error(err);
@@ -1270,20 +1270,20 @@ Pud.prototype.load=function(filename, buffer) {
 
 	this.filename=filename;
 
-	this.readType();
-	this.readVer();
-	this.readDesc();
-	this.readOwnr();
-	this.readEra();
-	this.readDim();
-	this.readUdta();
-	this.readAlow();
-	this.readUgrd();
-	this.readSide();
-	this.readAipl();
-	this.readUnit();
-
 	let self=this;
+
+	readType();
+	readVer();
+	readDesc();
+	readOwnr();
+	readEra();
+	readDim();
+	readUdta();
+	readAlow();
+	readUgrd();
+	readSide();
+	readAipl();
+	readUnit();
 
 	this.startingGold  =readSection("SGLD", WORD);
 	this.startingLumber=readSection("SLBR", WORD);
@@ -1294,13 +1294,362 @@ Pud.prototype.load=function(filename, buffer) {
 	this.oilMap     =readSection("OILM", WORD); // unused
 	this.actionMap  =readSection("REGM", WORD);
 
-	function readSection(section, size) {
-		if (!self.struct.hasOwnProperty(section)) {
+	// converts hex to ASCII
+	function hexToStr(arr) {
+		return arr.reduce(function(str, hex) {
+			return str+String.fromCharCode(hex);
+		}, "");
+	}
+
+	// parses typed array to little-endian number
+	function parseNum(arr) {
+		return arr.reduce(function(num, hex, i) {
+			return num+(hex<<i*8);
+		}, 0);
+	}
+
+	function readSection(key, size) {
+		if (!self.struct.hasOwnProperty(key)) {
 			self.valid=false;
 			return;
 		}
 
-		return self.getArray(self.struct[section], size);
+		return makeArray(self.struct[key], size);
+	}
+
+	// breaks array buffer into array with elements of given size
+	function makeArray(data, size) {
+		let arr=[];
+
+		for (let i=0; i<data.length; i+=size) {
+			arr.push(parseNum(data.slice(i, i+size)));
+		}
+
+		return arr;
+	}
+
+	// breaks array buffer into named chunks containing arrays of given size
+	function makeMap(arr, addr, schema) {
+		let obj={};
+
+		for (let [key, value] of schema) {
+			let [len, size]=value;
+			obj[key]=arr.slice(addr, addr+len*size);
+			addr+=len*size;
+		}
+
+		return obj;
+	}
+
+	// identifies as PUD file and gets unique map ID
+	function readType() {
+		if (self.struct["TYPE"]==undefined) {
+			self.valid=false;
+			return;
+		}
+
+		let type=self.struct["TYPE"];
+
+		// checks for file format magic number
+		if (!hexToStr(type).startsWith(FILE_SIGNATURE)) {
+			self.valid=false;
+			return;
+		}
+
+		self.id=type.slice(FILE_SIGNATURE.length);
+
+		if (self.id.length!=LONG) {
+			self.valid=false;
+		}
+	}
+
+	// determines classic or expansion
+	function readVer() {
+		if (self.struct["VER "]==undefined) {
+			self.valid=false;
+			return;
+		}
+
+		self.expansion=parseNum(self.struct["VER "]);
+		self.valid=self.expansion==STANDARD||self.expansion==EXPANSION;
+	}
+
+	// reads scenario description
+	function readDesc() {
+		if (self.struct["DESC"]==undefined) {
+			self.valid=false;
+			return;
+		}
+
+		let desc=hexToStr(self.struct["DESC"]);
+		let stop=desc.indexOf("\x00"); // terminates at null char
+		self.description=desc.slice(0, stop);
+	}
+
+	// identifies controller of each player
+	function readOwnr() {
+		if (self.struct["OWNR"]==undefined) {
+			self.valid=false;
+			return;
+		}
+
+		self.controller=self.struct["OWNR"].map(function(controller) {
+			if (controller>0xff) {
+				self.valid=false;
+			}
+
+			if (controller==0x01) { // computer
+				return 0x04;
+			}
+
+			if (controller>=0x08) { // passive computer
+				return 0x00;
+			}
+
+			return controller;
+		}, this);
+	}
+
+	// gets tileset
+	function readEra() {
+		if (self.struct["ERAX"]==undefined&&self.struct["ERA "]==undefined) {
+			self.valid=false;
+			return;
+		}
+
+		let era=parseNum(self.struct["ERAX"]||self.struct["ERA "]);
+
+		if (era>0xff) {
+			self.valid=false;
+			return;
+		}
+
+		if (era>=0x04) { // forest (default)
+			self.tileset=0x00;
+		} else {
+			self.tileset=era;
+		}
+	}
+
+	// gets map dimensions
+	function readDim() {
+		if (self.struct["DIM "]==undefined) {
+			self.valid=false;
+			return;
+		}
+
+		let dim=self.struct["DIM "];
+
+		if (dim.length!=4) {
+			self.valid=false;
+			return;
+		}
+
+		const MAX_WIDTH=128, MAX_HEIGHT=128;
+
+		let x=Number.parseInt(dim.slice(0, BYTE));
+		let y=Number.parseInt(dim.slice(2, 2+BYTE));
+
+		if (x<=MAX_WIDTH&&y<=MAX_HEIGHT) {
+			self.width=x;
+			self.height=y;
+		}
+	};
+
+	// reads unit data
+	function readUdta() {
+		if (self.struct["UDTA"]==undefined) {
+			self.valid=false;
+			return;
+		}
+
+		let udta=makeMap(self.struct["UDTA"], 1236, new Map([
+			["defaultUnits",      [1,   WORD]],
+			["sight",             [110, LONG]],
+			["hp",                [110, WORD]],
+			["magic",             [110, BYTE]],
+			["buildTime",         [110, BYTE]],
+			["unitGold",          [110, BYTE]],
+			["unitLumber",        [110, BYTE]],
+			["unitOil",           [110, BYTE]],
+			["unitSize",          [110, LONG]],
+			["boxSize",           [110, LONG]],
+			["range",             [110, BYTE]],
+			["reactComputer",     [110, BYTE]],
+			["reactHuman",        [110, BYTE]],
+			["armor",             [110, BYTE]],
+			["selectable",        [110, BYTE]],
+			["priority",          [110, BYTE]],
+			["basicDamage",       [110, BYTE]],
+			["piercingDamage",    [110, BYTE]],
+			["weaponsUpgradable", [110, BYTE]],
+			["armorUpgradable",   [110, BYTE]],
+			["missile",           [110, BYTE]],
+			["type",              [110, BYTE]],
+			["decayRate",         [110, BYTE]],
+			["annoyFactor",       [110, BYTE]],
+			["rmbAction",         [58,  BYTE]],
+			["points",            [110, WORD]],
+			["canTarget",         [110, BYTE]],
+			["flags",             [110, LONG]]
+		]));
+
+		udta.sight   =makeArray(udta.sight,  LONG);
+		udta.hp      =makeArray(udta.hp,     WORD);
+		udta.points  =makeArray(udta.points, WORD);
+		udta.flags   =makeArray(udta.flags,  LONG);
+
+		udta.unitSize=parseDim(udta.unitSize);
+		udta.boxSize =parseDim(udta.boxSize);
+
+		self.defaultUnits=Boolean(udta.defaultUnits);
+		self.units=udta;
+
+		function parseDim(data) {
+			let dim=[];
+
+			for (let i=0; i<data.length; i+=4) {
+				dim.push({
+					x: Number.parseInt(data.slice(i, i+WORD)),
+					y: Number.parseInt(data.slice(i+2, i+2+WORD))
+				});
+			}
+
+			return dim;
+		}
+	}
+
+	// reads unit/ability/upgrade restrictions
+	function readAlow() {
+		if (self.struct["ALOW"]==undefined) {
+			return; // optional section
+		}
+
+		let alow=makeMap(self.struct["ALOW"], 0, new Map([
+			["units",               [16, LONG]],
+			["spellsResearched",    [16, LONG]],
+			["spells",              [16, LONG]],
+			["spellsResearching",   [16, LONG]],
+			["upgrades",            [16, LONG]],
+			["upgradesResearching", [16, LONG]]
+		]));
+
+		alow.units              =makeArray(alow.units,               LONG);
+		alow.spellsResearched   =makeArray(alow.spellsResearched,    LONG);
+		alow.spells             =makeArray(alow.spells,              LONG);
+		alow.spellsResearching  =makeArray(alow.spellsResearching,   LONG);
+		alow.upgrades           =makeArray(alow.upgrades,            LONG);
+		alow.upgradesResearching=makeArray(alow.upgradesResearching, LONG);
+
+		alow.units              =readBits(alow.units);
+		alow.spellsResearched   =readBits(alow.spellsResearched);
+		alow.spells             =readBits(alow.spells);
+		alow.spellsResearching  =readBits(alow.spellsResearching);
+		alow.upgrades           =readBits(alow.upgrades);
+		alow.upgradesResearching=readBits(alow.upgradesResearching);
+
+		self.restrictions=alow;
+
+		function readBits(arr) {
+			for (let i=0; i<arr.length; i++) {
+				let sub=[];
+
+				for (let j=0; j<32; j++) {
+					sub.push(Boolean(arr[i]&(1<<j)));
+				}
+
+				arr[i]=sub;
+			}
+
+			return arr;
+		}
+	}
+
+	// reads upgrade data
+	function readUgrd() {
+		if (self.struct["UGRD"]==undefined) {
+			self.valid=false;
+			return;
+		}
+
+		let ugrd=makeMap(self.struct["UGRD"], 0, new Map([
+			["defaultUpgrades", [1,  WORD]],
+			["upgradeTime",     [52, BYTE]],
+			["upgradeGold",     [52, WORD]],
+			["upgradeLumber",   [52, WORD]],
+			["upgradeOil",      [52, WORD]],
+			["icon",            [52, WORD]],
+			["group",           [52, WORD]],
+			["effect",          [52, LONG]]
+		]));
+
+		ugrd.upgradeGold  =makeArray(ugrd.upgradeGold,   WORD);
+		ugrd.upgradeLumber=makeArray(ugrd.upgradeLumber, WORD);
+		ugrd.upgradeOil   =makeArray(ugrd.upgradeOil,    WORD);
+		ugrd.icon         =makeArray(ugrd.icon,          WORD);
+		ugrd.group        =makeArray(ugrd.group,         WORD);
+		ugrd.effect       =makeArray(ugrd.effect,        LONG);
+
+		self.defaultUpgrades=Boolean(ugrd.defaultUpgrades);
+		self.upgrades=ugrd;
+	}
+
+	// identifies race of each player
+	function readSide() {
+		if (self.struct["SIDE"]==undefined) {
+			self.valid=false;
+			return;
+		}
+
+		self.races=self.struct["SIDE"].map(function(race) {
+			if (race>0xff) {
+				self.valid=false;
+			}
+
+			if (race>=0x03) { // neutral
+				return 0x02;
+			}
+
+			return race;
+		}, this);
+	}
+
+	// gets AI script of each player
+	function readAipl() {
+		if (self.struct["AIPL"]==undefined) {
+			self.valid=false;
+			return;
+		}
+
+		self.ai=self.struct["AIPL"];
+		self.ai.forEach(function(ai) {
+			if (ai>0x52) {
+				self.valid=false;
+			}
+		}, this);
+	}
+
+	// gets unit map
+	function readUnit() {
+		if (self.struct["UNIT"]==undefined) {
+			self.valid=false;
+			return;
+		}
+
+		const size=8;
+		let unit=self.struct["UNIT"], unitMap=[];
+
+		for (let i=0; i<unit.length; i+=size) {
+			unitMap.push({
+				x: parseNum(unit.slice(i, i+WORD)),
+				y: parseNum(unit.slice(i+2, i+2+WORD)),
+				type: unit[i+4],
+				owner: unit[i+5],
+				property: parseNum(unit.slice(i+6, i+6+WORD))
+			});
+		}
+
+		self.unitMap=unitMap;
 	}
 };
 
@@ -1308,27 +1657,26 @@ Pud.prototype.save=function() {
 	let self=this;
 	let sections={
 		"TYPE": saveType(),
-		"VER ": saveVer(),
+		"VER ": convertNum(self.version, WORD),
 		"DESC": saveDesc(),
 		"OWNR": this.controller,
-		"ERA ": saveEra(STANDARD_SCENARIO),
-		"ERAX": saveEra(EXPANSION_SCENARIO)
+		"ERA ": saveEra(STANDARD),
+		"ERAX": saveEra(EXPANSION),
+//		"DIM ": ,
+//		"UDTA": ,
+//		"ALOW": ,
+//		"UGRD": ,
+//		"SIDE": ,
+		"SGLD": readArray(this.startingGold,   WORD),
+		"SLBR": readArray(this.startingLumber, WORD),
+		"SOIL": readArray(this.startingOil,    WORD),
+//		"AIPL": ,
+		"MTXM": readArray(this.tileMap,        WORD),
+		"SQM ": readArray(this.movementMap,    WORD),
+		"OILM": readArray(this.oilMap,         WORD),
+		"REGM": readArray(this.actionMap,      WORD),
+//		"UNIT":
 	};
-/*	saveDim();
-	saveUdta();
-	saveAlow();
-	saveUgrd();
-	saveSide();
-	saveAipl();
-	saveUnit();
-
-	this.startingGold  =saveSection("SGLD", WORD);
-	this.startingLumber=saveSection("SLBR", WORD);
-	this.startingOil   =saveSection("SOIL", WORD);
-
-	this.tileMap    =saveSection("MTXM", WORD);
-	this.movementMap=saveSection("SQM ", WORD);
-	this.actionMap  =saveSection("REGM", WORD);*/
 
 	let length=Object.values(sections).reduce(function(length, contents) {
 		if (contents==undefined) {
@@ -1340,17 +1688,17 @@ Pud.prototype.save=function() {
 
 	let file=new Uint8Array(length), pos=0;
 
-	Object.entries(sections).forEach(function([section, contents]) {
+	Object.entries(sections).forEach(function([key, contents]) {
 		if (contents==undefined) {
 			return;
 		}
 
-		for (let i=0; i<LONG; i++, pos++) { // section name
-			file[pos]=section.charCodeAt(i);
+		for (let i=0; i<key.length; i++, pos++) { // section name
+			file[pos]=key.charCodeAt(i);
 		}
 
 		for (let i=0; i<LONG; i++, pos++) { // section length
-			file[pos]=contents.length&0xff<<i*8;
+			file[pos]=(contents.length&(0xff<<i*8))>>i*8;
 		}
 
 		for (let i=0; i<contents.length; i++, pos++) {
@@ -1359,6 +1707,32 @@ Pud.prototype.save=function() {
 	});
 
 	return new Blob([file], {type: "application/x-warcraft2-scenario"});
+
+	// converts number to big-endian typed array
+	function convertNum(num, size) {
+		let arr=new Uint8Array(size);
+
+		for (let i=0; i<arr.length; i++) {
+			arr[i]=(num&(0xff<<i*8))>>i*8;
+		}
+
+		return arr;
+	}
+
+	// converts array with elements of given size into array buffer
+	function readArray(data, size) {
+		let arr=new Uint8Array(data.length*size);
+
+		for (let i=0; i<data.length; i++) {
+			let num=convertNum(data[i], size);
+
+			for (let j=0; j<num.length; j++) {
+				arr[i*size+j]=num[j];
+			}
+		}
+
+		return arr;
+	}
 
 	function saveType() {
 		let len=FILE_SIGNATURE.length;
@@ -1373,10 +1747,6 @@ Pud.prototype.save=function() {
 		}
 
 		return arr;
-	}
-
-	function saveVer() {
-		return self.convertNum(self.version, WORD);
 	}
 
 	function saveDesc() {
@@ -1395,379 +1765,8 @@ Pud.prototype.save=function() {
 			return;
 		}
 
-		return self.convertNum(self.tileset, WORD);
+		return convertNum(self.tileset, WORD);
 	}
-};
-
-// converts hex to ASCII
-Pud.prototype.hexToStr=function(arr) {
-	return arr.reduce(function(str, hex) {
-		return str+String.fromCharCode(hex);
-	}, "");
-};
-
-// parses typed array to little-endian number
-Pud.prototype.parseNum=function(arr) {
-	return arr.reduce(function(num, hex, i) {
-		return num+(hex<<i*8);
-	}, 0);
-};
-
-// converts number to big-endian typed array
-Pud.prototype.convertNum=function(num, size) {
-	if (size==WORD) {
-		num=(num&0xff)<<8|(num>>8)&0xff;
-	}
-
-	if (size==LONG) {
-		num=(num&0xff<<24)|(num&0xff00)<<8|(num>>8)&0xff00|(num>>24)&0xff;
-	}
-
-	let arr=new Uint8Array(size);
-
-	for (let i=0; i<arr.length; i++) {
-		arr[i]=num&0xff<<i*8;
-	}
-
-	return arr;
-};
-
-// breaks array buffer into array with elements of given size
-Pud.prototype.getArray=function(data, size) {
-	let arr=[];
-
-	for (let i=0; i<data.length; i+=size) {
-		arr.push(this.parseNum(data.slice(i, i+size)));
-	}
-
-	return arr;
-};
-
-// breaks array buffer into named chunks containing arrays of given size
-Pud.prototype.getMap=function(arr, addr, schema) {
-	let obj={};
-
-	for (let [key, value] of schema) {
-		let [len, size]=value;
-		obj[key]=arr.slice(addr, addr+len*size);
-		addr+=len*size;
-	}
-
-	return obj;
-};
-
-// identifies as PUD file and gets unique map ID
-Pud.prototype.readType=function() {
-	if (this.struct["TYPE"]==undefined) {
-		this.valid=false;
-		return;
-	}
-
-	let type=this.struct["TYPE"];
-
-	// checks for file format magic number
-	if (!this.hexToStr(type).startsWith(FILE_SIGNATURE)) {
-		this.valid=false;
-		return;
-	}
-
-	this.id=type.slice(FILE_SIGNATURE.length);
-
-	if (this.id.length!=LONG) {
-		this.valid=false;
-	}
-};
-
-// determines classic or expansion
-Pud.prototype.readVer=function() {
-	if (this.struct["VER "]==undefined) {
-		this.valid=false;
-		return;
-	}
-
-	this.expansion=this.parseNum(this.struct["VER "]);
-
-	if (this.expansion!=STANDARD_SCENARIO&&this.expansion!=EXPANSION_SCENARIO) {
-		this.valid=false;
-	}
-};
-
-// reads scenario description
-Pud.prototype.readDesc=function() {
-	if (this.struct["DESC"]==undefined) {
-		this.valid=false;
-		return;
-	}
-
-	let desc=this.hexToStr(this.struct["DESC"]);
-	let stop=desc.indexOf("\x00"); // terminates at null char
-	this.description=desc.slice(0, stop);
-};
-
-// identifies controller of each player
-Pud.prototype.readOwnr=function() {
-	if (this.struct["OWNR"]==undefined) {
-		this.valid=false;
-		return;
-	}
-
-	this.controller=this.struct["OWNR"].map(function(controller) {
-		if (controller>0xff) {
-			this.valid=false;
-		}
-
-		if (controller==0x01) { // computer
-			return 0x04;
-		}
-
-		if (controller>=0x08) { // passive computer
-			return 0x00;
-		}
-
-		return controller;
-	}, this);
-};
-
-// gets tileset
-Pud.prototype.readEra=function() {
-	if (this.struct["ERAX"]==undefined&&this.struct["ERA "]==undefined) {
-		this.valid=false;
-		return;
-	}
-
-	let era=this.parseNum(this.struct["ERAX"]||this.struct["ERA "]);
-
-	if (era>0xff) {
-		this.valid=false;
-		return;
-	}
-
-	if (era>=0x04) { // forest (default)
-		this.tileset=0x00;
-	} else {
-		this.tileset=era;
-	}
-};
-
-// gets map dimensions
-Pud.prototype.readDim=function() {
-	if (this.struct["DIM "]==undefined) {
-		this.valid=false;
-		return;
-	}
-
-	let dim=this.struct["DIM "];
-
-	if (dim.length!=4) {
-		this.valid=false;
-		return;
-	}
-
-	const MAX_WIDTH=128, MAX_HEIGHT=128;
-
-	let x=Number.parseInt(dim.slice(0, BYTE));
-	let y=Number.parseInt(dim.slice(2, 2+BYTE));
-
-	if (x<=MAX_WIDTH&&y<=MAX_HEIGHT) {
-		this.width=x;
-		this.height=y;
-	}
-};
-
-// reads unit data
-Pud.prototype.readUdta=function() {
-	if (this.struct["UDTA"]==undefined) {
-		this.valid=false;
-		return;
-	}
-
-	let udta=this.getMap(this.struct["UDTA"], 1236, new Map([
-		["defaultUnits",      [1,   WORD]],
-		["sight",             [110, LONG]],
-		["hp",                [110, WORD]],
-		["magic",             [110, BYTE]],
-		["buildTime",         [110, BYTE]],
-		["unitGold",          [110, BYTE]],
-		["unitLumber",        [110, BYTE]],
-		["unitOil",           [110, BYTE]],
-		["unitSize",          [110, LONG]],
-		["boxSize",           [110, LONG]],
-		["range",             [110, BYTE]],
-		["reactComputer",     [110, BYTE]],
-		["reactHuman",        [110, BYTE]],
-		["armor",             [110, BYTE]],
-		["selectable",        [110, BYTE]],
-		["priority",          [110, BYTE]],
-		["basicDamage",       [110, BYTE]],
-		["piercingDamage",    [110, BYTE]],
-		["weaponsUpgradable", [110, BYTE]],
-		["armorUpgradable",   [110, BYTE]],
-		["missile",           [110, BYTE]],
-		["type",              [110, BYTE]],
-		["decayRate",         [110, BYTE]],
-		["annoyFactor",       [110, BYTE]],
-		["rmbAction",         [58,  BYTE]],
-		["points",            [110, WORD]],
-		["canTarget",         [110, BYTE]],
-		["flags",             [110, LONG]]
-	]));
-
-	udta.sight   =this.getArray(udta.sight,  LONG);
-	udta.hp      =this.getArray(udta.hp,     WORD);
-	udta.points  =this.getArray(udta.points, WORD);
-	udta.flags   =this.getArray(udta.flags,  LONG);
-
-	udta.unitSize=parseDim(udta.unitSize);
-	udta.boxSize =parseDim(udta.boxSize);
-
-	this.defaultUnits=Boolean(udta.defaultUnits);
-	this.units=udta;
-
-	function parseDim(data) {
-		let dim=[];
-
-		for (let i=0; i<data.length; i+=4) {
-			dim.push({
-				x: Number.parseInt(data.slice(i, i+WORD)),
-				y: Number.parseInt(data.slice(i+2, i+2+WORD))
-			});
-		}
-
-		return dim;
-	}
-};
-
-// reads unit/ability/upgrade restrictions
-Pud.prototype.readAlow=function() {
-	if (this.struct["ALOW"]==undefined) {
-		return; // optional section
-	}
-
-	let alow=this.getMap(this.struct["ALOW"], 0, new Map([
-		["units",               [16, LONG]],
-		["spellsResearched",    [16, LONG]],
-		["spells",              [16, LONG]],
-		["spellsResearching",   [16, LONG]],
-		["upgrades",            [16, LONG]],
-		["upgradesResearching", [16, LONG]]
-	]));
-
-	alow.units              =this.getArray(alow.units,               LONG);
-	alow.spellsResearched   =this.getArray(alow.spellsResearched,    LONG);
-	alow.spells             =this.getArray(alow.spells,              LONG);
-	alow.spellsResearching  =this.getArray(alow.spellsResearching,   LONG);
-	alow.upgrades           =this.getArray(alow.upgrades,            LONG);
-	alow.upgradesResearching=this.getArray(alow.upgradesResearching, LONG);
-
-	alow.units              =readBits(alow.units);
-	alow.spellsResearched   =readBits(alow.spellsResearched);
-	alow.spells             =readBits(alow.spells);
-	alow.spellsResearching  =readBits(alow.spellsResearching);
-	alow.upgrades           =readBits(alow.upgrades);
-	alow.upgradesResearching=readBits(alow.upgradesResearching);
-
-	this.restrictions=alow;
-
-	function readBits(arr) {
-		for (let i=0; i<arr.length; i++) {
-			let sub=[];
-
-			for (let j=0; j<32; j++) {
-				sub.push(Boolean(arr[i]&(1<<j)));
-			}
-
-			arr[i]=sub;
-		}
-
-		return arr;
-	}
-};
-
-// reads upgrade data
-Pud.prototype.readUgrd=function() {
-	if (this.struct["UGRD"]==undefined) {
-		this.valid=false;
-		return;
-	}
-
-	let ugrd=this.getMap(this.struct["UGRD"], 0, new Map([
-		["defaultUpgrades", [1,  WORD]],
-		["upgradeTime",     [52, BYTE]],
-		["upgradeGold",     [52, WORD]],
-		["upgradeLumber",   [52, WORD]],
-		["upgradeOil",      [52, WORD]],
-		["icon",            [52, WORD]],
-		["group",           [52, WORD]],
-		["effect",          [52, LONG]]
-	]));
-
-	ugrd.upgradeGold  =this.getArray(ugrd.upgradeGold,   WORD);
-	ugrd.upgradeLumber=this.getArray(ugrd.upgradeLumber, WORD);
-	ugrd.upgradeOil   =this.getArray(ugrd.upgradeOil,    WORD);
-	ugrd.icon         =this.getArray(ugrd.icon,          WORD);
-	ugrd.group        =this.getArray(ugrd.group,         WORD);
-	ugrd.effect       =this.getArray(ugrd.effect,        LONG);
-
-	this.defaultUpgrades=Boolean(ugrd.defaultUpgrades);
-	this.upgrades=ugrd;
-};
-
-// identifies race of each player
-Pud.prototype.readSide=function() {
-	if (this.struct["SIDE"]==undefined) {
-		this.valid=false;
-		return;
-	}
-
-	this.races=this.struct["SIDE"].map(function(race) {
-		if (race>0xff) {
-			this.valid=false;
-		}
-
-		if (race>=0x03) { // neutral
-			return 0x02;
-		}
-
-		return race;
-	}, this);
-};
-
-// gets AI script of each player
-Pud.prototype.readAipl=function() {
-	if (this.struct["AIPL"]==undefined) {
-		this.valid=false;
-		return;
-	}
-
-	this.ai=this.struct["AIPL"];
-	this.ai.forEach(function(ai) {
-		if (ai>0x52) {
-			this.valid=false;
-		}
-	}, this);
-};
-
-// gets unit map
-Pud.prototype.readUnit=function() {
-	if (this.struct["UNIT"]==undefined) {
-		this.valid=false;
-		return;
-	}
-
-	const size=8;
-	let unit=this.struct["UNIT"], unitMap=[];
-
-	for (let i=0; i<unit.length; i+=size) {
-		unitMap.push({
-			x: this.parseNum(unit.slice(i, i+WORD)),
-			y: this.parseNum(unit.slice(i+2, i+2+WORD)),
-			type: unit[i+4],
-			owner: unit[i+5],
-			property: this.parseNum(unit.slice(i+6, i+6+WORD))
-		});
-	}
-
-	this.unitMap=unitMap;
 };
 
 /*
