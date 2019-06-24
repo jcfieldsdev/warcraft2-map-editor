@@ -13,20 +13,22 @@ const LONG=4;
 const FILE_SIGNATURE="WAR2 MAP\x00\x00\x0a\xff";
 const STANDARD =0x11;
 const EXPANSION=0x13;
+const OFFICIAL=1;
+const LADDER  =2;
 
 // factions
-const HUMAN="human";
-const ORC="orc";
+const HUMAN  ="human";
+const ORC    ="orc";
 const NEUTRAL="neutral";
 
 // game mechanics
 const MAX_PLAYERS=8;
-const TILE_SIZE=32;
+const TILE_SIZE  =32;
 
 // layout/appearance
 const MINIMAP_SIZE=200;
-const LEFT_MARGIN=270;
-const FRAME_COLOR="#fff";
+const LEFT_MARGIN =270;
+const FRAME_COLOR ="#fff";
 const SELECT_COLOR="#0f0";
 
 // file names and locations
@@ -1238,6 +1240,7 @@ function Pud(filename="", struct={}) {
 	this.valid=true;
 
 	this.id="";
+	this.sign=0;
 	this.version=STANDARD;
 	this.description="";
 	this.width=0;
@@ -1298,6 +1301,7 @@ Pud.prototype.load=function(filename, buffer) {
 	readSide();
 	readAipl();
 	readUnit();
+	readSign();
 
 	this.startingGold  =readSection("SGLD", WORD);
 	this.startingLumber=readSection("SLBR", WORD);
@@ -1461,11 +1465,11 @@ Pud.prototype.load=function(filename, buffer) {
 
 		const MAX_WIDTH=128, MAX_HEIGHT=128;
 
-		let x=Number.parseInt(dim.slice(0, BYTE));
-		let y=Number.parseInt(dim.slice(2, 2+BYTE));
+		let x=dim[0];
+		let y=dim[2];
 
 		if (x<=MAX_WIDTH&&y<=MAX_HEIGHT) {
-			self.width=x;
+			self.width =x;
 			self.height=y;
 		}
 	};
@@ -1650,10 +1654,10 @@ Pud.prototype.load=function(filename, buffer) {
 			return;
 		}
 
-		const size=8;
+		const SIZE=8;
 		let unit=self.struct["UNIT"], unitMap=[];
 
-		for (let i=0; i<unit.length; i+=size) {
+		for (let i=0; i<unit.length; i+=SIZE) {
 			unitMap.push({
 				x: parseNum(unit.slice(i, i+WORD)),
 				y: parseNum(unit.slice(i+2, i+2+WORD)),
@@ -1664,6 +1668,15 @@ Pud.prototype.load=function(filename, buffer) {
 		}
 
 		self.unitMap=unitMap;
+	}
+
+	// reads Blizzard signature
+	function readSign() {
+		if (self.struct["SIGN"]==undefined) {
+			return; // optional section
+		}
+
+		self.sign=parseNum(self.struct["SIGN"]);
 	}
 };
 
@@ -1676,20 +1689,20 @@ Pud.prototype.save=function() {
 		"OWNR": this.controller,
 		"ERA ": saveEra(STANDARD),
 		"ERAX": saveEra(EXPANSION),
-//		"DIM ": ,
+		"DIM ": convertNum(self.width|self.height<<16, LONG),
 //		"UDTA": ,
 //		"ALOW": ,
 //		"UGRD": ,
-//		"SIDE": ,
+		"SIDE": this.races,
 		"SGLD": readArray(this.startingGold,   WORD),
 		"SLBR": readArray(this.startingLumber, WORD),
 		"SOIL": readArray(this.startingOil,    WORD),
-//		"AIPL": ,
+		"AIPL": this.ai,
 		"MTXM": readArray(this.tileMap,        WORD),
 		"SQM ": readArray(this.movementMap,    WORD),
 		"OILM": readArray(this.oilMap,         WORD),
 		"REGM": readArray(this.actionMap,      WORD),
-//		"UNIT":
+		"UNIT": saveUnit()
 	};
 
 	let length=Object.values(sections).reduce(function(length, contents) {
@@ -1780,6 +1793,29 @@ Pud.prototype.save=function() {
 		}
 
 		return convertNum(self.tileset, WORD);
+	}
+
+	function saveUnit() {
+		const SIZE=8;
+		let arr=new Uint8Array(SIZE*self.unitMap.length), pos=0;
+
+		for (let unit of self.unitMap) {
+			let x=convertNum(unit.x, WORD), y=convertNum(unit.y, WORD);
+			let property=convertNum(unit.property, WORD);
+
+			arr[pos]=x[0];
+			arr[pos+1]=x[1];
+			arr[pos+2]=y[0];
+			arr[pos+3]=y[1];
+			arr[pos+4]=unit.type;
+			arr[pos+5]=unit.owner;
+			arr[pos+6]=property[0];
+			arr[pos+7]=property[1];
+
+			pos+=SIZE;
+		}
+
+		return arr;
 	}
 };
 
