@@ -119,7 +119,7 @@ button.unit img:hover, div#terrain img:hover {
 	border-color: #fff;
 }
 
-button:disabled {
+button:disabled, select:disabled {
 	cursor: initial;
 	opacity: 0.5;
 }

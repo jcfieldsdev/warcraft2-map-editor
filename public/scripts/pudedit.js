@@ -54,34 +54,34 @@ window.addEventListener("load", function() {
 	}
 
 	// mouse buttons
-	const LEFT=0;
+	const LEFT =0;
 	const RIGHT=2;
 
 	// event listeners
 	// for minimap
-	$("frame").addEventListener("mousedown", function(event) {
+	$("#frame").addEventListener("mousedown", function(event) {
 		if (event.button==LEFT) {
 			editor.dragFrame=true;
 		}
 	});
-	$("frame").addEventListener("mouseup", function(event) {
+	$("#frame").addEventListener("mouseup", function(event) {
 		if (event.button==LEFT) {
 			editor.dragFrame=false;
 			editor.moveMap(event.clientX, event.clientY);
 		}
 	});
-	$("frame").addEventListener("mousemove", function(event) {
+	$("#frame").addEventListener("mousemove", function(event) {
 		if (editor.dragFrame) {
 			editor.moveMap(event.clientX, event.clientY);
 		}
 	});
 	// for map
-	$("select").addEventListener("mousedown", function(event) {
+	$("#select").addEventListener("mousedown", function(event) {
 		if (event.button==LEFT) {
 			editor.startSelect(event.clientX, event.clientY);
 		}
 	});
-	$("select").addEventListener("mouseup", function(event) {
+	$("#select").addEventListener("mouseup", function(event) {
 		if (event.button==LEFT) {
 			editor.selectUnits(
 				event.clientX, event.clientY,
@@ -90,76 +90,76 @@ window.addEventListener("load", function() {
 			);
 		} else if (event.button==RIGHT) {
 			if (Object.keys(editor.selected).length>0) {
-				editor.openSelectionProperties();
-				editor.show("selectionProperties");
+				editor.openSelection();
+				editor.show("unitMap");
 			}
 		}
 	});
-	$("select").addEventListener("mousemove", function(event) {
+	$("#select").addEventListener("mousemove", function(event) {
 		if (editor.dragSelect) {
 			editor.drawSelect(event.clientX, event.clientY);
 		}
 	});
-	$("select").addEventListener("contextmenu", function(event) {
+	$("#select").addEventListener("contextmenu", function(event) {
 		event.preventDefault();
 	});
 	// for palettes
-	$("create").addEventListener("click", function() {
+	$("#create").addEventListener("click", function() {
 		editor.openCreate();
 		editor.show("create");
 	});
-	$("open").addEventListener("click", function() {
+	$("#open").addEventListener("click", function() {
 		files.browse();
 		editor.show("browser");
 	});
-	$("save").addEventListener("click", function() {
+	$("#save").addEventListener("click", function() {
 		if (editor.pud==null) {
 			return;
 		}
 
-		let a=document.getElementById("download");
+		let a=$("#download");
 		a.download=editor.pud.filename;
 		a.href=window.URL.createObjectURL(editor.pud.save());
 		a.click();
 	});
-	$("saveImage").addEventListener("click", function() {
+	$("#saveImage").addEventListener("click", function() {
 		editor.saveImage();
 	});
-	$("link").addEventListener("click", function() {
+	$("#link").addEventListener("click", function() {
 		if (editor.path) {
 			let link=window.location.href.split("?")[0];
 			link+="?map="+editor.path;
 
-			$("text_link").value=link;
+			$("#text_link").value=link;
 			editor.show("link");
 		}
 	});
-	$("copy").addEventListener("click", function() {
-		$(this.value).select();
+	$("#copy").addEventListener("click", function() {
+		$("#"+this.value).select();
 		document.execCommand("copy");
 	});
-	$("about").addEventListener("click", function() {
+	$("#about").addEventListener("click", function() {
 		editor.show("about");
 	});
-	$("filename").addEventListener("click", function() {
+	$("#filename").addEventListener("click", function() {
 		editor.openMapProperties();
 		editor.show("mapProperties");
 	});
 	// for overlay widgets
-	$("select_unitsPalette").addEventListener("input", function() {
+	$("#select_unitsPalette").addEventListener("input", function() {
 		editor.changeUnitPalette();
 	});
-	$("number_icon").addEventListener("input", function() {
-		editor.changeIcon(this, $("icon"), $("select_upgrades"));
+	$("#number_icon").addEventListener("input", function() {
+		editor.changeIcon(this, $("#icon"), $("#select_upgrades"));
 	});
-	$("select_selection").addEventListener("input", function() {
+	$("#select_selection").addEventListener("input", function() {
 		editor.fillSelectionProperties();
 	});
-	$("range_property").addEventListener("input", function() {
+	$("#range_property").addEventListener("input", function() {
 		editor.changeResource();
 	});
 	// for file browser in open overlay
-	$("file").addEventListener("input", function(event) {
+	$("#file").addEventListener("input", function(event) {
 		let file=event.target.files[0];
 
 		if (file) {
@@ -177,8 +177,8 @@ window.addEventListener("load", function() {
 
 		if (key==13) { // Enter
 			if (Object.keys(editor.selected).length>0) {
-				editor.openSelectionProperties();
-				editor.show("selectionProperties");
+				editor.openSelection();
+				editor.show("unitMap");
 			}
 		}
 
@@ -199,16 +199,16 @@ window.addEventListener("load", function() {
 	});
 
 	// new/open/save buttons
-	let basic=document.getElementsByClassName("basic");
+	let basic=$$(".basic");
 
 	for (let element of basic) {
 		element.addEventListener("click", function() {
-			$(this.value).click();
+			$("#"+this.value).click();
 		});
 	}
 
 	// player buttons under minimap
-	let players=document.getElementsByClassName("player");
+	let players=$$(".player");
 
 	for (let element of players) {
 		element.addEventListener("click", function() {
@@ -217,7 +217,7 @@ window.addEventListener("load", function() {
 	}
 
 	// tool palette tabs
-	let tabs=document.getElementsByClassName("tab");
+	let tabs=$$(".tab");
 
 	for (let element of tabs) {
 		element.addEventListener("click", function() {
@@ -226,16 +226,16 @@ window.addEventListener("load", function() {
 	}
 
 	// layer toggles
-	let toggles=document.getElementsByClassName("layer");
+	let toggles=$$(".layer");
 
 	for (let element of toggles) {
 		element.addEventListener("click", function() {
-			$(this.value).classList.toggle("hidden", !this.checked);
+			$("#"+this.value).classList.toggle("hidden", !this.checked);
 		});
 	}
 
 	// property sheet open buttons
-	let properties=document.getElementsByClassName("properties");
+	let properties=$$(".properties");
 
 	for (let element of properties) {
 		element.addEventListener("click", function() {
@@ -246,34 +246,27 @@ window.addEventListener("load", function() {
 	}
 
 	// property sheet select boxes
-	let fill=document.getElementsByClassName("fill");
+	let fill=$$(".fill");
 
 	for (let element of fill) {
 		element.addEventListener("input", function() {
 			let key=this.id.replace("select_", "");
-			let select=$("select_"+key);
-			let option=select.options[select.selectedIndex];
-
-			$("legend_"+key).innerHTML=option.label;
-
-			editor.saveWorking(key);
 			editor.fillProperties(key);
 		});
 	}
 
 	// overlay save buttons
-	let save=document.getElementsByClassName("save");
+	let save=$$(".save");
 
 	for (let element of save) {
 		element.addEventListener("click", function() {
-			let fn=this.value.charAt(0).toUpperCase()+this.value.slice(1);
-			editor["save"+fn]();
+			editor.saveProperties(this.value);
 			editor.hide(this.value);
 		});
 	}
 
 	// overlay close buttons
-	let close=document.getElementsByClassName("close");
+	let close=$$(".close");
 
 	for (let element of close) {
 		element.addEventListener("click", function() {
@@ -281,8 +274,17 @@ window.addEventListener("load", function() {
 		});
 	}
 
-	// property sheet revert buttons
-	let revert=document.getElementsByClassName("revert");
+	// property sheet "Use default values" buttons
+	let defaults=$$(".defaults");
+
+	for (let element of defaults) {
+		element.addEventListener("click", function() {
+			$("#select_"+this.value).disabled=this.checked;
+		});
+	}
+
+	// property sheet "Revert" buttons
+	let revert=$$(".revert");
 
 	for (let element of revert) {
 		element.addEventListener("click", function() {
@@ -291,8 +293,12 @@ window.addEventListener("load", function() {
 	}
 });
 
-function $(id) {
-	return document.getElementById(id);
+function $(selector) {
+	return document.querySelector(selector);
+}
+
+function $$(selector) {
+	return document.querySelectorAll(selector);
 }
 
 /*
@@ -347,9 +353,9 @@ Editor.prototype.open=function(filename, path, buffer) {
 	}
 
 	this.path=path;
-	$("link").disabled=!Boolean(path);
+	$("#link").disabled=!Boolean(path);
 
-	$("filename").innerHTML=this.pud.filename;
+	$("#filename").innerHTML=this.pud.filename;
 
 	setSize("tileMap", this.pud.width*TILE_SIZE, this.pud.height*TILE_SIZE);
 	setSize("unitMap", this.pud.width*TILE_SIZE, this.pud.height*TILE_SIZE);
@@ -359,27 +365,33 @@ Editor.prototype.open=function(filename, path, buffer) {
 	setSize("miniTileMap", MINIMAP_SIZE, MINIMAP_SIZE);
 	setSize("frame",       MINIMAP_SIZE, MINIMAP_SIZE);
 
-	this.tileMap=$("tileMap").getContext("2d");
-	this.unitMap=$("unitMap").getContext("2d");
-	this.select=$("select").getContext("2d");
-	this.miniTileMap=$("miniTileMap").getContext("2d");
-	this.miniUnitMap=$("miniUnitMap").getContext("2d");
-	this.frame=$("frame").getContext("2d");
+	this.tileMap=$("#tileMap").getContext("2d");
+	this.unitMap=$("#unitMap").getContext("2d");
+	this.select=$("#select").getContext("2d");
+	this.miniTileMap=$("#miniTileMap").getContext("2d");
+	this.miniUnitMap=$("#miniUnitMap").getContext("2d");
+	this.frame=$("#frame").getContext("2d");
 
-	this.pos=$("frame").getBoundingClientRect();
-	this.scaleX=MINIMAP_SIZE/$("tileMap").width;
-	this.scaleY=MINIMAP_SIZE/$("tileMap").height;
+	this.pos=$("#frame").getBoundingClientRect();
+	this.scaleX=MINIMAP_SIZE/$("#tileMap").width;
+	this.scaleY=MINIMAP_SIZE/$("#tileMap").height;
 	this.miniTileMap.scale(this.scaleX, this.scaleY);
 
 	this.selectPlayer(this.player);
 	this.selectPalette("units");
 
+	let defaults=$$(".defaults");
+
+	for (let element of defaults) {
+		$("#select_"+element.value).disabled=element.checked;
+	}
+
 	// draws tile map and changes unit icons to match tileset
 	this.changeTileset(this.pud.tileset);
 
 	function setSize(id, w, h) {
-		$(id).width=w;
-		$(id).height=h;
+		$("#"+id).width=w;
+		$("#"+id).height=h;
 	}
 };
 
@@ -422,7 +434,7 @@ Editor.prototype.drawUnitMap=function() {
 	let unitMap=this.unitMap, miniUnitMap=this.miniUnitMap;
 
 	// clears canvas every time or units will stack when tileset changed
-	unitMap.clearRect(0, 0, $("unitMap").width, $("unitMap").height);
+	unitMap.clearRect(0, 0, $("#unitMap").width, $("#unitMap").height);
 	miniUnitMap.scale(this.scaleX, this.scaleY);
 
 	this.pud.unitMap.forEach(function(unit) {
@@ -526,7 +538,7 @@ Editor.prototype.updateCoords=function() {
 };
 
 Editor.prototype.drawFrame=function() {
-	this.frame.clearRect(0, 0, $("frame").width, $("frame").height);
+	this.frame.clearRect(0, 0, $("#frame").width, $("#frame").height);
 	this.frame.beginPath();
 	this.frame.rect(
 		this.x, this.y,
@@ -549,7 +561,7 @@ Editor.prototype.drawSelect=function(x, y) {
 	let w=window.scrollX+x-this.selectX-LEFT_MARGIN;
 	let h=window.scrollY+y-this.selectY;
 
-	this.select.clearRect(0, 0, $("select").width, $("select").height);
+	this.select.clearRect(0, 0, $("#select").width, $("#select").height);
 	this.select.beginPath();
 	this.select.rect(this.selectX, this.selectY, w, h);
 	this.select.lineWidth=1;
@@ -564,7 +576,7 @@ Editor.prototype.selectUnits=function(x, y, add=false, multiple=false) {
 	if (!add) {
 		this.selected={};
 
-		this.select.clearRect(0, 0, $("select").width, $("select").height);
+		this.select.clearRect(0, 0, $("#select").width, $("#select").height);
 		this.select.lineWidth=1;
 		this.select.strokeStyle=SELECT_COLOR;
 	}
@@ -629,14 +641,14 @@ Editor.prototype.openCreate=function() {
 Editor.prototype.openMapProperties=function() {
 	this.setRadio("radio_tileset", this.pud.tileset);
 
-	$("text_filename").value   =this.pud.filename;
-	$("text_width").value      =this.pud.width;
-	$("text_height").value     =this.pud.height;
-	$("text_description").value=this.pud.description;
+	$("#text_filename").value   =this.pud.filename;
+	$("#text_width").value      =this.pud.width;
+	$("#text_height").value     =this.pud.height;
+	$("#text_description").value=this.pud.description;
 };
 
-Editor.prototype.openPlayerProperties=function() {
-	let ais=document.getElementsByClassName("ai");
+Editor.prototype.openPlayers=function() {
+	let ais=$$(".ai");
 
 	for (let element of ais) {
 		for (let [id, name] of data.ai) {
@@ -656,13 +668,13 @@ Editor.prototype.openPlayerProperties=function() {
 
 Editor.prototype.openStartingConditions=function() {
 	for (let i=0; i<MAX_PLAYERS; i++) {
-		$("number_startingGold"+i).value  =this.pud.startingGold[i];
-		$("number_startingLumber"+i).value=this.pud.startingLumber[i];
-		$("number_startingOil"+i).value   =this.pud.startingOil[i];
+		$("#number_startingGold"+i).value  =this.pud.startingGold[i];
+		$("#number_startingLumber"+i).value=this.pud.startingLumber[i];
+		$("#number_startingOil"+i).value   =this.pud.startingOil[i];
 	}
 };
 
-Editor.prototype.openUnitProperties=function() {
+Editor.prototype.openUnits=function() {
 	let units={};
 
 	Object.keys(data.units).forEach(function(group) {
@@ -697,16 +709,15 @@ Editor.prototype.openUnitProperties=function() {
 			optgroup.appendChild(option);
 		}
 
-		$("select_units").appendChild(optgroup);
+		$("#select_units").appendChild(optgroup);
 	});
 
-	$("checkbox_units").checked=this.pud.defaultUnits;
-
-	$("select_units").selectedIndex=0;
+	$("#checkbox_units").checked=this.pud.useDefaults.units;
+	$("#select_units").selectedIndex=0;
 	this.fillProperties("units");
 };
 
-Editor.prototype.openUpgradeProperties=function() {
+Editor.prototype.openUpgrades=function() {
 	Object.keys(data.upgrades).forEach(function(race) {
 		let optgroup=document.createElement("optgroup");
 		let label=race.charAt(0).toUpperCase()+race.slice(1);
@@ -719,17 +730,16 @@ Editor.prototype.openUpgradeProperties=function() {
 			optgroup.appendChild(option);
 		}
 
-		$("select_upgrades").appendChild(optgroup);
+		$("#select_upgrades").appendChild(optgroup);
 	});
 
-	$("checkbox_upgrades").checked=this.pud.defaultUpgrades;
-
-	$("select_upgrades").selectedIndex=0;
+	$("#checkbox_upgrades").checked=this.pud.useDefaults.upgrades;
+	$("#select_upgrades").selectedIndex=0;
 	this.fillProperties("upgrades");
 };
 
-Editor.prototype.openSelectionProperties=function() {
-	let select=$("select_selection"), units={};
+Editor.prototype.openSelection=function() {
+	let select=$("#select_selection"), units={};
 
 	while (select.lastChild) { // removes all children
 		select.removeChild(select.lastChild);
@@ -758,7 +768,7 @@ Editor.prototype.openSelectionProperties=function() {
 };
 
 Editor.prototype.selectPlayer=function(player) {
-	let players=document.getElementsByClassName("player");
+	let players=$$(".player");
 
 	for (let element of players) {
 		element.classList.toggle("current", element.value==player);
@@ -768,8 +778,8 @@ Editor.prototype.selectPlayer=function(player) {
 
 	// changes owner of selected units
 	Object.values(this.selected).forEach(function(unit) {
-		// does not change ownership of gold mines or oil patches
-		if (unit.type!=92&&unit.type!=93) {
+		// does not change ownership of critters, gold mines, or oil patches
+		if (unit.type!=57&&unit.type!=92&&unit.type!=93) {
 			unit.owner=player;
 		}
 	}, this);
@@ -779,13 +789,13 @@ Editor.prototype.selectPlayer=function(player) {
 };
 
 Editor.prototype.selectPalette=function(palette) {
-	let palettes=document.getElementsByClassName("palette");
+	let palettes=$$(".palette");
 
 	for (let element of palettes) {
 		element.classList.toggle("open", element.id==palette);
 	}
 
-	let tabs=document.getElementsByClassName("tab");
+	let tabs=$$(".tab");
 
 	for (let element of tabs) {
 		element.classList.toggle("current", element.value==palette);
@@ -815,7 +825,7 @@ Editor.prototype.changeTileset=function(tileset) {
 };
 
 Editor.prototype.changeTerrainPalette=function() {
-	let icons=document.getElementsByClassName("terrain");
+	let icons=$$(".terrain img");
 
 	for (let element of icons) {
 		let icon=element.value+".png";
@@ -823,19 +833,19 @@ Editor.prototype.changeTerrainPalette=function() {
 		let img=new Image();
 		img.src="icons/terrain/"+this.getTileset(this.pud.tileset)+"/"+icon;
 		img.addEventListener("load", function() {
-			element.getElementsByTagName("img")[0].src=this.src;
+			element.src=this.src;
 		});
 	}
 };
 
 Editor.prototype.changeUnitPalette=function() {
-	let group=$("select_unitsPalette").value;
+	let group=$("#select_unitsPalette").value;
 
 	if (!data.units.hasOwnProperty(group)) {
 		return;
 	}
 
-	this.clear($("unitsPalette"));
+	this.clear($("#unitsPalette"));
 
 	let ul=document.createElement("ul");
 	ul.id="unitsPalette";
@@ -867,19 +877,19 @@ Editor.prototype.changeUnitPalette=function() {
 		ul.appendChild(li);
 	}
 
-	$("unitsPalette").replaceWith(ul);
+	$("#unitsPalette").replaceWith(ul);
 };
 
 Editor.prototype.fillSelectionProperties=function() {
-	let select=$("select_selection");
+	let select=$("#select_selection");
 	let option=select.options[select.selectedIndex], index=option.value;
 
-	$("legend_selection").innerHTML=option.label;
+	$("#legend_selection").innerHTML=option.label;
 
 	this.saveWorking("unitMap");
 
 	let unit=this.selected[index];
-	let inputs=document.getElementsByClassName("unitMap"), value="";
+	let inputs=$$(".unitMap"), value="";
 
 	for (let element of inputs) {
 		let [type, id]=element.id.split(/_/);
@@ -896,24 +906,24 @@ Editor.prototype.fillSelectionProperties=function() {
 			}
 		}
 
-		$(element.id).value=value;
+		$("#"+element.id).value=value;
 	}
 
 	if (unit.type==92||unit.type==93) { // gold mine or oil patch
-		$("row_resource").classList.remove("hidden");
-		$("range_property").disabled=false;
+		$("#row_resource").classList.remove("hidden");
+		$("#range_property").disabled=false;
 	} else {
-		$("row_resource").classList.add("hidden");
-		$("range_property").disabled=true;
+		$("#row_resource").classList.add("hidden");
+		$("#range_property").disabled=true;
 		this.changeResource();
 	}
 
 	if (unit.type<58) { // units, not buildings
-		$("row_ai").classList.remove("hidden");
-		$("select_property").disabled=false;
+		$("#row_ai").classList.remove("hidden");
+		$("#select_property").disabled=false;
 	} else {
-		$("row_ai").classList.add("hidden");
-		$("select_property").disabled=true;
+		$("#row_ai").classList.add("hidden");
+		$("#select_property").disabled=true;
 	}
 
 	this.index=index;
@@ -927,8 +937,8 @@ Editor.prototype.saveCreate=function() {
 };
 
 Editor.prototype.saveMapProperties=function() {
-	this.pud.filename=$("text_filename").value;
-	this.pud.description=$("text_description").value;
+	this.pud.filename=$("#text_filename").value;
+	this.pud.description=$("#text_description").value;
 
 	let tileset=this.saveRadio("radio_tileset");
 
@@ -936,7 +946,7 @@ Editor.prototype.saveMapProperties=function() {
 		this.changeTileset(tileset);
 	}
 
-	$("filename").textContent=this.pud.filename;
+	$("#filename").textContent=this.pud.filename;
 };
 
 Editor.prototype.savePlayerProperties=function() {
@@ -957,40 +967,12 @@ Editor.prototype.saveStartingConditions=function() {
 	}
 };
 
-Editor.prototype.saveUnitProperties=function() {
-	this.saveWorking("units");
-	this.mergeWorking("units");
-};
-
-Editor.prototype.saveUpgradeProperties=function() {
-	this.saveWorking("upgrades");
-	this.mergeWorking("upgrades");
-};
-
-Editor.prototype.saveSelectionProperties=function() {
-	this.saveWorking("unitMap");
-
-	Object.keys(this.working).forEach(function(index) {
-		Object.keys(this.working[index]).forEach(function(property) {
-			if (!this.pud.unitMap.hasOwnProperty(index)) {
-				return;
-			}
-
-			if (!this.pud.unitMap[index].hasOwnProperty(property)) {
-				return;
-			}
-
-			this.pud.unitMap[index][property]=this.working[index][property];
-		}, this);
-	}, this);
-};
-
 Editor.prototype.saveWorking=function(key) {
 	if (this.index<0) {
 		return;
 	}
 
-	let inputs=document.getElementsByClassName(key);
+	let inputs=$$("."+key);
 	this.working[this.index]=Array.from(inputs).reduce(function(obj, element) {
 		if (!element.disabled) {
 			let [type, id, sub]=element.id.split(/_/g);
@@ -1040,8 +1022,15 @@ Editor.prototype.fillProperties=function(key) {
 		return;
 	}
 
-	let inputs=document.getElementsByClassName(key), value="";
-	let index=$("select_"+key).value;
+	let select=$("#select_"+key);
+	let option=select.options[select.selectedIndex];
+
+	$("#legend_"+key).innerHTML=option.label;
+
+	this.saveWorking(key);
+
+	let inputs=$$("."+key), value="";
+	let index=option.value;
 
 	for (let element of inputs) {
 		let [type, id, sub]=element.id.split(/_/);
@@ -1069,27 +1058,50 @@ Editor.prototype.fillProperties=function(key) {
 		if (sub) {
 			for (let property in value) {
 				if (property==sub) {
-					$(element.id).value=value[property];
+					$("#"+element.id).value=value[property];
 				}
 			}
 		} else {
-			$(element.id).value=value;
+			$("#"+element.id).value=value;
 		}
 	}
 
 	if (key=="units") {
-		$("number_rmbAction").disabled=index>=58; // units, not buildings
+		$("#number_rmbAction").disabled=index>=58; // units, not buildings
 	}
 
 	if (key=="upgrades") {
-		this.changeIcon($("number_icon"), $("icon"), $("select_upgrades"));
+		this.changeIcon($("#number_icon"), $("#icon"), $("#select_upgrades"));
 	}
 
 	this.index=index;
 };
 
+Editor.prototype.saveProperties=function(key) {
+	this.saveWorking(key);
+
+	if (key=="unitMap") {
+		Object.keys(this.working).forEach(function(index) {
+			Object.keys(this.working[index]).forEach(function(property) {
+				if (!this.pud.unitMap.hasOwnProperty(index)) {
+					return;
+				}
+
+				if (!this.pud.unitMap[index].hasOwnProperty(property)) {
+					return;
+				}
+
+				this.pud.unitMap[index][property]=this.working[index][property];
+			}, this);
+		}, this);
+	} else {
+		this.mergeWorking(key);
+		this.pud.useDefaults[key]=$("#checkbox_"+key).checked;
+	}
+};
+
 Editor.prototype.revertProperties=function(key) {
-	let index=$("select_"+key).value;
+	let index=$("#select_"+key).value;
 	delete this.working[index];
 	this.fillProperties(key);
 };
@@ -1127,7 +1139,7 @@ Editor.prototype.changeIcon=function(input, img, select) {
 };
 
 Editor.prototype.changeResource=function() {
-	$("resource").textContent=$("range_property").value*2500;
+	$("#resource").textContent=$("#range_property").value*2500;
 };
 
 Editor.prototype.setRadio=function(name, compare) {
@@ -1139,7 +1151,7 @@ Editor.prototype.setRadio=function(name, compare) {
 };
 
 Editor.prototype.setSelect=function(id, value) {
-	let select=$(id), options=select.options;
+	let select=$("#"+id), options=select.options;
 
 	for (let i in options) {
 		if (options[i].value==value) {
@@ -1149,7 +1161,7 @@ Editor.prototype.setSelect=function(id, value) {
 };
 
 Editor.prototype.saveNumber=function(id, size) {
-	let max=1<<(8*size)-1, num=Number.parseInt($(id).value);
+	let max=1<<(8*size)-1, num=Number.parseInt($("#"+id).value);
 
 	if (num<0) {
 		return 0;
@@ -1173,24 +1185,24 @@ Editor.prototype.saveRadio=function(name) {
 };
 
 Editor.prototype.saveSelect=function(id) {
-	return $(id).value;
+	return $("#"+id).value;
 };
 
 Editor.prototype.saveImage=function() {
 	let canvas=document.createElement("canvas");
-	canvas.width =$("tileMap").width;
-	canvas.height=$("tileMap").height;
+	canvas.width =$("#tileMap").width;
+	canvas.height=$("#tileMap").height;
 
 	let context=canvas.getContext("2d");
 	// composites all layers into a single image
-	context.drawImage($("tileMap"), 0, 0, canvas.width, canvas.height);
-	context.drawImage($("unitMap"), 0, 0, canvas.width, canvas.height);
-	context.drawImage($("grid"), 0, 0, canvas.width, canvas.height);
+	context.drawImage($("#tileMap"), 0, 0, canvas.width, canvas.height);
+	context.drawImage($("#unitMap"), 0, 0, canvas.width, canvas.height);
+	context.drawImage($("#grid"), 0, 0, canvas.width, canvas.height);
 
 	let filename=this.pud.filename.replace(/\.pud$/, ".png");
 
 	canvas.toBlob(function(blob) {
-		let a=document.getElementById("download");
+		let a=$("download");
 		a.download=filename;
 		a.href=window.URL.createObjectURL(blob);
 		a.click();
@@ -1199,16 +1211,16 @@ Editor.prototype.saveImage=function() {
 
 Editor.prototype.show=function(id) {
 	this.closeAll();
-	$("overlay_"+id).classList.add("open");
+	$("#overlay_"+id).classList.add("open");
 };
 
 Editor.prototype.hide=function(id) {
 	this.resetWorking();
-	$("overlay_"+id).classList.remove("open");
+	$("#overlay_"+id).classList.remove("open");
 };
 
 Editor.prototype.closeAll=function() {
-	let overlays=document.getElementsByClassName("overlay");
+	let overlays=$$(".overlay");
 
 	Array.from(overlays).forEach(function(overlay) {
 		overlay.classList.remove("open");
@@ -1245,8 +1257,10 @@ function Pud(filename="", struct={}) {
 	this.actionMap=[];
 	this.unitMap=[];
 
-	this.defaultUnits=true;
-	this.defaultUpgrades=true;
+	this.useDefaults={
+		units:    true,
+		upgrades: true
+	};
 	this.units=[];
 	this.upgrades=[];
 	this.restrictions=[];
@@ -1502,7 +1516,7 @@ Pud.prototype.load=function(filename, buffer) {
 		udta.unitSize=parseDim(udta.unitSize);
 		udta.boxSize =parseDim(udta.boxSize);
 
-		self.defaultUnits=Boolean(udta.defaultUnits);
+		self.useDefaults.units=Boolean(udta.defaultUnits);
 		self.units=udta;
 
 		function parseDim(data) {
@@ -1590,7 +1604,7 @@ Pud.prototype.load=function(filename, buffer) {
 		ugrd.group        =makeArray(ugrd.group,         WORD);
 		ugrd.effect       =makeArray(ugrd.effect,        LONG);
 
-		self.defaultUpgrades=Boolean(ugrd.defaultUpgrades);
+		self.useDefaults.upgrades=Boolean(ugrd.defaultUpgrades);
 		self.upgrades=ugrd;
 	}
 
@@ -1820,7 +1834,7 @@ Files.prototype.browse=function() {
 				);
 			}
 
-			$(self.id).replaceWith(ul);
+			$("#"+self.id).replaceWith(ul);
 		}
 	});
 	xhr.open("GET", MAPS_DIR+this.dirs.join("/")+"/index.json", true);
