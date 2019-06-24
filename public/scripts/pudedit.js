@@ -13,8 +13,6 @@ const LONG=4;
 const FILE_SIGNATURE="WAR2 MAP\x00\x00\x0a\xff";
 const STANDARD =0x11;
 const EXPANSION=0x13;
-const OFFICIAL=1;
-const LADDER  =2;
 
 // factions
 const HUMAN  ="human";
@@ -201,98 +199,84 @@ window.addEventListener("load", function() {
 	});
 
 	// new/open/save buttons
-	let basic=$$(".basic");
-
-	for (let element of basic) {
+	$$(".basic").forEach(function(element) {
 		element.addEventListener("click", function() {
 			$("#"+this.value).click();
 		});
-	}
+	});
 
 	// player buttons under minimap
-	let players=$$(".player");
-
-	for (let element of players) {
+	$$(".player").forEach(function(element) {
 		element.addEventListener("click", function() {
 			editor.selectPlayer(this.value);
 		});
-	}
+	});
 
 	// tool palette tabs
-	let tabs=$$(".tab");
-
-	for (let element of tabs) {
+	$$(".tab").forEach(function(element) {
 		element.addEventListener("click", function() {
 			editor.selectPalette(this.value);
 		});
-	}
+	});
 
 	// layer toggles
-	let toggles=$$(".layer");
-
-	for (let element of toggles) {
+	$$(".layer").forEach(function(element) {
 		element.addEventListener("click", function() {
 			$("#"+this.value).classList.toggle("hidden", !this.checked);
 		});
-	}
+	});
 
 	// property sheet open buttons
-	let properties=$$(".properties");
-
-	for (let element of properties) {
+	$$(".properties").forEach(function(element) {
 		element.addEventListener("click", function() {
 			let fn=this.value.charAt(0).toUpperCase()+this.value.slice(1);
 			editor["open"+fn]();
 			editor.show(this.value);
 		});
-	}
+	});
 
 	// property sheet select boxes
-	let fill=$$(".fill");
-
-	for (let element of fill) {
+	$$(".fill").forEach(function(element) {
 		element.addEventListener("input", function() {
 			let key=this.id.replace("select_", "");
+			let select=$("#select_"+key);
+			let option=select.options[select.selectedIndex];
+
+			$("#legend_"+key).innerHTML=option.label;
+
+			editor.saveWorking(key);
 			editor.fillProperties(key);
 		});
-	}
+	});
 
 	// overlay save buttons
-	let save=$$(".save");
-
-	for (let element of save) {
+	$$(".save").forEach(function(element) {
 		element.addEventListener("click", function() {
 			editor.saveProperties(this.value);
 			editor.hide(this.value);
 		});
-	}
+	});
 
 	// overlay close buttons
-	let close=$$(".close");
-
-	for (let element of close) {
+	$$(".close").forEach(function(element) {
 		element.addEventListener("click", function() {
 			editor.hide(this.value);
 		});
-	}
+	});
 
 	// property sheet "Use default values" buttons
-	let defaults=$$(".defaults");
-
-	for (let element of defaults) {
+	$$(".defaults").forEach(function(element) {
 		element.addEventListener("click", function() {
 			$("#select_"+this.value).disabled=this.checked;
 		});
-	}
+	});
 
 	// property sheet "Revert" buttons
-	let revert=$$(".revert");
-
-	for (let element of revert) {
+	$$(".revert").forEach(function(element) {
 		element.addEventListener("click", function() {
 			editor.revertProperties(this.value);
 		});
-	}
+	});
 });
 
 function $(selector) {
@@ -300,7 +284,7 @@ function $(selector) {
 }
 
 function $$(selector) {
-	return document.querySelectorAll(selector);
+	return Array.from(document.querySelectorAll(selector));
 }
 
 /*
@@ -310,6 +294,7 @@ function $$(selector) {
 function Editor() {
 	this.pud=null;
 	this.path="";
+	this.overlay="";
 
 	// current player
 	this.player=0;
@@ -381,12 +366,6 @@ Editor.prototype.open=function(filename, path, buffer) {
 
 	this.selectPlayer(this.player);
 	this.selectPalette("units");
-
-	let defaults=$$(".defaults");
-
-	for (let element of defaults) {
-		$("#select_"+element.value).disabled=element.checked;
-	}
 
 	// draws tile map and changes unit icons to match tileset
 	this.changeTileset(this.pud.tileset);
@@ -650,16 +629,14 @@ Editor.prototype.openMapProperties=function() {
 };
 
 Editor.prototype.openPlayers=function() {
-	let ais=$$(".ai");
-
-	for (let element of ais) {
+	$$(".ai").forEach(function(element) {
 		for (let [id, name] of data.ai) {
 			let option=document.createElement("option");
 			option.value=id;
 			option.textContent=name;
 			element.appendChild(option);
 		}
-	}
+	});
 
 	for (let i=0; i<MAX_PLAYERS; i++) {
 		this.setRadio("radio_race"+i,         this.pud.races[i]);
@@ -715,8 +692,13 @@ Editor.prototype.openUnits=function() {
 	});
 
 	$("#checkbox_units").checked=this.pud.useDefaults.units;
+	$("#select_units").disabled=this.pud.useDefaults.units;
 	$("#select_units").selectedIndex=0;
 	this.fillProperties("units");
+
+	let select=$("#select_units");
+	let option=select.options[select.selectedIndex];
+	$("#legend_units").innerHTML=option.label;
 };
 
 Editor.prototype.openUpgrades=function() {
@@ -736,8 +718,13 @@ Editor.prototype.openUpgrades=function() {
 	});
 
 	$("#checkbox_upgrades").checked=this.pud.useDefaults.upgrades;
+	$("#select_upgrades").disabled=this.pud.useDefaults.upgrades;
 	$("#select_upgrades").selectedIndex=0;
 	this.fillProperties("upgrades");
+
+	let select=$("#select_upgrades");
+	let option=select.options[select.selectedIndex];
+	$("#legend_upgrades").innerHTML=option.label;
 };
 
 Editor.prototype.openSelection=function() {
@@ -770,11 +757,9 @@ Editor.prototype.openSelection=function() {
 };
 
 Editor.prototype.selectPlayer=function(player) {
-	let players=$$(".player");
-
-	for (let element of players) {
+	$$(".player").forEach(function(element) {
 		element.classList.toggle("current", element.value==player);
-	}
+	});
 
 	player=Number.parseInt(player);
 
@@ -791,17 +776,13 @@ Editor.prototype.selectPlayer=function(player) {
 };
 
 Editor.prototype.selectPalette=function(palette) {
-	let palettes=$$(".palette");
-
-	for (let element of palettes) {
+	$$(".palette").forEach(function(element) {
 		element.classList.toggle("open", element.id==palette);
-	}
+	});
 
-	let tabs=$$(".tab");
-
-	for (let element of tabs) {
+	$$(".tab").forEach(function(element) {
 		element.classList.toggle("current", element.value==palette);
-	}
+	});
 };
 
 Editor.prototype.clear=function(element) {
@@ -827,9 +808,7 @@ Editor.prototype.changeTileset=function(tileset) {
 };
 
 Editor.prototype.changeTerrainPalette=function() {
-	let icons=$$(".terrain img");
-
-	for (let element of icons) {
+	$$(".terrain img").forEach(function(element) {
 		let icon=element.value+".png";
 
 		let img=new Image();
@@ -837,7 +816,7 @@ Editor.prototype.changeTerrainPalette=function() {
 		img.addEventListener("load", function() {
 			element.src=this.src;
 		});
-	}
+	});
 };
 
 Editor.prototype.changeUnitPalette=function() {
@@ -890,10 +869,9 @@ Editor.prototype.fillSelectionProperties=function() {
 
 	this.saveWorking("unitMap");
 
-	let unit=this.selected[index];
-	let inputs=$$(".unitMap"), value="";
+	let unit=this.selected[index], value="";
 
-	for (let element of inputs) {
+	$$(".unitMap").forEach(function(element) {
 		let [type, id]=element.id.split(/_/);
 
 		if (this.selected.hasOwnProperty(index)) {
@@ -909,7 +887,7 @@ Editor.prototype.fillSelectionProperties=function() {
 		}
 
 		$("#"+element.id).value=value;
-	}
+	});
 
 	if (unit.type==92||unit.type==93) { // gold mine or oil patch
 		$("#row_resource").classList.remove("hidden");
@@ -974,8 +952,7 @@ Editor.prototype.saveWorking=function(key) {
 		return;
 	}
 
-	let inputs=$$("."+key);
-	this.working[this.index]=Array.from(inputs).reduce(function(obj, element) {
+	this.working[this.index]=$$("."+key).reduce(function(obj, element) {
 		if (!element.disabled) {
 			let [type, id, sub]=element.id.split(/_/g);
 
@@ -1024,17 +1001,9 @@ Editor.prototype.fillProperties=function(key) {
 		return;
 	}
 
-	let select=$("#select_"+key);
-	let option=select.options[select.selectedIndex];
+	let index=$("#select_"+key).value, value="";
 
-	$("#legend_"+key).innerHTML=option.label;
-
-	this.saveWorking(key);
-
-	let inputs=$$("."+key), value="";
-	let index=option.value;
-
-	for (let element of inputs) {
+	$$("."+key).forEach(function(element) {
 		let [type, id, sub]=element.id.split(/_/);
 
 		if (this.pud[key].hasOwnProperty(id)) {
@@ -1066,7 +1035,7 @@ Editor.prototype.fillProperties=function(key) {
 		} else {
 			$("#"+element.id).value=value;
 		}
-	}
+	});
 
 	if (key=="units") {
 		$("#number_rmbAction").disabled=index>=58; // units, not buildings
@@ -1164,14 +1133,7 @@ Editor.prototype.setSelect=function(id, value) {
 
 Editor.prototype.saveNumber=function(id, size) {
 	let max=1<<(8*size)-1, num=Number.parseInt($("#"+id).value);
-
-	if (num<0) {
-		return 0;
-	}
-
-	if (num>max) {
-		return max;
-	}
+	num=Math.min(Math.max(num, 0), max);
 
 	return num;
 };
@@ -1213,20 +1175,20 @@ Editor.prototype.saveImage=function() {
 
 Editor.prototype.show=function(id) {
 	this.closeAll();
+	this.overlay=id;
 	$("#overlay_"+id).classList.add("open");
 };
 
 Editor.prototype.hide=function(id) {
 	this.resetWorking();
+	this.overlay="";
 	$("#overlay_"+id).classList.remove("open");
 };
 
 Editor.prototype.closeAll=function() {
-	let overlays=$$(".overlay");
-
-	Array.from(overlays).forEach(function(overlay) {
-		overlay.classList.remove("open");
-	});
+	if (this.overlay) {
+		this.hide(this.overlay);
+	}
 };
 
 /*
@@ -1236,7 +1198,6 @@ Editor.prototype.closeAll=function() {
 function Pud(filename="", struct={}) {
 	this.filename=filename;
 	this.struct=struct;
-
 	this.valid=true;
 
 	this.id="";
@@ -1528,7 +1489,7 @@ Pud.prototype.load=function(filename, buffer) {
 
 			for (let i=0; i<data.length; i+=4) {
 				dim.push({
-					x: Number.parseInt(data.slice(i, i+WORD)),
+					x: Number.parseInt(data.slice(i,   i+WORD)),
 					y: Number.parseInt(data.slice(i+2, i+2+WORD))
 				});
 			}
@@ -1659,10 +1620,10 @@ Pud.prototype.load=function(filename, buffer) {
 
 		for (let i=0; i<unit.length; i+=SIZE) {
 			unitMap.push({
-				x: parseNum(unit.slice(i, i+WORD)),
-				y: parseNum(unit.slice(i+2, i+2+WORD)),
-				type: unit[i+4],
-				owner: unit[i+5],
+				x:        parseNum(unit.slice(i,   i+WORD)),
+				y:        parseNum(unit.slice(i+2, i+2+WORD)),
+				type:     unit[i+4],
+				owner:    unit[i+5],
 				property: parseNum(unit.slice(i+6, i+6+WORD))
 			});
 		}
@@ -1724,8 +1685,10 @@ Pud.prototype.save=function() {
 			file[pos]=key.charCodeAt(i);
 		}
 
-		for (let i=0; i<LONG; i++, pos++) { // section length
-			file[pos]=(contents.length&(0xff<<i*8))>>i*8;
+		let len=convertNum(contents.length, LONG);
+
+		for (let i=0; i<len.length; i++, pos++) { // section length
+			file[pos]=len[i];
 		}
 
 		for (let i=0; i<contents.length; i++, pos++) {
