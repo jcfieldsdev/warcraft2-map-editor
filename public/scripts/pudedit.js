@@ -4,11 +4,6 @@
  * constants
  */
 
-// data sizes
-const BYTE=1;
-const WORD=2;
-const LONG=4;
-
 // file format
 const FILE_SIGNATURE="WAR2 MAP\x00\x00\x0a\xff";
 const STANDARD =0x11;
@@ -22,6 +17,8 @@ const NEUTRAL="neutral";
 // game mechanics
 const MAX_PLAYERS=8;
 const TILE_SIZE  =32;
+const MAX_WIDTH  =128;
+const MAX_HEIGHT =128
 
 // layout/appearance
 const MINIMAP_SIZE=200;
@@ -1303,21 +1300,6 @@ Pud.prototype.load=function(filename, buffer) {
 		}, 0);
 	}
 
-	// breaks string of bits into array of Booleans
-	function readBits(arr) {
-		for (let i=0; i<arr.length; i++) {
-			let sub=[];
-
-			for (let j=0; j<32; j++) {
-				sub.push(Boolean(arr[i]&(1<<j)));
-			}
-
-			arr[i]=sub;
-		}
-
-		return arr;
-	}
-
 	function readSection(key, size) {
 		if (!self.struct.hasOwnProperty(key)) {
 			self.valid=false;
@@ -1329,6 +1311,10 @@ Pud.prototype.load=function(filename, buffer) {
 
 	// breaks array buffer into array with elements of given size
 	function makeArray(data, size) {
+		if (size==BYTE) {
+			return data;
+		}
+
 		let arr=[];
 
 		for (let i=0; i<data.length; i+=size) {
@@ -1339,16 +1325,67 @@ Pud.prototype.load=function(filename, buffer) {
 	}
 
 	// breaks array buffer into named chunks containing arrays of given size
-	function makeMap(arr, addr, schema) {
+	function makeMap(arr, schema, addr=0) {
 		let obj={};
 
 		for (let [key, value] of schema) {
-			let [len, size]=value;
+			let [len, size, type]=value;
 			obj[key]=arr.slice(addr, addr+len*size);
+
+			if (type==SIZED_ARRAY) {
+				obj[key]=makeArray(obj[key], size);
+			} else if (type==BOOLEAN) {
+				obj[key]=Boolean(obj[key]);
+			} else if (type==DIMENSIONS) {
+				obj[key]=parseDim(obj[key]);
+			} else if (type==BIT_FIELD) {
+				obj[key]=parseBits(makeArray(obj[key], size));
+			} else if (type==OCTAL) {
+				obj[key]=parseOctal(obj[key]);
+			}
+
 			addr+=len*size;
 		}
 
 		return obj;
+	}
+
+	// parses two words into dimensions
+	function parseDim(data) {
+		let dim=[];
+
+		for (let i=0; i<data.length; i+=4) {
+			dim.push({
+				x: Number.parseInt(data.slice(i,   i+WORD)),
+				y: Number.parseInt(data.slice(i+2, i+2+WORD))
+			});
+		}
+
+		return dim;
+	}
+
+	// breaks bit fields into arrays of booleans
+	function parseBits(arr) {
+		return arr.map(function(value) {
+			let sub=[];
+
+			for (let i=0; i<32; i++) {
+				sub.push(Boolean(value&(1<<i)));
+			}
+
+			return sub;
+		});
+	}
+
+	// parses octal values
+	function parseOctal(data) {
+		return Array.from(data).map(function(value) {
+			return {
+				0: Boolean(value&0b001),
+				1: Boolean(value&0b010),
+				2: Boolean(value&0b100)
+			};
+		});
 	}
 
 	// identifies as PUD file and gets unique map ID
@@ -1455,8 +1492,6 @@ Pud.prototype.load=function(filename, buffer) {
 			return;
 		}
 
-		const MAX_WIDTH=128, MAX_HEIGHT=128;
-
 		let x=dim[0];
 		let y=dim[2];
 
@@ -1473,71 +1508,10 @@ Pud.prototype.load=function(filename, buffer) {
 			return;
 		}
 
-		let udta=makeMap(self.struct["UDTA"], 1236, new Map([
-			["defaultUnits",      [1,   WORD]],
-			["sight",             [110, LONG]],
-			["hp",                [110, WORD]],
-			["magic",             [110, BYTE]],
-			["buildTime",         [110, BYTE]],
-			["unitGold",          [110, BYTE]],
-			["unitLumber",        [110, BYTE]],
-			["unitOil",           [110, BYTE]],
-			["unitSize",          [110, LONG]],
-			["boxSize",           [110, LONG]],
-			["range",             [110, BYTE]],
-			["reactComputer",     [110, BYTE]],
-			["reactHuman",        [110, BYTE]],
-			["armor",             [110, BYTE]],
-			["selectable",        [110, BYTE]],
-			["priority",          [110, BYTE]],
-			["basicDamage",       [110, BYTE]],
-			["piercingDamage",    [110, BYTE]],
-			["weaponsUpgradable", [110, BYTE]],
-			["armorUpgradable",   [110, BYTE]],
-			["missile",           [110, BYTE]],
-			["type",              [110, BYTE]],
-			["decayRate",         [110, BYTE]],
-			["annoyFactor",       [110, BYTE]],
-			["rmbAction",         [58,  BYTE]],
-			["points",            [110, WORD]],
-			["canTarget",         [110, BYTE]],
-			["flags",             [110, LONG]]
-		]));
+		let udta=makeMap(self.struct["UDTA"], data.schema.udta, 1236);
 
-		udta.sight   =makeArray(udta.sight,  LONG);
-		udta.hp      =makeArray(udta.hp,     WORD);
-		udta.points  =makeArray(udta.points, WORD);
-		udta.flags   =makeArray(udta.flags,  LONG);
-
-		udta.unitSize=parseDim(udta.unitSize);
-		udta.boxSize =parseDim(udta.boxSize);
-
-		// reads octal values
-		udta.canTarget=Array.from(udta.canTarget).map(function(unit) {
-			return {
-				land: Boolean(unit&0b001),
-				air:  Boolean(unit&0b010),
-				sea:  Boolean(unit&0b100)
-			};
-		});
-
-		udta.flags=readBits(udta.flags);
-
-		self.useDefaults.units=Boolean(udta.defaultUnits);
+		self.useDefaults.units=udta.defaultUnits;
 		self.units=udta;
-
-		function parseDim(data) {
-			let dim=[];
-
-			for (let i=0; i<data.length; i+=4) {
-				dim.push({
-					x: Number.parseInt(data.slice(i,   i+WORD)),
-					y: Number.parseInt(data.slice(i+2, i+2+WORD))
-				});
-			}
-
-			return dim;
-		}
 	}
 
 	// reads unit/ability/upgrade restrictions
@@ -1546,28 +1520,7 @@ Pud.prototype.load=function(filename, buffer) {
 			return; // optional section
 		}
 
-		let alow=makeMap(self.struct["ALOW"], 0, new Map([
-			["units",               [16, LONG]],
-			["spellsResearched",    [16, LONG]],
-			["spells",              [16, LONG]],
-			["spellsResearching",   [16, LONG]],
-			["upgrades",            [16, LONG]],
-			["upgradesResearching", [16, LONG]]
-		]));
-
-		alow.units              =makeArray(alow.units,               LONG);
-		alow.spellsResearched   =makeArray(alow.spellsResearched,    LONG);
-		alow.spells             =makeArray(alow.spells,              LONG);
-		alow.spellsResearching  =makeArray(alow.spellsResearching,   LONG);
-		alow.upgrades           =makeArray(alow.upgrades,            LONG);
-		alow.upgradesResearching=makeArray(alow.upgradesResearching, LONG);
-
-		alow.units              =readBits(alow.units);
-		alow.spellsResearched   =readBits(alow.spellsResearched);
-		alow.spells             =readBits(alow.spells);
-		alow.spellsResearching  =readBits(alow.spellsResearching);
-		alow.upgrades           =readBits(alow.upgrades);
-		alow.upgradesResearching=readBits(alow.upgradesResearching);
+		let alow=makeMap(self.struct["ALOW"], data.schema.alow);
 
 		self.restrictions=alow;
 	}
@@ -1579,25 +1532,9 @@ Pud.prototype.load=function(filename, buffer) {
 			return;
 		}
 
-		let ugrd=makeMap(self.struct["UGRD"], 0, new Map([
-			["defaultUpgrades", [1,  WORD]],
-			["upgradeTime",     [52, BYTE]],
-			["upgradeGold",     [52, WORD]],
-			["upgradeLumber",   [52, WORD]],
-			["upgradeOil",      [52, WORD]],
-			["icon",            [52, WORD]],
-			["group",           [52, WORD]],
-			["effect",          [52, LONG]]
-		]));
+		let ugrd=makeMap(self.struct["UGRD"], data.schema.ugrd);
 
-		ugrd.upgradeGold  =makeArray(ugrd.upgradeGold,   WORD);
-		ugrd.upgradeLumber=makeArray(ugrd.upgradeLumber, WORD);
-		ugrd.upgradeOil   =makeArray(ugrd.upgradeOil,    WORD);
-		ugrd.icon         =makeArray(ugrd.icon,          WORD);
-		ugrd.group        =makeArray(ugrd.group,         WORD);
-		ugrd.effect       =makeArray(ugrd.effect,        LONG);
-
-		self.useDefaults.upgrades=Boolean(ugrd.defaultUpgrades);
+		self.useDefaults.upgrades=ugrd.defaultUpgrades;
 		self.upgrades=ugrd;
 	}
 
@@ -1794,7 +1731,7 @@ Pud.prototype.save=function() {
 			let x=convertNum(unit.x, WORD), y=convertNum(unit.y, WORD);
 			let property=convertNum(unit.property, WORD);
 
-			arr[pos]=x[0];
+			arr[pos]  =x[0];
 			arr[pos+1]=x[1];
 			arr[pos+2]=y[0];
 			arr[pos+3]=y[1];

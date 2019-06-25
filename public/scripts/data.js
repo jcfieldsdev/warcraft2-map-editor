@@ -1,6 +1,69 @@
 "use strict";
 
+// data sizes
+const BYTE=1;
+const WORD=2;
+const LONG=4;
+
+// schema types
+const SIZED_ARRAY=0;
+const BOOLEAN    =1;
+const DIMENSIONS =2;
+const BIT_FIELD  =3;
+const OCTAL      =4;
+
 const data={};
+
+data.schema={
+	udta: new Map([
+		["defaultUnits",      [1,   WORD, BOOLEAN]],
+		["sight",             [110, LONG, SIZED_ARRAY]],
+		["hp",                [110, WORD, SIZED_ARRAY]],
+		["magic",             [110, BYTE, SIZED_ARRAY]],
+		["buildTime",         [110, BYTE, SIZED_ARRAY]],
+		["unitGold",          [110, BYTE, SIZED_ARRAY]],
+		["unitLumber",        [110, BYTE, SIZED_ARRAY]],
+		["unitOil",           [110, BYTE, SIZED_ARRAY]],
+		["unitSize",          [110, LONG, DIMENSIONS]],
+		["boxSize",           [110, LONG, DIMENSIONS]],
+		["range",             [110, BYTE, SIZED_ARRAY]],
+		["reactComputer",     [110, BYTE, SIZED_ARRAY]],
+		["reactHuman",        [110, BYTE, SIZED_ARRAY]],
+		["armor",             [110, BYTE, SIZED_ARRAY]],
+		["selectable",        [110, BYTE, SIZED_ARRAY]],
+		["priority",          [110, BYTE, SIZED_ARRAY]],
+		["basicDamage",       [110, BYTE, SIZED_ARRAY]],
+		["piercingDamage",    [110, BYTE, SIZED_ARRAY]],
+		["weaponsUpgradable", [110, BYTE, SIZED_ARRAY]],
+		["armorUpgradable",   [110, BYTE, SIZED_ARRAY]],
+		["missile",           [110, BYTE, SIZED_ARRAY]],
+		["type",              [110, BYTE, SIZED_ARRAY]],
+		["decayRate",         [110, BYTE, SIZED_ARRAY]],
+		["annoyFactor",       [110, BYTE, SIZED_ARRAY]],
+		["rmbAction",         [58,  BYTE, SIZED_ARRAY]],
+		["points",            [110, WORD, SIZED_ARRAY]],
+		["canTarget",         [110, BYTE, OCTAL]],
+		["flags",             [110, LONG, BIT_FIELD]]
+	]),
+	ugrd: new Map([
+		["units",               [16, LONG, BIT_FIELD]],
+		["spellsResearched",    [16, LONG, BIT_FIELD]],
+		["spells",              [16, LONG, BIT_FIELD]],
+		["spellsResearching",   [16, LONG, BIT_FIELD]],
+		["upgrades",            [16, LONG, BIT_FIELD]],
+		["upgradesResearching", [16, LONG, BIT_FIELD]]
+	]),
+	alow: new Map([
+		["defaultUpgrades", [1,  WORD, BOOLEAN]],
+		["upgradeTime",     [52, BYTE, SIZED_ARRAY]],
+		["upgradeGold",     [52, WORD, SIZED_ARRAY]],
+		["upgradeLumber",   [52, WORD, SIZED_ARRAY]],
+		["upgradeOil",      [52, WORD, SIZED_ARRAY]],
+		["icon",            [52, WORD, SIZED_ARRAY]],
+		["group",           [52, WORD, SIZED_ARRAY]],
+		["effect",          [52, LONG, SIZED_ARRAY]]
+	])
+};
 
 data.colors=[
 	[ // player 1 (red)
