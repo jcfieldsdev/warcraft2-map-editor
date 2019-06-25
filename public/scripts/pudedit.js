@@ -688,8 +688,8 @@ Editor.prototype.openUnits=function() {
 		$("#select_units").appendChild(optgroup);
 	});
 
-	$("#checkbox_units").checked=this.pud.useDefaults.units;
-	$("#select_units").disabled=this.pud.useDefaults.units;
+	$("#checkbox_units").checked=this.pud.units.useDefaults;
+	$("#select_units").disabled=this.pud.units.useDefaults;
 	$("#select_units").selectedIndex=0;
 	this.fillProperties("units");
 
@@ -714,8 +714,8 @@ Editor.prototype.openUpgrades=function() {
 		$("#select_upgrades").appendChild(optgroup);
 	});
 
-	$("#checkbox_upgrades").checked=this.pud.useDefaults.upgrades;
-	$("#select_upgrades").disabled=this.pud.useDefaults.upgrades;
+	$("#checkbox_upgrades").checked=this.pud.upgrades.useDefaults;
+	$("#select_upgrades").disabled=this.pud.upgrades.useDefaults;
 	$("#select_upgrades").selectedIndex=0;
 	this.fillProperties("upgrades");
 
@@ -1080,7 +1080,7 @@ Editor.prototype.saveProperties=function(key) {
 		}, this);
 	} else {
 		this.mergeWorking(key);
-		this.pud.useDefaults[key]=$("#checkbox_"+key).checked;
+		this.pud[key].useDefaults=$("#checkbox_"+key).checked;
 	}
 };
 
@@ -1234,10 +1234,6 @@ function Pud(filename="", struct={}) {
 	this.actionMap=[];
 	this.unitMap=[];
 
-	this.useDefaults={
-		units:    true,
-		upgrades: true
-	};
 	this.units=[];
 	this.upgrades=[];
 	this.restrictions=[];
@@ -1309,7 +1305,7 @@ Pud.prototype.load=function(filename, buffer) {
 		return makeArray(self.struct[key], size);
 	}
 
-	// breaks array buffer into array with elements of given size
+	// breaks typed array into array with elements of given size
 	function makeArray(data, size) {
 		if (size==BYTE) {
 			return data;
@@ -1324,7 +1320,7 @@ Pud.prototype.load=function(filename, buffer) {
 		return arr;
 	}
 
-	// breaks array buffer into named chunks containing arrays of given size
+	// breaks typed array into named chunks containing arrays of given size
 	function makeMap(arr, schema, addr=0) {
 		let obj={};
 
@@ -1380,11 +1376,11 @@ Pud.prototype.load=function(filename, buffer) {
 	// parses octal values
 	function parseOctal(data) {
 		return Array.from(data).map(function(value) {
-			return {
-				0: Boolean(value&0b001),
-				1: Boolean(value&0b010),
-				2: Boolean(value&0b100)
-			};
+			return [
+				Boolean(value&0b001),
+				Boolean(value&0b010),
+				Boolean(value&0b100)
+			];
 		});
 	}
 
@@ -1509,8 +1505,6 @@ Pud.prototype.load=function(filename, buffer) {
 		}
 
 		let udta=makeMap(self.struct["UDTA"], data.schema.udta, 1236);
-
-		self.useDefaults.units=udta.defaultUnits;
 		self.units=udta;
 	}
 
@@ -1521,7 +1515,6 @@ Pud.prototype.load=function(filename, buffer) {
 		}
 
 		let alow=makeMap(self.struct["ALOW"], data.schema.alow);
-
 		self.restrictions=alow;
 	}
 
@@ -1533,8 +1526,6 @@ Pud.prototype.load=function(filename, buffer) {
 		}
 
 		let ugrd=makeMap(self.struct["UGRD"], data.schema.ugrd);
-
-		self.useDefaults.upgrades=ugrd.defaultUpgrades;
 		self.upgrades=ugrd;
 	}
 
@@ -1674,7 +1665,7 @@ Pud.prototype.save=function() {
 		return arr;
 	}
 
-	// converts array with elements of given size into array buffer
+	// converts array with elements of given size into typed array
 	function readArray(data, size) {
 		let arr=new Uint8Array(data.length*size);
 

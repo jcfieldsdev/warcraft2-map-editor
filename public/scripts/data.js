@@ -6,17 +6,17 @@ const WORD=2;
 const LONG=4;
 
 // schema types
-const SIZED_ARRAY=0;
-const BOOLEAN    =1;
-const DIMENSIONS =2;
-const BIT_FIELD  =3;
-const OCTAL      =4;
+const BOOLEAN    =0;
+const BIT_FIELD  =1;
+const OCTAL      =2;
+const SIZED_ARRAY=3;
+const DIMENSIONS =4;
 
 const data={};
 
 data.schema={
 	udta: new Map([
-		["defaultUnits",      [1,   WORD, BOOLEAN]],
+		["useDefaults",       [1,   WORD, BOOLEAN]],
 		["sight",             [110, LONG, SIZED_ARRAY]],
 		["hp",                [110, WORD, SIZED_ARRAY]],
 		["magic",             [110, BYTE, SIZED_ARRAY]],
@@ -46,15 +46,7 @@ data.schema={
 		["flags",             [110, LONG, BIT_FIELD]]
 	]),
 	ugrd: new Map([
-		["units",               [16, LONG, BIT_FIELD]],
-		["spellsResearched",    [16, LONG, BIT_FIELD]],
-		["spells",              [16, LONG, BIT_FIELD]],
-		["spellsResearching",   [16, LONG, BIT_FIELD]],
-		["upgrades",            [16, LONG, BIT_FIELD]],
-		["upgradesResearching", [16, LONG, BIT_FIELD]]
-	]),
-	alow: new Map([
-		["defaultUpgrades", [1,  WORD, BOOLEAN]],
+		["useDefaults",     [1,  WORD, BOOLEAN]],
 		["upgradeTime",     [52, BYTE, SIZED_ARRAY]],
 		["upgradeGold",     [52, WORD, SIZED_ARRAY]],
 		["upgradeLumber",   [52, WORD, SIZED_ARRAY]],
@@ -62,6 +54,14 @@ data.schema={
 		["icon",            [52, WORD, SIZED_ARRAY]],
 		["group",           [52, WORD, SIZED_ARRAY]],
 		["effect",          [52, LONG, SIZED_ARRAY]]
+	]),
+	alow: new Map([
+		["units",               [16, LONG, BIT_FIELD]],
+		["spellsResearched",    [16, LONG, BIT_FIELD]],
+		["spells",              [16, LONG, BIT_FIELD]],
+		["spellsResearching",   [16, LONG, BIT_FIELD]],
+		["upgrades",            [16, LONG, BIT_FIELD]],
+		["upgradesResearching", [16, LONG, BIT_FIELD]]
 	])
 };
 
