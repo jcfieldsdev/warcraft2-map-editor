@@ -460,6 +460,7 @@ td {
 
 td, th {
 	padding: 0 0.5em;
+	vertical-align: top;
 }
 
 th {

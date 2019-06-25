@@ -816,7 +816,7 @@ Editor.prototype.changeTerrainPalette=function() {
 		img.addEventListener("load", function() {
 			element.src=this.src;
 		});
-	});
+	}, this);
 };
 
 Editor.prototype.changeUnitPalette=function() {
@@ -887,7 +887,7 @@ Editor.prototype.fillSelectionProperties=function() {
 		}
 
 		$("#"+element.id).value=value;
-	});
+	}, this);
 
 	if (unit.type==92||unit.type==93) { // gold mine or oil patch
 		$("#row_resource").classList.remove("hidden");
@@ -955,15 +955,22 @@ Editor.prototype.saveWorking=function(key) {
 	this.working[this.index]=$$("."+key).reduce(function(obj, element) {
 		if (!element.disabled) {
 			let [type, id, sub]=element.id.split(/_/g);
+			let value=false;
+
+			if (type=="checkbox") {
+				value=element.checked;
+			} else {
+				value=Number.parseInt(element.value);
+			}
 
 			if (sub==undefined) {
-				obj[id]=Number.parseInt(element.value);
+				obj[id]=value;
 			} else {
 				if (!obj.hasOwnProperty(id)) {
 					obj[id]={};
 				}
 
-				obj[id][sub]=Number.parseInt(element.value);
+				obj[id][sub]=value;
 			}
 		}
 
@@ -1029,16 +1036,24 @@ Editor.prototype.fillProperties=function(key) {
 		if (sub) {
 			for (let property in value) {
 				if (property==sub) {
-					$("#"+element.id).value=value[property];
+					if (type=="checkbox") {
+						$("#"+element.id).checked=Boolean(value[property]);
+					} else {
+						$("#"+element.id).value=value[property];
+					}
 				}
 			}
 		} else {
-			$("#"+element.id).value=value;
+			if (type=="checkbox") {
+				$("#"+element.id).checked=Boolean(value);
+			} else {
+				$("#"+element.id).value=value;
+			}
 		}
-	});
+	}, this);
 
 	if (key=="units") {
-		$("#number_rmbAction").disabled=index>=58; // units, not buildings
+		$("#select_rmbAction").disabled=index>=58; // units, not buildings
 	}
 
 	if (key=="upgrades") {
@@ -1062,7 +1077,8 @@ Editor.prototype.saveProperties=function(key) {
 					return;
 				}
 
-				this.pud.unitMap[index][property]=this.working[index][property];
+				let value=Number(this.working[index][property]);
+				this.pud.unitMap[index][property]=value;
 			}, this);
 		}, this);
 	} else {
@@ -1287,6 +1303,21 @@ Pud.prototype.load=function(filename, buffer) {
 		}, 0);
 	}
 
+	// breaks string of bits into array of Booleans
+	function readBits(arr) {
+		for (let i=0; i<arr.length; i++) {
+			let sub=[];
+
+			for (let j=0; j<32; j++) {
+				sub.push(Boolean(arr[i]&(1<<j)));
+			}
+
+			arr[i]=sub;
+		}
+
+		return arr;
+	}
+
 	function readSection(key, size) {
 		if (!self.struct.hasOwnProperty(key)) {
 			self.valid=false;
@@ -1481,6 +1512,17 @@ Pud.prototype.load=function(filename, buffer) {
 		udta.unitSize=parseDim(udta.unitSize);
 		udta.boxSize =parseDim(udta.boxSize);
 
+		// reads octal values
+		udta.canTarget=Array.from(udta.canTarget).map(function(unit) {
+			return {
+				land: Boolean(unit&0b001),
+				air:  Boolean(unit&0b010),
+				sea:  Boolean(unit&0b100)
+			};
+		});
+
+		udta.flags=readBits(udta.flags);
+
 		self.useDefaults.units=Boolean(udta.defaultUnits);
 		self.units=udta;
 
@@ -1528,20 +1570,6 @@ Pud.prototype.load=function(filename, buffer) {
 		alow.upgradesResearching=readBits(alow.upgradesResearching);
 
 		self.restrictions=alow;
-
-		function readBits(arr) {
-			for (let i=0; i<arr.length; i++) {
-				let sub=[];
-
-				for (let j=0; j<32; j++) {
-					sub.push(Boolean(arr[i]&(1<<j)));
-				}
-
-				arr[i]=sub;
-			}
-
-			return arr;
-		}
 	}
 
 	// reads upgrade data
