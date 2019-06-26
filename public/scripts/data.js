@@ -20,11 +20,21 @@ data.schema={
 	"VER ": {
 		type: NUMBER
 	},
+	"OWNR": {
+		type: ARRAY,
+		size: BYTE
+	},
+	"ERA ": {
+		type: NUMBER
+	},
+	"ERAX": {
+		type: NUMBER
+	},
 	"UDTA": {
 		type: MAP,
-		addr: 1236,
 		map:  new Map([
 			["useDefaults",       [1,   WORD, BOOLEAN]],
+			["unused",            [618, WORD, ARRAY]],
 			["sight",             [110, LONG, ARRAY]],
 			["hp",                [110, WORD, ARRAY]],
 			["magic",             [110, BYTE, ARRAY]],
@@ -56,7 +66,6 @@ data.schema={
 	},
 	"UGRD": {
 		type: MAP,
-		addr: 0,
 		map:  new Map([
 			["useDefaults",     [1,  WORD, BOOLEAN]],
 			["upgradeTime",     [52, BYTE, ARRAY]],
@@ -70,7 +79,6 @@ data.schema={
 	},
 	"ALOW": {
 		type: MAP,
-		addr: 0,
 		map:  new Map([
 			["units",               [16, LONG, BIT_FIELD]],
 			["spellsResearched",    [16, LONG, BIT_FIELD]],
@@ -79,10 +87,6 @@ data.schema={
 			["upgrades",            [16, LONG, BIT_FIELD]],
 			["upgradesResearching", [16, LONG, BIT_FIELD]]
 		])
-	},
-	"OWNR": {
-		type: ARRAY,
-		size: BYTE
 	},
 	"SIDE": {
 		type: ARRAY,

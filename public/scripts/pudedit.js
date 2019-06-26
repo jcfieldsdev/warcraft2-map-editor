@@ -908,7 +908,7 @@ Editor.prototype.fillSelectionProperties=function() {
 
 Editor.prototype.saveCreate=function() {
 	let tileset=this.saveRadio("terrain");
-	let size=this.saveRadio("size");
+	let size   =this.saveRadio("size");
 
 	files.loadTemplate(this.getTileset(tileset), size);
 };
@@ -1020,9 +1020,7 @@ Editor.prototype.fillProperties=function(key) {
 
 	if (key=="units") {
 		$("#select_rmbAction").disabled=index>=58; // units, not buildings
-	}
-
-	if (key=="upgrades") {
+	} else if (key=="upgrades") {
 		this.changeIcon($("#number_icon"), $("#icon"), $("#select_upgrades"));
 	}
 
@@ -1256,15 +1254,15 @@ Pud.prototype.load=function(filename, buffer) {
 
 	readType();
 	readDesc();
-	readEra();
 	readDim();
 	readUnit();
 
 	this.expansion     =readSection("VER ");
+	this.controller    =readSection("OWNR");
+	this.tileset       =readSection("ERAX", NOT_REQUIRED)||readSection("ERA ");
 	this.units         =readSection("UDTA");
 	this.upgrades      =readSection("UGRD");
 	this.restrictions  =readSection("ALOW", NOT_REQUIRED);
-	this.controller    =readSection("OWNR");
 	this.races         =readSection("SIDE");
 	this.startingGold  =readSection("SGLD");
 	this.startingLumber=readSection("SLBR");
@@ -1277,6 +1275,11 @@ Pud.prototype.load=function(filename, buffer) {
 	this.signature     =readSection("SIGN", NOT_REQUIRED);
 
 	this.valid=this.expansion==STANDARD||this.expansion==EXPANSION;
+	this.valid=this.tileset<=0xff;
+
+	if (this.tileset>=0x04) { // forest (default)
+		this.tileset=0x00;
+	}
 
 	this.controller=this.controller.map(function(controller) {
 		if (controller>0xff) {
@@ -1362,12 +1365,8 @@ Pud.prototype.load=function(filename, buffer) {
 	}
 
 	// breaks typed array into named chunks containing arrays of given size
-	function makeMap(arr, schema, addr) {
-		let obj={};
-
-		if (addr==undefined) {
-			addr=schema.addr; // sets starting address
-		}
+	function makeMap(arr, schema) {
+		let obj={}, addr=0;
 
 		for (let [key, value] of schema.map) {
 			let [len, size, type]=value;
@@ -1419,8 +1418,8 @@ Pud.prototype.load=function(filename, buffer) {
 	}
 
 	// parses octal values
-	function parseOctal(data) {
-		return Array.from(data).map(function(value) {
+	function parseOctal(arr) {
+		return Array.from(arr).map(function(value) {
 			return [
 				Boolean(value&0b001),
 				Boolean(value&0b010),
@@ -1461,27 +1460,6 @@ Pud.prototype.load=function(filename, buffer) {
 		let desc=hexToStr(self.struct["DESC"]);
 		let stop=desc.indexOf("\x00"); // terminates at null char
 		self.description=desc.slice(0, stop);
-	}
-
-	// gets tileset
-	function readEra() {
-		if (self.struct["ERAX"]==undefined&&self.struct["ERA "]==undefined) {
-			self.valid=false;
-			return;
-		}
-
-		let era=parseNum(self.struct["ERAX"]||self.struct["ERA "]);
-
-		if (era>0xff) {
-			self.valid=false;
-			return;
-		}
-
-		if (era>=0x04) { // forest (default)
-			self.tileset=0x00;
-		} else {
-			self.tileset=era;
-		}
 	}
 
 	// gets map dimensions
@@ -1535,24 +1513,24 @@ Pud.prototype.save=function() {
 	let self=this;
 	let sections=new Map([
 		["TYPE", saveType()],
-		["VER ", convertNum(self.version, WORD)],
+		["VER ", convertNum(this.version, WORD)],
 		["DESC", saveDesc()],
 		["OWNR", this.controller],
-		["ERA ", saveEra(STANDARD)],
-		["ERAX", saveEra(EXPANSION)],
-		["DIM ", convertNum(self.width|self.height<<16, LONG)],
-//		["UDTA", readMap("UDTA")],
-//		["UGRD", readMap("UGRD")],
-//		["ALOW", readMap("ALOW")],
+		["ERA ", convertNum(this.tileset==0x03?0x02:this.tileset, WORD)],
+		["ERAX", this.tileset==0x03?convertNum(this.tileset, WORD):null],
+		["DIM ", convertNum(this.width|this.height<<16, LONG)],
+		["UDTA", convertMap(this.units,        data.schema["UDTA"])],
+		["UGRD", convertMap(this.upgrades,     data.schema["UGRD"])],
+		["ALOW", convertMap(this.restrictions, data.schema["ALOW"])],
 		["SIDE", this.races],
-		["SGLD", readArray(this.startingGold,   WORD)],
-		["SLBR", readArray(this.startingLumber, WORD)],
-		["SOIL", readArray(this.startingOil,    WORD)],
+		["SGLD", convertArray(this.startingGold,   WORD)],
+		["SLBR", convertArray(this.startingLumber, WORD)],
+		["SOIL", convertArray(this.startingOil,    WORD)],
 		["AIPL", this.ai],
-		["MTXM", readArray(this.tileMap,        WORD)],
-		["SQM ", readArray(this.movementMap,    WORD)],
-		["OILM", readArray(this.oilMap,         WORD)],
-		["REGM", readArray(this.actionMap,      WORD)],
+		["MTXM", convertArray(this.tileMap,        WORD)],
+		["SQM ", convertArray(this.movementMap,    WORD)],
+		["OILM", convertArray(this.oilMap,         WORD)],
+		["REGM", convertArray(this.actionMap,      WORD)],
 		["UNIT", saveUnit()]
 	]);
 
@@ -1602,7 +1580,7 @@ Pud.prototype.save=function() {
 	}
 
 	// converts array with elements of given size into typed array
-	function readArray(data, size) {
+	function convertArray(data, size) {
 		let arr=new Uint8Array(data.length*size);
 
 		for (let i=0; i<data.length; i++) {
@@ -1614,6 +1592,89 @@ Pud.prototype.save=function() {
 		}
 
 		return arr;
+	}
+
+	function convertMap(data, schema) {
+		if (data==undefined) {
+			return;
+		}
+
+		let length=0;
+
+		for (let [key, value] of schema.map) {
+			let [len, size, type]=value;
+			length+=len*size;
+		}
+
+		let arr=new Uint8Array(length), pos=0;
+
+		for (let [key, value] of schema.map) {
+			let [len, size, type]=value;
+			let contents=null;
+
+			if (type==ARRAY) {
+				contents=convertArray(data[key], size);
+			} else if (type==BOOLEAN) {
+				contents=convertNum(Number(data[key]), size);
+			} else if (type==DIMENSIONS) {
+				contents=convertDim(data[key]);
+			} else if (type==BIT_FIELD) {
+				contents=convertBits(data[key]);
+			} else if (type==OCTAL) {
+				contents=convertOctal(data[key]);
+			}
+
+			for (let i=0; i<contents.length; i++, pos++) {
+				arr[pos]=contents[i];
+			}
+		}
+
+		return arr;
+	}
+
+	function convertDim(data) {
+		let arr=new Uint8Array(LONG*data.length), pos=0;
+
+		for (let i=0; i<data.length; i++) {
+			let x=convertNum(data[i].x, WORD), y=convertNum(data[i].y, WORD);
+
+			arr[pos]  =x[0];
+			arr[pos+1]=x[1];
+			arr[pos+2]=y[0];
+			arr[pos+3]=y[1];
+
+			pos+=LONG;
+		}
+
+		return arr;
+	}
+
+	function convertBits(data) {
+		let arr=new Uint8Array(data.length*LONG), pos=0;
+
+		for (let i=0; i<data.length; i++) {
+			let value=0;
+
+			for (let j=0; j<data[i].length; j++) {
+				value+=data[i][j]<<j;
+			}
+
+			let num=convertNum(value, LONG);
+
+			for (let j=0; j<num.length; j++, pos++) {
+				arr[pos]=num[j];
+			}
+		}
+
+		return arr;
+	}
+
+	function convertOctal(data) {
+		let arr=new Uint8Array(data.length);
+
+		return arr.map(function(undefined, i) {
+			return data[i][0]*0b001|data[i][1]*0b010|data[i][2]*0b100;
+		});
 	}
 
 	function saveType() {
@@ -1642,17 +1703,8 @@ Pud.prototype.save=function() {
 		return arr;
 	}
 
-	function saveEra(version) {
-		if (self.version!=version) {
-			return;
-		}
-
-		return convertNum(self.tileset, WORD);
-	}
-
 	function saveUnit() {
-		const SIZE=8;
-		let arr=new Uint8Array(SIZE*self.unitMap.length), pos=0;
+		let arr=new Uint8Array(2*LONG*self.unitMap.length), pos=0;
 
 		for (let unit of self.unitMap) {
 			let x=convertNum(unit.x, WORD), y=convertNum(unit.y, WORD);
@@ -1667,7 +1719,7 @@ Pud.prototype.save=function() {
 			arr[pos+6]=property[0];
 			arr[pos+7]=property[1];
 
-			pos+=SIZE;
+			pos+=2*LONG;
 		}
 
 		return arr;
