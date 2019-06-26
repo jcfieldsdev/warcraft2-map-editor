@@ -90,9 +90,9 @@
 </select>
 <ul id="unitsPalette"></ul></div>
 <div id="map" class="palette"><ul>
-	<li><button value="mapProperties" class="properties">Map Properties</button></li>
+	<li><button value="map" class="properties">Map Properties</button></li>
 	<li><button value="players" class="properties">Player Properties</button></li>
-	<li><button value="startingConditions" class="properties">Starting Resources</button></li>
+	<li><button value="resources" class="properties">Starting Resources</button></li>
 	<li><button value="units" class="properties">Unit Properties</button></li>
 	<li><button value="upgrades" class="properties">Upgrade Properties</button></li>
 </ul></div></nav>
@@ -118,9 +118,9 @@
 <button type="button" value="browser" title="Close" class="close"><img src="layout/widget-close.svg" alt="Close" title="Close"></button></div>
 <ul id="files"></ul>
 <div><label>Open local file: <input type="file" id="file" accept=".pud"></label></div></div>
-<div id="overlay_mapProperties" class="overlay"><div class="title"><h2>Map Properties</h2>
-<button type="button" value="mapProperties" title="Save" class="save"><img src="layout/widget-save.svg" alt="Save"></button>
-<button type="button" value="mapProperties" title="Close" class="close"><img src="layout/widget-close.svg" alt="Close"></button></div>
+<div id="overlay_map" class="overlay"><div class="title"><h2>Map Properties</h2>
+<button type="button" value="map" title="Save" class="save"><img src="layout/widget-save.svg" alt="Save"></button>
+<button type="button" value="map" title="Close" class="close"><img src="layout/widget-close.svg" alt="Close"></button></div>
 <table><tr><td><label for="text_filename">File Name:</label></td><td><input type="text" size="32" maxlength="255" id="text_filename"></td></tr>
 <tr><td><label>Map Size:</label></td><td><input type="text" size="3" disabled="disabled" id="text_width">×<input type="text" size="3" disabled="disabled" id="text_height"></td></tr>
 <tr><td><label for="text_description">Map Description:</label></td><td><input type="text" size="32" maxlength="31" id="text_description"></td></tr></table>
@@ -165,9 +165,9 @@
 <td><label><input type="radio" value="0" name="radio_race7"> Human</label> <label><input type="radio" value="1" name="radio_race7"> Orc</label></td>
 <td><select id="select_controller7"><option value="5">Human</option><option value="4">Computer</option><option value="6">Rescuable (Passive)</option><option value="7">Rescuable (Active)</option></select></td>
 <td><select id="select_ai7" class="ai"></select></td></tr></table></div>
-<div id="overlay_startingConditions" class="overlay"><div class="title"><h2>Starting Resources</h2>
-<button type="button" value="startingConditions" title="Save" class="save"><img src="layout/widget-save.svg" alt="Save"></button>
-<button type="button" value="startingConditions" title="Close" class="close"><img src="layout/widget-close.svg" alt="Close"></button></div>
+<div id="overlay_resources" class="overlay"><div class="title"><h2>Starting Resources</h2>
+<button type="button" value="resources" title="Save" class="save"><img src="layout/widget-save.svg" alt="Save"></button>
+<button type="button" value="resources" title="Close" class="close"><img src="layout/widget-close.svg" alt="Close"></button></div>
 <table><tr><th></th><th>Gold:</th><th>Lumber:</th><th>Oil:</th></tr>
 <tr><td class="player1">Player 1</td><td><input type="number" min="0" max="65535" id="number_startingGold0" class="gold"></td><td><input type="number" min="0" max="65535" id="number_startingLumber0" class="lumber"></td><td><input type="number" min="0" max="65535" id="number_startingOil0" class="oil"></td></tr>
 <tr><td class="player2">Player 2</td><td><input type="number" min="0" max="65535" id="number_startingGold1" class="gold"></td><td><input type="number" min="0" max="65535" id="number_startingLumber1" class="lumber"></td><td><input type="number" min="0" max="65535" id="number_startingOil1" class="oil"></td></tr>

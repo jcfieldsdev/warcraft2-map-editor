@@ -8,6 +8,7 @@
 const FILE_SIGNATURE="WAR2 MAP\x00\x00\x0a\xff";
 const STANDARD =0x11;
 const EXPANSION=0x13;
+const MIME_TYPE="application/x-warcraft2-scenario";
 
 // factions
 const HUMAN  ="human";
@@ -20,7 +21,9 @@ const TILE_SIZE  =32;
 const MAX_WIDTH  =128;
 const MAX_HEIGHT =128
 
-// layout/appearance
+// editor
+const DEFAULT_TILESET="forest";
+const DEFAULT_SIZE=128;
 const MINIMAP_SIZE=200;
 const LEFT_MARGIN =270;
 const FRAME_COLOR ="#fff";
@@ -31,6 +34,7 @@ const MAPS_DIR="maps/";
 
 // objects
 const editor=new Editor();
+const overlays=new Overlays();
 const files=new Files("files");
 
 /*
@@ -41,7 +45,7 @@ window.addEventListener("load", function() {
 	let query=window.location.search.replace(/\?map=(.*)/, "$1");
 
 	if (query=="") {
-		files.loadTemplate("forest", 128);
+		files.loadTemplate(DEFAULT_TILESET, DEFAULT_SIZE);
 	} else {
 		let dirs=query.split("/");
 		let filename=decodeURIComponent(dirs.pop());
@@ -87,8 +91,7 @@ window.addEventListener("load", function() {
 			);
 		} else if (event.button==RIGHT) {
 			if (Object.keys(editor.selected).length>0) {
-				editor.openSelection();
-				editor.show("unitMap");
+				overlays.openProperties("unitMap");
 			}
 		}
 	});
@@ -102,12 +105,11 @@ window.addEventListener("load", function() {
 	});
 	// for palettes
 	$("#create").addEventListener("click", function() {
-		editor.openCreate();
-		editor.show("create");
+		overlays.openCreate();
 	});
 	$("#open").addEventListener("click", function() {
 		files.browse();
-		editor.show("browser");
+		overlays.show("browser");
 	});
 	$("#save").addEventListener("click", function() {
 		if (editor.pud==null) {
@@ -128,7 +130,7 @@ window.addEventListener("load", function() {
 			link+="?map="+editor.path;
 
 			$("#text_link").value=link;
-			editor.show("link");
+			overlays.show("link");
 		}
 	});
 	$("#copy").addEventListener("click", function() {
@@ -136,24 +138,23 @@ window.addEventListener("load", function() {
 		document.execCommand("copy");
 	});
 	$("#about").addEventListener("click", function() {
-		editor.show("about");
+		overlays.show("about");
 	});
 	$("#filename").addEventListener("click", function() {
-		editor.openMapProperties();
-		editor.show("mapProperties");
+		overlays.openProperties("map");
 	});
 	// for overlay widgets
 	$("#select_unitsPalette").addEventListener("input", function() {
 		editor.changeUnitPalette();
 	});
 	$("#number_icon").addEventListener("input", function() {
-		editor.changeIcon(this, $("#icon"), $("#select_upgrades"));
+		overlays.changeIcon(this, $("#icon"), $("#select_upgrades"));
 	});
 	$("#select_selection").addEventListener("input", function() {
-		editor.fillSelectionProperties();
+		overlays.fillSelectionProperties();
 	});
 	$("#range_property").addEventListener("input", function() {
-		editor.changeResource();
+		overlays.changeResource();
 	});
 	// for file browser in open overlay
 	$("#file").addEventListener("input", function(event) {
@@ -163,7 +164,7 @@ window.addEventListener("load", function() {
 			let reader=new FileReader();
 			reader.addEventListener("load", function(event) {
 				editor.open(file.name, "", event.target.result);
-				editor.hide("browser");
+				overlays.hide("browser");
 			});
 			reader.readAsArrayBuffer(file);
 		}
@@ -174,13 +175,12 @@ window.addEventListener("load", function() {
 
 		if (key==13) { // Enter
 			if (Object.keys(editor.selected).length>0) {
-				editor.openSelection();
-				editor.show("unitMap");
+				overlays.openProperties("unitMap");
 			}
 		}
 
 		if (key==27) { // Esc
-			editor.closeAll();
+			overlays.closeAll();
 		}
 
 		if (key>=48&&key<=56) { // 0-8
@@ -226,9 +226,7 @@ window.addEventListener("load", function() {
 	// property sheet open buttons
 	$$(".properties").forEach(function(element) {
 		element.addEventListener("click", function() {
-			let fn=this.value.charAt(0).toUpperCase()+this.value.slice(1);
-			editor["open"+fn]();
-			editor.show(this.value);
+			overlays.openProperties(this.value);
 		});
 	});
 
@@ -241,23 +239,22 @@ window.addEventListener("load", function() {
 
 			$("#legend_"+key).innerHTML=option.label;
 
-			editor.saveWorking(key);
-			editor.fillProperties(key);
+			overlays.saveWorking(key);
+			overlays.fillProperties(key);
 		});
 	});
 
 	// overlay save buttons
 	$$(".save").forEach(function(element) {
 		element.addEventListener("click", function() {
-			editor.saveProperties(this.value);
-			editor.hide(this.value);
+			overlays.saveProperties(this.value);
 		});
 	});
 
 	// overlay close buttons
 	$$(".close").forEach(function(element) {
 		element.addEventListener("click", function() {
-			editor.hide(this.value);
+			overlays.hide(this.value);
 		});
 	});
 
@@ -271,7 +268,7 @@ window.addEventListener("load", function() {
 	// property sheet "Revert" buttons
 	$$(".revert").forEach(function(element) {
 		element.addEventListener("click", function() {
-			editor.revertProperties(this.value);
+			overlays.revertProperties(this.value);
 		});
 	});
 });
@@ -291,7 +288,6 @@ function $$(selector) {
 function Editor() {
 	this.pud=null;
 	this.path="";
-	this.overlay="";
 
 	// current player
 	this.player=0;
@@ -319,10 +315,6 @@ function Editor() {
 	this.y=0;
 	this.scaleX=0;
 	this.scaleY=0;
-
-	// property sheet working object
-	this.index=-1;
-	this.working={};
 }
 
 Editor.prototype.open=function(filename, path, buffer) {
@@ -332,7 +324,7 @@ Editor.prototype.open=function(filename, path, buffer) {
 	this.pud.load(filename, buffer);
 
 	if (!this.pud.valid) {
-		this.show("error");
+		overlays.show("error");
 		return;
 	}
 
@@ -611,148 +603,6 @@ Editor.prototype.selectUnits=function(x, y, add=false, multiple=false) {
 	}, this);
 };
 
-Editor.prototype.openCreate=function() {
-	this.setRadio("size",    this.pud.width);
-	this.setRadio("terrain", this.pud.tileset);
-};
-
-Editor.prototype.openMapProperties=function() {
-	this.setRadio("tileset", this.pud.tileset);
-
-	$("#text_filename").value   =this.pud.filename;
-	$("#text_width").value      =this.pud.width;
-	$("#text_height").value     =this.pud.height;
-	$("#text_description").value=this.pud.description;
-};
-
-Editor.prototype.openPlayers=function() {
-	$$(".ai").forEach(function(element) {
-		for (let [id, name] of data.ai) {
-			let option=document.createElement("option");
-			option.value=id;
-			option.textContent=name;
-			element.appendChild(option);
-		}
-	});
-
-	for (let i=0; i<MAX_PLAYERS; i++) {
-		this.setRadio("race"+i,        this.pud.races[i]);
-		this.setSelect("controller"+i, this.pud.controller[i]);
-		this.setSelect("ai"+i,         this.pud.ai[i]);
-	}
-};
-
-Editor.prototype.openStartingConditions=function() {
-	for (let i=0; i<MAX_PLAYERS; i++) {
-		$("#number_startingGold"+i).value  =this.pud.startingGold[i];
-		$("#number_startingLumber"+i).value=this.pud.startingLumber[i];
-		$("#number_startingOil"+i).value   =this.pud.startingOil[i];
-	}
-};
-
-Editor.prototype.openUnits=function() {
-	let units={};
-
-	Object.keys(data.units).forEach(function(group) {
-		Object.keys(data.units[group]).forEach(function(type) {
-			Object.keys(data.units[group][type]).forEach(function(race) {
-				if (!units.hasOwnProperty(race)) {
-					units[race]=[];
-				}
-
-				let unit=data.units[group][type][race];
-
-				if (unit.skip) {
-					return;
-				}
-
-				units[race].push(unit);
-			});
-		});
-	});
-
-	Object.keys(units).forEach(function(race) {
-		let optgroup=document.createElement("optgroup");
-		let label=race.charAt(0).toUpperCase()+race.slice(1);
-		optgroup.setAttribute("label", label);
-
-		units[race].sort();
-
-		for (let unit of units[race]) {
-			let option=document.createElement("option");
-			option.value=unit.id;
-			option.textContent=unit.name;
-			optgroup.appendChild(option);
-		}
-
-		$("#select_units").appendChild(optgroup);
-	});
-
-	$("#checkbox_units").checked=this.pud.units.useDefaults;
-	$("#select_units").disabled=this.pud.units.useDefaults;
-	$("#select_units").selectedIndex=0;
-	this.fillProperties("units");
-
-	let select=$("#select_units");
-	let option=select.options[select.selectedIndex];
-	$("#legend_units").innerHTML=option.label;
-};
-
-Editor.prototype.openUpgrades=function() {
-	Object.keys(data.upgrades).forEach(function(race) {
-		let optgroup=document.createElement("optgroup");
-		let label=race.charAt(0).toUpperCase()+race.slice(1);
-		optgroup.setAttribute("label", label);
-
-		for (let [id, name] of data.upgrades[race]) {
-			let option=document.createElement("option");
-			option.value=id;
-			option.textContent=name;
-			optgroup.appendChild(option);
-		}
-
-		$("#select_upgrades").appendChild(optgroup);
-	});
-
-	$("#checkbox_upgrades").checked=this.pud.upgrades.useDefaults;
-	$("#select_upgrades").disabled=this.pud.upgrades.useDefaults;
-	$("#select_upgrades").selectedIndex=0;
-	this.fillProperties("upgrades");
-
-	let select=$("#select_upgrades");
-	let option=select.options[select.selectedIndex];
-	$("#legend_upgrades").innerHTML=option.label;
-};
-
-Editor.prototype.openSelection=function() {
-	let select=$("#select_selection"), units={};
-
-	while (select.lastChild) { // removes all children
-		select.removeChild(select.lastChild);
-	}
-
-	Object.keys(data.units).forEach(function(group) {
-		Object.keys(data.units[group]).forEach(function(type) {
-			Object.keys(data.units[group][type]).forEach(function(race) {
-				let unit=data.units[group][type][race];
-				units[unit.id]=unit.name;
-			});
-		});
-	});
-
-	Object.entries(this.selected).forEach(function([key, value]) {
-		let item=document.createElement("option");
-		item.value=key;
-		item.textContent=units[value.type]||"Unknown";
-
-		select.appendChild(item);
-	});
-
-	select.selectedIndex=0;
-	this.fillSelectionProperties();
-	this.changeResource();
-};
-
 Editor.prototype.selectPlayer=function(player) {
 	$$(".player").forEach(function(element) {
 		element.classList.toggle("current", element.value==player);
@@ -782,16 +632,6 @@ Editor.prototype.selectPalette=function(palette) {
 	});
 };
 
-Editor.prototype.clear=function(element) {
-	if (element==null) {
-		return;
-	}
-
-	while (element.lastChild) { // removes all children
-		element.removeChild(element.lastChild);
-	}
-};
-
 Editor.prototype.changeTileset=function(tileset) {
 	this.pud.tileset=tileset;
 
@@ -817,19 +657,20 @@ Editor.prototype.changeTerrainPalette=function() {
 };
 
 Editor.prototype.changeUnitPalette=function() {
+	let self=this;
 	let group=$("#select_unitsPalette").value;
 
 	if (!data.units.hasOwnProperty(group)) {
 		return;
 	}
 
-	this.clear($("#unitsPalette"));
+	clear($("#unitsPalette"));
 
 	let ul=document.createElement("ul");
 	ul.id="unitsPalette";
 
 	for (let type in data.units[group]) {
-		let race=this.getRace();
+		let race=getRace();
 
 		if (!data.units[group][type].hasOwnProperty(race)) {
 			race=NEUTRAL;
@@ -856,121 +697,255 @@ Editor.prototype.changeUnitPalette=function() {
 	}
 
 	$("#unitsPalette").replaceWith(ul);
-};
 
-Editor.prototype.fillSelectionProperties=function() {
-	let select=$("#select_selection");
-	let option=select.options[select.selectedIndex], index=option.value;
-
-	$("#legend_selection").innerHTML=option.label;
-
-	this.saveWorking("unitMap");
-
-	let unit=this.selected[index], value="";
-
-	$$(".unitMap").forEach(function(element) {
-		let [type, id]=element.id.split(/_/);
-
-		if (this.selected.hasOwnProperty(index)) {
-			if (this.selected[index].hasOwnProperty(id)) {
-				value=this.selected[index][id];
-			}
+	function clear(element) {
+		if (element==null) {
+			return;
 		}
 
-		if (this.working.hasOwnProperty(index)) {
-			if (this.working[index].hasOwnProperty(id)) {
-				value=this.working[index][id];
-			}
+		while (element.lastChild) { // removes all children
+			element.removeChild(element.lastChild);
 		}
-
-		$("#"+element.id).value=value;
-	}, this);
-
-	if (unit.type==92||unit.type==93) { // gold mine or oil patch
-		$("#row_resource").classList.remove("hidden");
-		$("#range_property").disabled=false;
-	} else {
-		$("#row_resource").classList.add("hidden");
-		$("#range_property").disabled=true;
-		this.changeResource();
 	}
 
-	if (unit.type<58) { // units, not buildings
-		$("#row_ai").classList.remove("hidden");
-		$("#select_property").disabled=false;
-	} else {
-		$("#row_ai").classList.add("hidden");
-		$("#select_property").disabled=true;
-	}
-
-	this.index=index;
-};
-
-Editor.prototype.saveCreate=function() {
-	let tileset=this.saveRadio("terrain");
-	let size   =this.saveRadio("size");
-
-	files.loadTemplate(this.getTileset(tileset), size);
-};
-
-Editor.prototype.saveWorking=function(key) {
-	if (this.index<0) {
-		return;
-	}
-
-	this.working[this.index]=$$("."+key).reduce(function(obj, element) {
-		if (!element.disabled) {
-			let [type, id, sub]=element.id.split(/_/g);
-			let value=false;
-
-			if (type=="checkbox") {
-				value=element.checked;
-			} else {
-				value=Number.parseInt(element.value);
-			}
-
-			if (sub==undefined) {
-				obj[id]=value;
-			} else {
-				if (!obj.hasOwnProperty(id)) {
-					obj[id]={};
-				}
-
-				obj[id][sub]=value;
-			}
+	function getRace() {
+		if (self.player in self.pud.races) {
+			return self.pud.races[self.player]?ORC:HUMAN;
 		}
-
-		return obj;
-	}, {});
-};
-
-Editor.prototype.mergeWorking=function(key) {
-	if (!this.pud.hasOwnProperty(key)) {
-		return;
 	}
-
-	Object.keys(this.working).forEach(function(index) {
-		Object.keys(this.working[index]).forEach(function(property) {
-			if (!this.pud[key].hasOwnProperty(property)) {
-				return;
-			}
-
-			if (!this.pud[key][property].hasOwnProperty(index)) {
-				return;
-			}
-
-			this.pud[key][property][index]=this.working[index][property];
-		}, this);
-	}, this);
 };
 
-Editor.prototype.resetWorking=function() {
-	this.index=-1;
+Editor.prototype.getTileset=function(num) {
+	switch (num) {
+		case 1:
+			return "winter";
+		case 2:
+			return "wasteland";
+		case 3:
+			return "swamp";
+		default:
+			return "forest";
+	}
+};
+
+Editor.prototype.saveImage=function() {
+	let canvas=document.createElement("canvas");
+	canvas.width =$("#tileMap").width;
+	canvas.height=$("#tileMap").height;
+
+	let context=canvas.getContext("2d");
+	// composites all layers into a single image
+	context.drawImage($("#tileMap"), 0, 0, canvas.width, canvas.height);
+	context.drawImage($("#unitMap"), 0, 0, canvas.width, canvas.height);
+	context.drawImage($("#grid"), 0, 0, canvas.width, canvas.height);
+
+	let filename=this.pud.filename.replace(/\.pud$/, ".png");
+
+	canvas.toBlob(function(blob) {
+		let a=$("download");
+		a.download=filename;
+		a.href=window.URL.createObjectURL(blob);
+		a.click();
+	}, "image/png");
+};
+
+/*
+ * Overlays prototype
+ */
+
+function Overlays() {
+	// currently active overlay
+	this.active="";
+
+	// property sheet working object
 	this.working={};
+	this.index=-1;
+}
+
+Overlays.prototype.show=function(id) {
+	this.closeAll();
+	this.active=id;
+	$("#overlay_"+id).classList.add("open");
 };
 
-Editor.prototype.fillProperties=function(key) {
-	if (!this.pud.hasOwnProperty(key)) {
+Overlays.prototype.hide=function(id) {
+	this.resetWorking();
+	this.active="";
+	$("#overlay_"+id).classList.remove("open");
+};
+
+Overlays.prototype.closeAll=function() {
+	if (this.active) {
+		this.hide(this.active);
+	}
+};
+
+Overlays.prototype.openProperties=function(key) {
+	let self=this;
+
+	if (key=="create") {
+		openCreate();
+	} else if (key=="map") {
+		openMap();
+	} else if (key=="players") {
+		openPlayers();
+	} else if (key=="resources") {
+		openResources();
+	} else if (key=="units") {
+		openUnits();
+	} else if (key=="upgrades") {
+		openUpgrades();
+	} else if (key=="unitMap") {
+		openSelection();
+	}
+
+	this.show(key);
+
+	function openCreate() {
+		self.setRadio("size",    editor.pud.width);
+		self.setRadio("terrain", editor.pud.tileset);
+	}
+
+	function openMap() {
+		self.setRadio("tileset", editor.pud.tileset);
+
+		$("#text_filename").value   =editor.pud.filename;
+		$("#text_width").value      =editor.pud.width;
+		$("#text_height").value     =editor.pud.height;
+		$("#text_description").value=editor.pud.description;
+	}
+
+	function openPlayers() {
+		$$(".ai").forEach(function(element) {
+			for (let [id, name] of data.ai) {
+				let option=document.createElement("option");
+				option.value=id;
+				option.textContent=name;
+				element.appendChild(option);
+			}
+		});
+
+		for (let i=0; i<MAX_PLAYERS; i++) {
+			self.setRadio("race"+i,        editor.pud.races[i]);
+			self.setSelect("controller"+i, editor.pud.controller[i]);
+			self.setSelect("ai"+i,         editor.pud.ai[i]);
+		}
+	}
+
+	function openResources() {
+		for (let i=0; i<MAX_PLAYERS; i++) {
+			$("#number_startingGold"+i).value  =editor.pud.startingGold[i];
+			$("#number_startingLumber"+i).value=editor.pud.startingLumber[i];
+			$("#number_startingOil"+i).value   =editor.pud.startingOil[i];
+		}
+	}
+
+	function openUnits() {
+		let units={};
+
+		Object.keys(data.units).forEach(function(group) {
+			Object.keys(data.units[group]).forEach(function(type) {
+				Object.keys(data.units[group][type]).forEach(function(race) {
+					if (!units.hasOwnProperty(race)) {
+						units[race]=[];
+					}
+
+					let unit=data.units[group][type][race];
+
+					if (unit.skip) {
+						return;
+					}
+
+					units[race].push(unit);
+				});
+			});
+		});
+
+		Object.keys(units).forEach(function(race) {
+			let optgroup=document.createElement("optgroup");
+			let label=race.charAt(0).toUpperCase()+race.slice(1);
+			optgroup.setAttribute("label", label);
+
+			units[race].sort();
+
+			for (let unit of units[race]) {
+				let option=document.createElement("option");
+				option.value=unit.id;
+				option.textContent=unit.name;
+				optgroup.appendChild(option);
+			}
+
+			$("#select_units").appendChild(optgroup);
+		});
+
+		$("#checkbox_units").checked=editor.pud.units.useDefaults;
+		$("#select_units").disabled=editor.pud.units.useDefaults;
+		$("#select_units").selectedIndex=0;
+		self.fillProperties("units");
+
+		let select=$("#select_units");
+		let option=select.options[select.selectedIndex];
+		$("#legend_units").innerHTML=option.label;
+	}
+
+	function openUpgrades() {
+		Object.keys(data.upgrades).forEach(function(race) {
+			let optgroup=document.createElement("optgroup");
+			let label=race.charAt(0).toUpperCase()+race.slice(1);
+			optgroup.setAttribute("label", label);
+
+			for (let [id, name] of data.upgrades[race]) {
+				let option=document.createElement("option");
+				option.value=id;
+				option.textContent=name;
+				optgroup.appendChild(option);
+			}
+
+			$("#select_upgrades").appendChild(optgroup);
+		});
+
+		$("#checkbox_upgrades").checked=editor.pud.upgrades.useDefaults;
+		$("#select_upgrades").disabled=editor.pud.upgrades.useDefaults;
+		$("#select_upgrades").selectedIndex=0;
+		self.fillProperties("upgrades");
+
+		let select=$("#select_upgrades");
+		let option=select.options[select.selectedIndex];
+		$("#legend_upgrades").innerHTML=option.label;
+	}
+
+	function openSelection() {
+		let select=$("#select_selection"), units={};
+
+		while (select.lastChild) { // removes all children
+			select.removeChild(select.lastChild);
+		}
+
+		Object.keys(data.units).forEach(function(group) {
+			Object.keys(data.units[group]).forEach(function(type) {
+				Object.keys(data.units[group][type]).forEach(function(race) {
+					let unit=data.units[group][type][race];
+					units[unit.id]=unit.name;
+				});
+			});
+		});
+
+		Object.entries(editor.selected).forEach(function([key, value]) {
+			let item=document.createElement("option");
+			item.value=key;
+			item.textContent=units[value.type]||"Unknown";
+
+			select.appendChild(item);
+		});
+
+		select.selectedIndex=0;
+		self.fillSelectionProperties();
+		self.changeResource();
+	}
+};
+
+Overlays.prototype.fillProperties=function(key) {
+	if (!editor.pud.hasOwnProperty(key)) {
 		return;
 	}
 
@@ -979,13 +954,13 @@ Editor.prototype.fillProperties=function(key) {
 	$$("."+key).forEach(function(element) {
 		let [type, id, sub]=element.id.split(/_/);
 
-		if (this.pud[key].hasOwnProperty(id)) {
-			if (this.pud[key][id].hasOwnProperty(index)) {
-				if (sub&&this.pud[key][id][index].hasOwnProperty(sub)) {
-					value=this.pud[key][id][index][sub];
+		if (editor.pud[key].hasOwnProperty(id)) {
+			if (editor.pud[key][id].hasOwnProperty(index)) {
+				if (sub&&editor.pud[key][id][index].hasOwnProperty(sub)) {
+					value=editor.pud[key][id][index][sub];
 				}
 
-				value=this.pud[key][id][index];
+				value=editor.pud[key][id][index];
 			}
 		}
 
@@ -1027,81 +1002,195 @@ Editor.prototype.fillProperties=function(key) {
 	this.index=index;
 };
 
-Editor.prototype.saveProperties=function(key) {
+Overlays.prototype.saveProperties=function(key) {
+	let self=this;
+
 	this.saveWorking(key);
 
-	if (key=="mapProperties") {
-		this.pud.filename=$("#text_filename").value;
-		this.pud.description=$("#text_description").value;
-
-		let tileset=this.saveRadio("tileset");
-
-		if (this.pud.tileset!=tileset){
-			this.changeTileset(tileset);
-		}
-
-		$("#filename").textContent=this.pud.filename;
+	if (key=="create") {
+		saveCreate();
+	} else if (key=="map") {
+		saveMap();
 	} else if (key=="players") {
-		for (let i=0; i<MAX_PLAYERS; i++) {
-			this.pud.races[i]     =this.saveRadio("race"+i);
-			this.pud.controller[i]=this.saveSelect("controller"+i);
-			this.pud.ai[i]        =this.saveSelect("ai"+i);
-		}
-
-		this.changeUnitPalette();
-	} else if (key=="startingConditions") {
-		for (let i=0; i<MAX_PLAYERS; i++) {
-			this.pud.startingGold[i]  =this.saveNumber("startingGold"+i);
-			this.pud.startingLumber[i]=this.saveNumber("startingLumber"+i);
-			this.pud.startingOil[i]   =this.saveNumber("startingOil"+i);
-		}
+		savePlayers();
+	} else if (key=="resources") {
+		saveResources();
 	} else if (key=="unitMap") {
-		Object.keys(this.working).forEach(function(index) {
-			Object.keys(this.working[index]).forEach(function(property) {
-				if (!this.pud.unitMap.hasOwnProperty(index)) {
-					return;
-				}
-
-				if (!this.pud.unitMap[index].hasOwnProperty(property)) {
-					return;
-				}
-
-				let value=Number(this.working[index][property]);
-				this.pud.unitMap[index][property]=value;
-			}, this);
-		}, this);
-	} else {
+		saveSelection();
+	} else { // units and upgrades
 		this.mergeWorking(key);
-		this.pud[key].useDefaults=$("#checkbox_"+key).checked;
+		editor.pud[key].useDefaults=$("#checkbox_"+key).checked;
+	}
+
+	this.hide(key);
+
+	function saveCreate() {
+		let tileset=self.saveRadio("terrain");
+		let size   =self.saveRadio("size");
+
+		files.loadTemplate(editor.getTileset(tileset), size);
+	}
+
+	function saveMap() {
+		editor.pud.filename=$("#text_filename").value;
+		editor.pud.description=$("#text_description").value;
+
+		let tileset=self.saveRadio("tileset");
+
+		if (editor.pud.tileset!=tileset){
+			editor.changeTileset(tileset);
+		}
+
+		$("#filename").textContent=editor.pud.filename;
+	}
+
+	function savePlayers() {
+		for (let i=0; i<MAX_PLAYERS; i++) {
+			editor.pud.races[i]     =self.saveRadio("race"+i);
+			editor.pud.controller[i]=self.saveSelect("controller"+i);
+			editor.pud.ai[i]        =self.saveSelect("ai"+i);
+		}
+
+		editor.changeUnitPalette();
+	}
+
+	function saveResources() {
+		for (let i=0; i<MAX_PLAYERS; i++) {
+			editor.pud.startingGold[i]  =self.saveNumber("startingGold"+i);
+			editor.pud.startingLumber[i]=self.saveNumber("startingLumber"+i);
+			editor.pud.startingOil[i]   =self.saveNumber("startingOil"+i);
+		}
+	}
+
+	function saveSelection() {
+		Object.keys(self.working).forEach(function(index) {
+			Object.keys(self.working[index]).forEach(function(property) {
+				if (!editor.pud.unitMap.hasOwnProperty(index)) {
+					return;
+				}
+
+				if (!editor.pud.unitMap[index].hasOwnProperty(property)) {
+					return;
+				}
+
+				let value=Number(self.working[index][property]);
+				editor.pud.unitMap[index][property]=value;
+			}, self);
+		}, self);
 	}
 };
 
-Editor.prototype.revertProperties=function(key) {
+Overlays.prototype.revertProperties=function(key) {
 	let index=$("#select_"+key).value;
 	delete this.working[index];
 	this.fillProperties(key);
 };
 
-Editor.prototype.getRace=function() {
-	if (this.player in this.pud.races) {
-		return this.pud.races[this.player]?ORC:HUMAN;
+Overlays.prototype.fillSelectionProperties=function() {
+	let select=$("#select_selection");
+	let option=select.options[select.selectedIndex], index=option.value;
+
+	$("#legend_selection").innerHTML=option.label;
+
+	this.saveWorking("unitMap");
+
+	let unit=editor.selected[index], value="";
+
+	$$(".unitMap").forEach(function(element) {
+		let [type, id]=element.id.split(/_/);
+
+		if (editor.selected.hasOwnProperty(index)) {
+			if (editor.selected[index].hasOwnProperty(id)) {
+				value=editor.selected[index][id];
+			}
+		}
+
+		if (this.working.hasOwnProperty(index)) {
+			if (this.working[index].hasOwnProperty(id)) {
+				value=this.working[index][id];
+			}
+		}
+
+		$("#"+element.id).value=value;
+	}, this);
+
+	if (unit.type==92||unit.type==93) { // gold mine or oil patch
+		$("#row_resource").classList.remove("hidden");
+		$("#range_property").disabled=false;
+	} else {
+		$("#row_resource").classList.add("hidden");
+		$("#range_property").disabled=true;
+		this.changeResource();
 	}
+
+	if (unit.type<58) { // units, not buildings
+		$("#row_ai").classList.remove("hidden");
+		$("#select_property").disabled=false;
+	} else {
+		$("#row_ai").classList.add("hidden");
+		$("#select_property").disabled=true;
+	}
+
+	this.index=index;
 };
 
-Editor.prototype.getTileset=function(num) {
-	switch (num) {
-		case 1:
-			return "winter";
-		case 2:
-			return "wasteland";
-		case 3:
-			return "swamp";
-		default:
-			return "forest";
+Overlays.prototype.saveWorking=function(key) {
+	if (this.index<0) {
+		return;
 	}
+
+	this.working[this.index]=$$("."+key).reduce(function(obj, element) {
+		if (!element.disabled) {
+			let [type, id, sub]=element.id.split(/_/g);
+			let value=false;
+
+			if (type=="checkbox") {
+				value=element.checked;
+			} else {
+				value=Number.parseInt(element.value);
+			}
+
+			if (sub==undefined) {
+				obj[id]=value;
+			} else {
+				if (!obj.hasOwnProperty(id)) {
+					obj[id]={};
+				}
+
+				obj[id][sub]=value;
+			}
+		}
+
+		return obj;
+	}, {});
 };
 
-Editor.prototype.changeIcon=function(input, img, select) {
+Overlays.prototype.mergeWorking=function(key) {
+	if (!editor.pud.hasOwnProperty(key)) {
+		return;
+	}
+
+	Object.keys(this.working).forEach(function(index) {
+		Object.keys(this.working[index]).forEach(function(property) {
+			if (!editor.pud[key].hasOwnProperty(property)) {
+				return;
+			}
+
+			if (!editor.pud[key][property].hasOwnProperty(index)) {
+				return;
+			}
+
+			editor.pud[key][property][index]=this.working[index][property];
+		}, this);
+	}, this);
+};
+
+Overlays.prototype.resetWorking=function() {
+	this.working={};
+	this.index=-1;
+};
+
+Overlays.prototype.changeIcon=function(input, img, select) {
 	if (input.value<0) { // lower boundary
 		input.value=0;
 	}
@@ -1111,14 +1200,14 @@ Editor.prototype.changeIcon=function(input, img, select) {
 	}
 
 	let icon=input.value.padStart(4, "0");
-	img.src="icons/"+this.getTileset(this.pud.tileset)+"/"+icon+".png";
+	img.src="icons/"+editor.getTileset(editor.pud.tileset)+"/"+icon+".png";
 };
 
-Editor.prototype.changeResource=function() {
+Overlays.prototype.changeResource=function() {
 	$("#resource").textContent=$("#range_property").value*2500;
 };
 
-Editor.prototype.setRadio=function(name, compare) {
+Overlays.prototype.setRadio=function(name, compare) {
 	let radios=document.getElementsByName("radio_"+name);
 
 	for (let element of radios) {
@@ -1126,7 +1215,7 @@ Editor.prototype.setRadio=function(name, compare) {
 	}
 };
 
-Editor.prototype.setSelect=function(id, value) {
+Overlays.prototype.setSelect=function(id, value) {
 	let select=$("#select_"+id), options=select.options;
 
 	for (let i in options) {
@@ -1136,14 +1225,12 @@ Editor.prototype.setSelect=function(id, value) {
 	}
 };
 
-Editor.prototype.saveNumber=function(id, size) {
-	let max=1<<(8*size)-1, num=Number.parseInt($("#number_"+id).value);
-	num=Math.min(Math.max(num, 0), max);
-
-	return num;
+Overlays.prototype.saveNumber=function(id, size) {
+	let num=Number.parseInt($("#number_"+id).value);
+	return Math.max(num, 0);
 };
 
-Editor.prototype.saveRadio=function(name) {
+Overlays.prototype.saveRadio=function(name) {
 	let radios=document.getElementsByName("radio_"+name);
 
 	for (let element of radios) {
@@ -1153,47 +1240,8 @@ Editor.prototype.saveRadio=function(name) {
 	}
 };
 
-Editor.prototype.saveSelect=function(id) {
+Overlays.prototype.saveSelect=function(id) {
 	return $("#select_"+id).value;
-};
-
-Editor.prototype.saveImage=function() {
-	let canvas=document.createElement("canvas");
-	canvas.width =$("#tileMap").width;
-	canvas.height=$("#tileMap").height;
-
-	let context=canvas.getContext("2d");
-	// composites all layers into a single image
-	context.drawImage($("#tileMap"), 0, 0, canvas.width, canvas.height);
-	context.drawImage($("#unitMap"), 0, 0, canvas.width, canvas.height);
-	context.drawImage($("#grid"), 0, 0, canvas.width, canvas.height);
-
-	let filename=this.pud.filename.replace(/\.pud$/, ".png");
-
-	canvas.toBlob(function(blob) {
-		let a=$("download");
-		a.download=filename;
-		a.href=window.URL.createObjectURL(blob);
-		a.click();
-	}, "image/png");
-};
-
-Editor.prototype.show=function(id) {
-	this.closeAll();
-	this.overlay=id;
-	$("#overlay_"+id).classList.add("open");
-};
-
-Editor.prototype.hide=function(id) {
-	this.resetWorking();
-	this.overlay="";
-	$("#overlay_"+id).classList.remove("open");
-};
-
-Editor.prototype.closeAll=function() {
-	if (this.overlay) {
-		this.hide(this.overlay);
-	}
 };
 
 /*
@@ -1566,7 +1614,7 @@ Pud.prototype.save=function() {
 		}
 	}
 
-	return new Blob([file], {type: "application/x-warcraft2-scenario"});
+	return new Blob([file], {type: MIME_TYPE});
 
 	// converts number to big-endian typed array
 	function convertNum(num, size) {
@@ -1736,8 +1784,8 @@ function Files(id) {
 }
 
 Files.prototype.browse=function() {
-	let xhr=new XMLHttpRequest();
 	let self=this;
+	let xhr=new XMLHttpRequest();
 
 	if (this.dirs.includes("templates")) {
 		this.dirs=[];
@@ -1771,7 +1819,7 @@ Files.prototype.browse=function() {
 			for (let file of files) {
 				ul.appendChild(self.createItem("pud", file,
 					function() {
-						editor.hide("browser");
+						overlays.hide("browser");
 						self.load(file, editor.open.bind(editor));
 					})
 				);
