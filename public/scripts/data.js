@@ -6,63 +6,123 @@ const WORD=2;
 const LONG=4;
 
 // schema types
-const BOOLEAN    =0;
-const BIT_FIELD  =1;
-const OCTAL      =2;
-const SIZED_ARRAY=3;
-const DIMENSIONS =4;
+const ARRAY      =0;
+const MAP        =1;
+const BOOLEAN    =2;
+const NUMBER     =3;
+const BIT_FIELD  =4;
+const OCTAL      =5;
+const DIMENSIONS =6;
 
 const data={};
 
 data.schema={
-	udta: new Map([
-		["useDefaults",       [1,   WORD, BOOLEAN]],
-		["sight",             [110, LONG, SIZED_ARRAY]],
-		["hp",                [110, WORD, SIZED_ARRAY]],
-		["magic",             [110, BYTE, SIZED_ARRAY]],
-		["buildTime",         [110, BYTE, SIZED_ARRAY]],
-		["unitGold",          [110, BYTE, SIZED_ARRAY]],
-		["unitLumber",        [110, BYTE, SIZED_ARRAY]],
-		["unitOil",           [110, BYTE, SIZED_ARRAY]],
-		["unitSize",          [110, LONG, DIMENSIONS]],
-		["boxSize",           [110, LONG, DIMENSIONS]],
-		["range",             [110, BYTE, SIZED_ARRAY]],
-		["reactComputer",     [110, BYTE, SIZED_ARRAY]],
-		["reactHuman",        [110, BYTE, SIZED_ARRAY]],
-		["armor",             [110, BYTE, SIZED_ARRAY]],
-		["selectable",        [110, BYTE, SIZED_ARRAY]],
-		["priority",          [110, BYTE, SIZED_ARRAY]],
-		["basicDamage",       [110, BYTE, SIZED_ARRAY]],
-		["piercingDamage",    [110, BYTE, SIZED_ARRAY]],
-		["weaponsUpgradable", [110, BYTE, SIZED_ARRAY]],
-		["armorUpgradable",   [110, BYTE, SIZED_ARRAY]],
-		["missile",           [110, BYTE, SIZED_ARRAY]],
-		["type",              [110, BYTE, SIZED_ARRAY]],
-		["decayRate",         [110, BYTE, SIZED_ARRAY]],
-		["annoyFactor",       [110, BYTE, SIZED_ARRAY]],
-		["rmbAction",         [58,  BYTE, SIZED_ARRAY]],
-		["points",            [110, WORD, SIZED_ARRAY]],
-		["canTarget",         [110, BYTE, OCTAL]],
-		["flags",             [110, LONG, BIT_FIELD]]
-	]),
-	ugrd: new Map([
-		["useDefaults",     [1,  WORD, BOOLEAN]],
-		["upgradeTime",     [52, BYTE, SIZED_ARRAY]],
-		["upgradeGold",     [52, WORD, SIZED_ARRAY]],
-		["upgradeLumber",   [52, WORD, SIZED_ARRAY]],
-		["upgradeOil",      [52, WORD, SIZED_ARRAY]],
-		["icon",            [52, WORD, SIZED_ARRAY]],
-		["group",           [52, WORD, SIZED_ARRAY]],
-		["effect",          [52, LONG, SIZED_ARRAY]]
-	]),
-	alow: new Map([
-		["units",               [16, LONG, BIT_FIELD]],
-		["spellsResearched",    [16, LONG, BIT_FIELD]],
-		["spells",              [16, LONG, BIT_FIELD]],
-		["spellsResearching",   [16, LONG, BIT_FIELD]],
-		["upgrades",            [16, LONG, BIT_FIELD]],
-		["upgradesResearching", [16, LONG, BIT_FIELD]]
-	])
+	"VER ": {
+		type: NUMBER
+	},
+	"UDTA": {
+		type: MAP,
+		addr: 1236,
+		map:  new Map([
+			["useDefaults",       [1,   WORD, BOOLEAN]],
+			["sight",             [110, LONG, ARRAY]],
+			["hp",                [110, WORD, ARRAY]],
+			["magic",             [110, BYTE, ARRAY]],
+			["buildTime",         [110, BYTE, ARRAY]],
+			["unitGold",          [110, BYTE, ARRAY]],
+			["unitLumber",        [110, BYTE, ARRAY]],
+			["unitOil",           [110, BYTE, ARRAY]],
+			["unitSize",          [110, LONG, DIMENSIONS]],
+			["boxSize",           [110, LONG, DIMENSIONS]],
+			["range",             [110, BYTE, ARRAY]],
+			["reactComputer",     [110, BYTE, ARRAY]],
+			["reactHuman",        [110, BYTE, ARRAY]],
+			["armor",             [110, BYTE, ARRAY]],
+			["selectable",        [110, BYTE, ARRAY]],
+			["priority",          [110, BYTE, ARRAY]],
+			["basicDamage",       [110, BYTE, ARRAY]],
+			["piercingDamage",    [110, BYTE, ARRAY]],
+			["weaponsUpgradable", [110, BYTE, ARRAY]],
+			["armorUpgradable",   [110, BYTE, ARRAY]],
+			["missile",           [110, BYTE, ARRAY]],
+			["type",              [110, BYTE, ARRAY]],
+			["decayRate",         [110, BYTE, ARRAY]],
+			["annoyFactor",       [110, BYTE, ARRAY]],
+			["rmbAction",         [58,  BYTE, ARRAY]],
+			["points",            [110, WORD, ARRAY]],
+			["canTarget",         [110, BYTE, OCTAL]],
+			["flags",             [110, LONG, BIT_FIELD]]
+		])
+	},
+	"UGRD": {
+		type: MAP,
+		addr: 0,
+		map:  new Map([
+			["useDefaults",     [1,  WORD, BOOLEAN]],
+			["upgradeTime",     [52, BYTE, ARRAY]],
+			["upgradeGold",     [52, WORD, ARRAY]],
+			["upgradeLumber",   [52, WORD, ARRAY]],
+			["upgradeOil",      [52, WORD, ARRAY]],
+			["icon",            [52, WORD, ARRAY]],
+			["group",           [52, WORD, ARRAY]],
+			["effect",          [52, LONG, ARRAY]]
+		]),
+	},
+	"ALOW": {
+		type: MAP,
+		addr: 0,
+		map:  new Map([
+			["units",               [16, LONG, BIT_FIELD]],
+			["spellsResearched",    [16, LONG, BIT_FIELD]],
+			["spells",              [16, LONG, BIT_FIELD]],
+			["spellsResearching",   [16, LONG, BIT_FIELD]],
+			["upgrades",            [16, LONG, BIT_FIELD]],
+			["upgradesResearching", [16, LONG, BIT_FIELD]]
+		])
+	},
+	"OWNR": {
+		type: ARRAY,
+		size: BYTE
+	},
+	"SIDE": {
+		type: ARRAY,
+		size: BYTE
+	},
+	"SGLD": {
+		type: ARRAY,
+		size: WORD
+	},
+	"SLBR": {
+		type: ARRAY,
+		size: WORD
+	},
+	"SOIL": {
+		type: ARRAY,
+		size: WORD
+	},
+	"AIPL": {
+		type: ARRAY,
+		size: BYTE
+	},
+	"MTXM": {
+		type: ARRAY,
+		size: WORD
+	},
+	"SQM ": {
+		type: ARRAY,
+		size: WORD
+	},
+	"OILM": {
+		type: ARRAY,
+		size: WORD
+	},
+	"REGM": {
+		type: ARRAY,
+		size: WORD
+	},
+	"SIGN": {
+		type: NUMBER
+	}
 };
 
 data.colors=[

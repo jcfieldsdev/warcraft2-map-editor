@@ -612,12 +612,12 @@ Editor.prototype.selectUnits=function(x, y, add=false, multiple=false) {
 };
 
 Editor.prototype.openCreate=function() {
-	this.setRadio("radio_size",    this.pud.width);
-	this.setRadio("radio_terrain", this.pud.tileset);
+	this.setRadio("size",    this.pud.width);
+	this.setRadio("terrain", this.pud.tileset);
 };
 
 Editor.prototype.openMapProperties=function() {
-	this.setRadio("radio_tileset", this.pud.tileset);
+	this.setRadio("tileset", this.pud.tileset);
 
 	$("#text_filename").value   =this.pud.filename;
 	$("#text_width").value      =this.pud.width;
@@ -636,9 +636,9 @@ Editor.prototype.openPlayers=function() {
 	});
 
 	for (let i=0; i<MAX_PLAYERS; i++) {
-		this.setRadio("radio_race"+i,         this.pud.races[i]);
-		this.setSelect("select_controller"+i, this.pud.controller[i]);
-		this.setSelect("select_ai"+i,         this.pud.ai[i]);
+		this.setRadio("race"+i,        this.pud.races[i]);
+		this.setSelect("controller"+i, this.pud.controller[i]);
+		this.setSelect("ai"+i,         this.pud.ai[i]);
 	}
 };
 
@@ -907,41 +907,10 @@ Editor.prototype.fillSelectionProperties=function() {
 };
 
 Editor.prototype.saveCreate=function() {
-	let tileset=this.saveRadio("radio_terrain");
-	let size=this.saveRadio("radio_size");
+	let tileset=this.saveRadio("terrain");
+	let size=this.saveRadio("size");
 
 	files.loadTemplate(this.getTileset(tileset), size);
-};
-
-Editor.prototype.saveMapProperties=function() {
-	this.pud.filename=$("#text_filename").value;
-	this.pud.description=$("#text_description").value;
-
-	let tileset=this.saveRadio("radio_tileset");
-
-	if (this.pud.tileset!=tileset){
-		this.changeTileset(tileset);
-	}
-
-	$("#filename").textContent=this.pud.filename;
-};
-
-Editor.prototype.savePlayerProperties=function() {
-	for (let i=0; i<MAX_PLAYERS; i++) {
-		this.pud.races[i]     =this.saveRadio("radio_race"+i);
-		this.pud.controller[i]=this.saveSelect("select_controller"+i);
-		this.pud.ai[i]        =this.saveSelect("select_ai"+i);
-	}
-
-	this.changeUnitPalette();
-};
-
-Editor.prototype.saveStartingConditions=function() {
-	for (let i=0; i<MAX_PLAYERS; i++) {
-		this.pud.startingGold[i]  =this.saveNumber("number_startingGold"+i);
-		this.pud.startingLumber[i]=this.saveNumber("number_startingLumber"+i);
-		this.pud.startingOil[i]   =this.saveNumber("number_startingOil"+i);
-	}
 };
 
 Editor.prototype.saveWorking=function(key) {
@@ -1063,7 +1032,32 @@ Editor.prototype.fillProperties=function(key) {
 Editor.prototype.saveProperties=function(key) {
 	this.saveWorking(key);
 
-	if (key=="unitMap") {
+	if (key=="mapProperties") {
+		this.pud.filename=$("#text_filename").value;
+		this.pud.description=$("#text_description").value;
+
+		let tileset=this.saveRadio("tileset");
+
+		if (this.pud.tileset!=tileset){
+			this.changeTileset(tileset);
+		}
+
+		$("#filename").textContent=this.pud.filename;
+	} else if (key=="players") {
+		for (let i=0; i<MAX_PLAYERS; i++) {
+			this.pud.races[i]     =this.saveRadio("race"+i);
+			this.pud.controller[i]=this.saveSelect("controller"+i);
+			this.pud.ai[i]        =this.saveSelect("ai"+i);
+		}
+
+		this.changeUnitPalette();
+	} else if (key=="startingConditions") {
+		for (let i=0; i<MAX_PLAYERS; i++) {
+			this.pud.startingGold[i]  =this.saveNumber("startingGold"+i);
+			this.pud.startingLumber[i]=this.saveNumber("startingLumber"+i);
+			this.pud.startingOil[i]   =this.saveNumber("startingOil"+i);
+		}
+	} else if (key=="unitMap") {
 		Object.keys(this.working).forEach(function(index) {
 			Object.keys(this.working[index]).forEach(function(property) {
 				if (!this.pud.unitMap.hasOwnProperty(index)) {
@@ -1127,7 +1121,7 @@ Editor.prototype.changeResource=function() {
 };
 
 Editor.prototype.setRadio=function(name, compare) {
-	let radios=document.getElementsByName(name);
+	let radios=document.getElementsByName("radio_"+name);
 
 	for (let element of radios) {
 		element.checked=element.value==compare;
@@ -1135,7 +1129,7 @@ Editor.prototype.setRadio=function(name, compare) {
 };
 
 Editor.prototype.setSelect=function(id, value) {
-	let select=$("#"+id), options=select.options;
+	let select=$("#select_"+id), options=select.options;
 
 	for (let i in options) {
 		if (options[i].value==value) {
@@ -1145,14 +1139,14 @@ Editor.prototype.setSelect=function(id, value) {
 };
 
 Editor.prototype.saveNumber=function(id, size) {
-	let max=1<<(8*size)-1, num=Number.parseInt($("#"+id).value);
+	let max=1<<(8*size)-1, num=Number.parseInt($("#number_"+id).value);
 	num=Math.min(Math.max(num, 0), max);
 
 	return num;
 };
 
 Editor.prototype.saveRadio=function(name) {
-	let radios=document.getElementsByName(name);
+	let radios=document.getElementsByName("radio_"+name);
 
 	for (let element of radios) {
 		if (element.checked) {
@@ -1162,7 +1156,7 @@ Editor.prototype.saveRadio=function(name) {
 };
 
 Editor.prototype.saveSelect=function(id) {
-	return $("#"+id).value;
+	return $("#select_"+id).value;
 };
 
 Editor.prototype.saveImage=function() {
@@ -1214,8 +1208,8 @@ function Pud(filename="", struct={}) {
 	this.valid=true;
 
 	this.id="";
-	this.sign=0;
 	this.version=STANDARD;
+	this.signature=0;
 	this.description="";
 	this.width=0;
 	this.height=0;
@@ -1257,30 +1251,66 @@ Pud.prototype.load=function(filename, buffer) {
 
 	this.filename=filename;
 
+	const REQUIRED=true, NOT_REQUIRED=false;
 	let self=this;
 
 	readType();
-	readVer();
 	readDesc();
-	readOwnr();
 	readEra();
 	readDim();
-	readUdta();
-	readAlow();
-	readUgrd();
-	readSide();
-	readAipl();
 	readUnit();
-	readSign();
 
-	this.startingGold  =readSection("SGLD", WORD);
-	this.startingLumber=readSection("SLBR", WORD);
-	this.startingOil   =readSection("SOIL", WORD);
+	this.expansion     =readSection("VER ");
+	this.units         =readSection("UDTA");
+	this.upgrades      =readSection("UGRD");
+	this.restrictions  =readSection("ALOW", NOT_REQUIRED);
+	this.controller    =readSection("OWNR");
+	this.races         =readSection("SIDE");
+	this.startingGold  =readSection("SGLD");
+	this.startingLumber=readSection("SLBR");
+	this.startingOil   =readSection("SOIL");
+	this.ai            =readSection("AIPL");
+	this.tileMap       =readSection("MTXM");
+	this.movementMap   =readSection("SQM ");
+	this.oilMap        =readSection("OILM"); // unused
+	this.actionMap     =readSection("REGM");
+	this.signature     =readSection("SIGN", NOT_REQUIRED);
 
-	this.tileMap    =readSection("MTXM", WORD);
-	this.movementMap=readSection("SQM ", WORD);
-	this.oilMap     =readSection("OILM", WORD); // unused
-	this.actionMap  =readSection("REGM", WORD);
+	this.valid=this.expansion==STANDARD||this.expansion==EXPANSION;
+
+	this.controller=this.controller.map(function(controller) {
+		if (controller>0xff) {
+			this.valid=false;
+		}
+
+		if (controller==0x01) { // computer
+			return 0x04;
+		}
+
+		if (controller>=0x08) { // passive computer
+			return 0x00;
+		}
+
+		return controller;
+	}, this);
+
+	this.races=this.races.map(function(race) {
+		if (race>0xff) {
+			this.valid=false;
+		}
+
+		if (race>=0x03) { // neutral
+			return 0x02;
+		}
+
+		return race;
+	}, this);
+
+	this.ai.forEach(function(ai) {
+		if (ai>0x52) {
+			this.valid=false;
+		}
+	}, this);
 
 	// converts hex to ASCII
 	function hexToStr(arr) {
@@ -1296,13 +1326,24 @@ Pud.prototype.load=function(filename, buffer) {
 		}, 0);
 	}
 
-	function readSection(key, size) {
+	function readSection(key, required=REQUIRED) {
 		if (!self.struct.hasOwnProperty(key)) {
-			self.valid=false;
+			if (required) {
+				self.valid=false;
+			}
+
 			return;
 		}
 
-		return makeArray(self.struct[key], size);
+		let schema=data.schema[key];
+
+		if (schema.type==ARRAY) {
+			return makeArray(self.struct[key], schema.size);
+		} else if (schema.type==MAP) {
+			return makeMap(self.struct[key], schema);
+		} else if (schema.type==NUMBER) {
+			return parseNum(self.struct[key]);
+		}
 	}
 
 	// breaks typed array into array with elements of given size
@@ -1321,14 +1362,18 @@ Pud.prototype.load=function(filename, buffer) {
 	}
 
 	// breaks typed array into named chunks containing arrays of given size
-	function makeMap(arr, schema, addr=0) {
+	function makeMap(arr, schema, addr) {
 		let obj={};
 
-		for (let [key, value] of schema) {
+		if (addr==undefined) {
+			addr=schema.addr; // sets starting address
+		}
+
+		for (let [key, value] of schema.map) {
 			let [len, size, type]=value;
 			obj[key]=arr.slice(addr, addr+len*size);
 
-			if (type==SIZED_ARRAY) {
+			if (type==ARRAY) {
 				obj[key]=makeArray(obj[key], size);
 			} else if (type==BOOLEAN) {
 				obj[key]=Boolean(obj[key]);
@@ -1406,17 +1451,6 @@ Pud.prototype.load=function(filename, buffer) {
 		}
 	}
 
-	// determines classic or expansion
-	function readVer() {
-		if (self.struct["VER "]==undefined) {
-			self.valid=false;
-			return;
-		}
-
-		self.expansion=parseNum(self.struct["VER "]);
-		self.valid=self.expansion==STANDARD||self.expansion==EXPANSION;
-	}
-
 	// reads scenario description
 	function readDesc() {
 		if (self.struct["DESC"]==undefined) {
@@ -1427,30 +1461,6 @@ Pud.prototype.load=function(filename, buffer) {
 		let desc=hexToStr(self.struct["DESC"]);
 		let stop=desc.indexOf("\x00"); // terminates at null char
 		self.description=desc.slice(0, stop);
-	}
-
-	// identifies controller of each player
-	function readOwnr() {
-		if (self.struct["OWNR"]==undefined) {
-			self.valid=false;
-			return;
-		}
-
-		self.controller=self.struct["OWNR"].map(function(controller) {
-			if (controller>0xff) {
-				self.valid=false;
-			}
-
-			if (controller==0x01) { // computer
-				return 0x04;
-			}
-
-			if (controller>=0x08) { // passive computer
-				return 0x00;
-			}
-
-			return controller;
-		}, this);
 	}
 
 	// gets tileset
@@ -1497,73 +1507,6 @@ Pud.prototype.load=function(filename, buffer) {
 		}
 	};
 
-	// reads unit data
-	function readUdta() {
-		if (self.struct["UDTA"]==undefined) {
-			self.valid=false;
-			return;
-		}
-
-		let udta=makeMap(self.struct["UDTA"], data.schema.udta, 1236);
-		self.units=udta;
-	}
-
-	// reads unit/ability/upgrade restrictions
-	function readAlow() {
-		if (self.struct["ALOW"]==undefined) {
-			return; // optional section
-		}
-
-		let alow=makeMap(self.struct["ALOW"], data.schema.alow);
-		self.restrictions=alow;
-	}
-
-	// reads upgrade data
-	function readUgrd() {
-		if (self.struct["UGRD"]==undefined) {
-			self.valid=false;
-			return;
-		}
-
-		let ugrd=makeMap(self.struct["UGRD"], data.schema.ugrd);
-		self.upgrades=ugrd;
-	}
-
-	// identifies race of each player
-	function readSide() {
-		if (self.struct["SIDE"]==undefined) {
-			self.valid=false;
-			return;
-		}
-
-		self.races=self.struct["SIDE"].map(function(race) {
-			if (race>0xff) {
-				self.valid=false;
-			}
-
-			if (race>=0x03) { // neutral
-				return 0x02;
-			}
-
-			return race;
-		}, this);
-	}
-
-	// gets AI script of each player
-	function readAipl() {
-		if (self.struct["AIPL"]==undefined) {
-			self.valid=false;
-			return;
-		}
-
-		self.ai=self.struct["AIPL"];
-		self.ai.forEach(function(ai) {
-			if (ai>0x52) {
-				self.valid=false;
-			}
-		}, this);
-	}
-
 	// gets unit map
 	function readUnit() {
 		if (self.struct["UNIT"]==undefined) {
@@ -1586,55 +1529,48 @@ Pud.prototype.load=function(filename, buffer) {
 
 		self.unitMap=unitMap;
 	}
-
-	// reads Blizzard signature
-	function readSign() {
-		if (self.struct["SIGN"]==undefined) {
-			return; // optional section
-		}
-
-		self.sign=parseNum(self.struct["SIGN"]);
-	}
 };
 
 Pud.prototype.save=function() {
 	let self=this;
-	let sections={
-		"TYPE": saveType(),
-		"VER ": convertNum(self.version, WORD),
-		"DESC": saveDesc(),
-		"OWNR": this.controller,
-		"ERA ": saveEra(STANDARD),
-		"ERAX": saveEra(EXPANSION),
-		"DIM ": convertNum(self.width|self.height<<16, LONG),
-//		"UDTA": ,
-//		"ALOW": ,
-//		"UGRD": ,
-		"SIDE": this.races,
-		"SGLD": readArray(this.startingGold,   WORD),
-		"SLBR": readArray(this.startingLumber, WORD),
-		"SOIL": readArray(this.startingOil,    WORD),
-		"AIPL": this.ai,
-		"MTXM": readArray(this.tileMap,        WORD),
-		"SQM ": readArray(this.movementMap,    WORD),
-		"OILM": readArray(this.oilMap,         WORD),
-		"REGM": readArray(this.actionMap,      WORD),
-		"UNIT": saveUnit()
-	};
+	let sections=new Map([
+		["TYPE", saveType()],
+		["VER ", convertNum(self.version, WORD)],
+		["DESC", saveDesc()],
+		["OWNR", this.controller],
+		["ERA ", saveEra(STANDARD)],
+		["ERAX", saveEra(EXPANSION)],
+		["DIM ", convertNum(self.width|self.height<<16, LONG)],
+//		["UDTA", readMap("UDTA")],
+//		["UGRD", readMap("UGRD")],
+//		["ALOW", readMap("ALOW")],
+		["SIDE", this.races],
+		["SGLD", readArray(this.startingGold,   WORD)],
+		["SLBR", readArray(this.startingLumber, WORD)],
+		["SOIL", readArray(this.startingOil,    WORD)],
+		["AIPL", this.ai],
+		["MTXM", readArray(this.tileMap,        WORD)],
+		["SQM ", readArray(this.movementMap,    WORD)],
+		["OILM", readArray(this.oilMap,         WORD)],
+		["REGM", readArray(this.actionMap,      WORD)],
+		["UNIT", saveUnit()]
+	]);
 
-	let length=Object.values(sections).reduce(function(length, contents) {
+	let length=0;
+
+	for (let [key, contents] of sections) {
 		if (contents==undefined) {
-			return length;
+			continue;
 		}
 
-		return length+2*LONG+contents.length;
-	}, 0);
+		length+=2*LONG+contents.length;
+	}
 
 	let file=new Uint8Array(length), pos=0;
 
-	Object.entries(sections).forEach(function([key, contents]) {
+	for (let [key, contents] of sections) {
 		if (contents==undefined) {
-			return;
+			continue;
 		}
 
 		for (let i=0; i<key.length; i++, pos++) { // section name
@@ -1650,7 +1586,7 @@ Pud.prototype.save=function() {
 		for (let i=0; i<contents.length; i++, pos++) {
 			file[pos]=contents[i];
 		}
-	});
+	}
 
 	return new Blob([file], {type: "application/x-warcraft2-scenario"});
 
