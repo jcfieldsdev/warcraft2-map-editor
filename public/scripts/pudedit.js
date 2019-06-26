@@ -1236,8 +1236,8 @@ Pud.prototype.load=function(filename, buffer) {
 
 	while (pos<buffer.byteLength) {
 		try {
-			let key=hexToStr(new Uint8Array(buffer, pos, LONG));
-			let length=new DataView(buffer, pos+4, LONG).getInt32(0, true);
+			let key=hexToStr(new Uint8Array(buffer, pos, DWORD));
+			let length=new DataView(buffer, pos+4, DWORD).getInt32(0, true);
 
 			this.struct[key]=new Uint8Array(buffer, pos+8, length);
 			pos+=length+8;
@@ -1445,7 +1445,7 @@ Pud.prototype.load=function(filename, buffer) {
 
 		self.id=type.slice(FILE_SIGNATURE.length);
 
-		if (self.id.length!=LONG) {
+		if (self.id.length!=DWORD) {
 			self.valid=false;
 		}
 	}
@@ -1518,7 +1518,7 @@ Pud.prototype.save=function() {
 		["OWNR", this.controller],
 		["ERA ", convertNum(this.tileset==0x03?0x02:this.tileset, WORD)],
 		["ERAX", this.tileset==0x03?convertNum(this.tileset, WORD):null],
-		["DIM ", convertNum(this.width|this.height<<16, LONG)],
+		["DIM ", convertNum(this.width|this.height<<16, DWORD)],
 		["UDTA", convertMap(this.units,        data.schema["UDTA"])],
 		["UGRD", convertMap(this.upgrades,     data.schema["UGRD"])],
 		["ALOW", convertMap(this.restrictions, data.schema["ALOW"])],
@@ -1541,7 +1541,7 @@ Pud.prototype.save=function() {
 			continue;
 		}
 
-		length+=2*LONG+contents.length;
+		length+=QWORD+contents.length;
 	}
 
 	let file=new Uint8Array(length), pos=0;
@@ -1555,7 +1555,7 @@ Pud.prototype.save=function() {
 			file[pos]=key.charCodeAt(i);
 		}
 
-		let len=convertNum(contents.length, LONG);
+		let len=convertNum(contents.length, DWORD);
 
 		for (let i=0; i<len.length; i++, pos++) { // section length
 			file[pos]=len[i];
@@ -1633,7 +1633,7 @@ Pud.prototype.save=function() {
 	}
 
 	function convertDim(data) {
-		let arr=new Uint8Array(LONG*data.length), pos=0;
+		let arr=new Uint8Array(DWORD*data.length), pos=0;
 
 		for (let i=0; i<data.length; i++) {
 			let x=convertNum(data[i].x, WORD), y=convertNum(data[i].y, WORD);
@@ -1643,14 +1643,14 @@ Pud.prototype.save=function() {
 			arr[pos+2]=y[0];
 			arr[pos+3]=y[1];
 
-			pos+=LONG;
+			pos+=DWORD;
 		}
 
 		return arr;
 	}
 
 	function convertBits(data) {
-		let arr=new Uint8Array(data.length*LONG), pos=0;
+		let arr=new Uint8Array(data.length*DWORD), pos=0;
 
 		for (let i=0; i<data.length; i++) {
 			let value=0;
@@ -1659,7 +1659,7 @@ Pud.prototype.save=function() {
 				value+=data[i][j]<<j;
 			}
 
-			let num=convertNum(value, LONG);
+			let num=convertNum(value, DWORD);
 
 			for (let j=0; j<num.length; j++, pos++) {
 				arr[pos]=num[j];
@@ -1679,7 +1679,7 @@ Pud.prototype.save=function() {
 
 	function saveType() {
 		let len=FILE_SIGNATURE.length;
-		let arr=new Uint8Array(len+LONG);
+		let arr=new Uint8Array(len+DWORD);
 
 		for (let i=0; i<len; i++) {
 			arr[i]=FILE_SIGNATURE.charCodeAt(i);
@@ -1704,7 +1704,7 @@ Pud.prototype.save=function() {
 	}
 
 	function saveUnit() {
-		let arr=new Uint8Array(2*LONG*self.unitMap.length), pos=0;
+		let arr=new Uint8Array(QWORD*self.unitMap.length), pos=0;
 
 		for (let unit of self.unitMap) {
 			let x=convertNum(unit.x, WORD), y=convertNum(unit.y, WORD);
@@ -1719,7 +1719,7 @@ Pud.prototype.save=function() {
 			arr[pos+6]=property[0];
 			arr[pos+7]=property[1];
 
-			pos+=2*LONG;
+			pos+=QWORD;
 		}
 
 		return arr;

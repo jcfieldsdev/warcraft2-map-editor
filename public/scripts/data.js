@@ -1,9 +1,10 @@
 "use strict";
 
 // data sizes
-const BYTE=1;
-const WORD=2;
-const LONG=4;
+const BYTE =1;
+const WORD =2;
+const DWORD=4;
+const QWORD=8;
 
 // schema types
 const ARRAY      =0;
@@ -33,59 +34,59 @@ data.schema={
 	"UDTA": {
 		type: MAP,
 		map:  new Map([
-			["useDefaults",       [1,   WORD, BOOLEAN]],
-			["unused",            [618, WORD, ARRAY]],
-			["sight",             [110, LONG, ARRAY]],
-			["hp",                [110, WORD, ARRAY]],
-			["magic",             [110, BYTE, ARRAY]],
-			["buildTime",         [110, BYTE, ARRAY]],
-			["unitGold",          [110, BYTE, ARRAY]],
-			["unitLumber",        [110, BYTE, ARRAY]],
-			["unitOil",           [110, BYTE, ARRAY]],
-			["unitSize",          [110, LONG, DIMENSIONS]],
-			["boxSize",           [110, LONG, DIMENSIONS]],
-			["range",             [110, BYTE, ARRAY]],
-			["reactComputer",     [110, BYTE, ARRAY]],
-			["reactHuman",        [110, BYTE, ARRAY]],
-			["armor",             [110, BYTE, ARRAY]],
-			["selectable",        [110, BYTE, ARRAY]],
-			["priority",          [110, BYTE, ARRAY]],
-			["basicDamage",       [110, BYTE, ARRAY]],
-			["piercingDamage",    [110, BYTE, ARRAY]],
-			["weaponsUpgradable", [110, BYTE, ARRAY]],
-			["armorUpgradable",   [110, BYTE, ARRAY]],
-			["missile",           [110, BYTE, ARRAY]],
-			["type",              [110, BYTE, ARRAY]],
-			["decayRate",         [110, BYTE, ARRAY]],
-			["annoyFactor",       [110, BYTE, ARRAY]],
-			["rmbAction",         [58,  BYTE, ARRAY]],
-			["points",            [110, WORD, ARRAY]],
-			["canTarget",         [110, BYTE, OCTAL]],
-			["flags",             [110, LONG, BIT_FIELD]]
+			["useDefaults",       [1,   WORD,  BOOLEAN]],
+			["unused",            [618, WORD,  ARRAY]],
+			["sight",             [110, DWORD, ARRAY]],
+			["hp",                [110, WORD,  ARRAY]],
+			["magic",             [110, BYTE,  ARRAY]],
+			["buildTime",         [110, BYTE,  ARRAY]],
+			["unitGold",          [110, BYTE,  ARRAY]],
+			["unitLumber",        [110, BYTE,  ARRAY]],
+			["unitOil",           [110, BYTE,  ARRAY]],
+			["unitSize",          [110, DWORD, DIMENSIONS]],
+			["boxSize",           [110, DWORD, DIMENSIONS]],
+			["range",             [110, BYTE,  ARRAY]],
+			["reactComputer",     [110, BYTE,  ARRAY]],
+			["reactHuman",        [110, BYTE,  ARRAY]],
+			["armor",             [110, BYTE,  ARRAY]],
+			["selectable",        [110, BYTE,  ARRAY]],
+			["priority",          [110, BYTE,  ARRAY]],
+			["basicDamage",       [110, BYTE,  ARRAY]],
+			["piercingDamage",    [110, BYTE,  ARRAY]],
+			["weaponsUpgradable", [110, BYTE,  ARRAY]],
+			["armorUpgradable",   [110, BYTE,  ARRAY]],
+			["missile",           [110, BYTE,  ARRAY]],
+			["type",              [110, BYTE,  ARRAY]],
+			["decayRate",         [110, BYTE,  ARRAY]],
+			["annoyFactor",       [110, BYTE,  ARRAY]],
+			["rmbAction",         [58,  BYTE,  ARRAY]],
+			["points",            [110, WORD,  ARRAY]],
+			["canTarget",         [110, BYTE,  OCTAL]],
+			["flags",             [110, DWORD, BIT_FIELD]]
 		])
 	},
 	"UGRD": {
 		type: MAP,
 		map:  new Map([
-			["useDefaults",     [1,  WORD, BOOLEAN]],
-			["upgradeTime",     [52, BYTE, ARRAY]],
-			["upgradeGold",     [52, WORD, ARRAY]],
-			["upgradeLumber",   [52, WORD, ARRAY]],
-			["upgradeOil",      [52, WORD, ARRAY]],
-			["icon",            [52, WORD, ARRAY]],
-			["group",           [52, WORD, ARRAY]],
-			["effect",          [52, LONG, ARRAY]]
+			["useDefaults",     [1,  WORD,  BOOLEAN]],
+			["upgradeTime",     [52, BYTE,  ARRAY]],
+			["upgradeGold",     [52, WORD,  ARRAY]],
+			["upgradeLumber",   [52, WORD,  ARRAY]],
+			["upgradeOil",      [52, WORD,  ARRAY]],
+			["icon",            [52, WORD,  ARRAY]],
+			["group",           [52, WORD,  ARRAY]],
+			["effect",          [52, DWORD, ARRAY]]
 		]),
 	},
 	"ALOW": {
 		type: MAP,
 		map:  new Map([
-			["units",               [16, LONG, BIT_FIELD]],
-			["spellsResearched",    [16, LONG, BIT_FIELD]],
-			["spells",              [16, LONG, BIT_FIELD]],
-			["spellsResearching",   [16, LONG, BIT_FIELD]],
-			["upgrades",            [16, LONG, BIT_FIELD]],
-			["upgradesResearching", [16, LONG, BIT_FIELD]]
+			["units",               [16, DWORD, BIT_FIELD]],
+			["spellsResearched",    [16, DWORD, BIT_FIELD]],
+			["spells",              [16, DWORD, BIT_FIELD]],
+			["spellsResearching",   [16, DWORD, BIT_FIELD]],
+			["upgrades",            [16, DWORD, BIT_FIELD]],
+			["upgradesResearching", [16, DWORD, BIT_FIELD]]
 		])
 	},
 	"SIDE": {
