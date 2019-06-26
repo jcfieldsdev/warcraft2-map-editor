@@ -105,7 +105,7 @@ window.addEventListener("load", function() {
 	});
 	// for palettes
 	$("#create").addEventListener("click", function() {
-		overlays.openCreate();
+		overlays.openProperties("create");
 	});
 	$("#open").addEventListener("click", function() {
 		files.browse();
@@ -742,7 +742,7 @@ Editor.prototype.saveImage=function() {
 	let filename=this.pud.filename.replace(/\.pud$/, ".png");
 
 	canvas.toBlob(function(blob) {
-		let a=$("download");
+		let a=$("#download");
 		a.download=filename;
 		a.href=window.URL.createObjectURL(blob);
 		a.click();
