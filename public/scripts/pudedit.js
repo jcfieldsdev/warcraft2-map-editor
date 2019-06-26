@@ -646,7 +646,7 @@ Editor.prototype.changeTileset=function(tileset) {
 
 Editor.prototype.changeTerrainPalette=function() {
 	$$(".terrain img").forEach(function(element) {
-		let icon=element.value+".png";
+		let icon=element.parentElement.value+".png";
 
 		let img=new Image();
 		img.src="icons/terrain/"+this.getTileset(this.pud.tileset)+"/"+icon;
@@ -1300,14 +1300,12 @@ Pud.prototype.load=function(filename, buffer) {
 	const REQUIRED=true, NOT_REQUIRED=false;
 	let self=this;
 
-	readType();
-	readDesc();
-	readDim();
-	readUnit();
-
+	this.id            =readType();
 	this.expansion     =readSection("VER ");
+	this.description   =readDesc();
 	this.controller    =readSection("OWNR");
 	this.tileset       =readSection("ERAX", NOT_REQUIRED)||readSection("ERA ");
+	[this.width, this.height]=readDim();
 	this.units         =readSection("UDTA");
 	this.upgrades      =readSection("UGRD");
 	this.restrictions  =readSection("ALOW", NOT_REQUIRED);
@@ -1321,6 +1319,7 @@ Pud.prototype.load=function(filename, buffer) {
 	this.oilMap        =readSection("OILM"); // unused
 	this.actionMap     =readSection("REGM");
 	this.signature     =readSection("SIGN", NOT_REQUIRED);
+	this.unitMap       =readUnit();
 
 	this.valid=this.expansion==STANDARD||this.expansion==EXPANSION;
 	this.valid=this.tileset<=0xff;
@@ -1478,7 +1477,7 @@ Pud.prototype.load=function(filename, buffer) {
 
 	// identifies as PUD file and gets unique map ID
 	function readType() {
-		if (self.struct["TYPE"]==undefined) {
+		if (!self.struct.hasOwnProperty("TYPE")) {
 			self.valid=false;
 			return;
 		}
@@ -1491,28 +1490,25 @@ Pud.prototype.load=function(filename, buffer) {
 			return;
 		}
 
-		self.id=type.slice(FILE_SIGNATURE.length);
-
-		if (self.id.length!=DWORD) {
-			self.valid=false;
-		}
+		return type.slice(FILE_SIGNATURE.length);
 	}
 
 	// reads scenario description
 	function readDesc() {
-		if (self.struct["DESC"]==undefined) {
+		if (!self.struct.hasOwnProperty("DESC")) {
 			self.valid=false;
 			return;
 		}
 
 		let desc=hexToStr(self.struct["DESC"]);
 		let stop=desc.indexOf("\x00"); // terminates at null char
-		self.description=desc.slice(0, stop);
+
+		return desc.slice(0, stop);
 	}
 
 	// gets map dimensions
 	function readDim() {
-		if (self.struct["DIM "]==undefined) {
+		if (!self.struct.hasOwnProperty("DIM ")) {
 			self.valid=false;
 			return;
 		}
@@ -1527,15 +1523,16 @@ Pud.prototype.load=function(filename, buffer) {
 		let x=dim[0];
 		let y=dim[2];
 
-		if (x<=MAX_WIDTH&&y<=MAX_HEIGHT) {
-			self.width =x;
-			self.height=y;
+		if (x>MAX_WIDTH&&y>MAX_HEIGHT) {
+			self.valid=false;
 		}
+
+		return [x, y];
 	};
 
 	// gets unit map
 	function readUnit() {
-		if (self.struct["UNIT"]==undefined) {
+		if (!self.struct.hasOwnProperty("UNIT")) {
 			self.valid=false;
 			return;
 		}
@@ -1553,7 +1550,7 @@ Pud.prototype.load=function(filename, buffer) {
 			});
 		}
 
-		self.unitMap=unitMap;
+		return unitMap;
 	}
 };
 
