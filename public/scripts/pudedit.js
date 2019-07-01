@@ -129,6 +129,10 @@ window.addEventListener("load", function() {
 			return;
 		}
 
+		if (editor.pud.unitMap.length==0) {
+			return overlays.displayError("Must place at least one unit.");
+		}
+
 		let a=$("#download");
 		a.download=editor.pud.filename;
 		a.href=window.URL.createObjectURL(editor.pud.save());
@@ -355,17 +359,14 @@ Editor.prototype.open=function(filename, path, buffer) {
 	window.scrollTo(0, 0);
 
 	if (buffer==null) {
-		this.pud={
-			valid: false
-		};
-	} else {
-		this.pud=new Pud();
-		this.pud.load(filename, buffer);
+		return overlays.displayError("The map file does not exist.");
 	}
 
+	this.pud=new Pud();
+	this.pud.load(filename, buffer);
+
 	if (!this.pud.valid) {
-		overlays.show("error");
-		return;
+		return overlays.displayError("The map file is corrupted or invalid.");
 	}
 
 	this.path=path;
@@ -833,6 +834,11 @@ Overlays.prototype.closeAll=function() {
 	if (this.active) {
 		this.hide(this.active);
 	}
+};
+
+Overlays.prototype.displayError=function(message) {
+	$("#overlay_error>p").textContent=message;
+	this.show("error");
 };
 
 Overlays.prototype.openProperties=function(key) {
@@ -1569,6 +1575,12 @@ Pud.prototype.load=function(filename, buffer) {
 				}, this);
 			}, this);
 		}, this);
+	}
+
+	if (this.unitMap.length==0) { // generates random ID for new maps
+		this.id=this.id.map(function() {
+			return Math.random()*256;
+		});
 	}
 
 	// converts hex to ASCII
