@@ -97,12 +97,13 @@ button.action img {
 	width: 1em;
 }
 
-button.revert {
+button.reset, button.revert {
 	background: #808080 linear-gradient(#808080, #404040);
 	border: 2px solid #a0a0a0;
 	border-radius: 1em;
 	color: inherit;
 	line-height: 125%;
+	margin-right: 0.25em;
 	padding: 0 1em;
 }
 

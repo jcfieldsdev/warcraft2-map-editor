@@ -22,9 +22,17 @@ const MAX_WIDTH  =128;
 const MAX_HEIGHT =128
 const LAST_ICON  =195;
 const UNIT_BOUNDARY=58;
-const CRITTER    =57;
-const GOLD_MINE  =92;
-const OIL_PATCH  =93;
+
+// units
+const CRITTER  =57;
+const GOLD_MINE=92;
+const OIL_PATCH=93;
+
+// tilesets
+const FOREST   =0;
+const WINTER   =1;
+const WASTELAND=2;
+const SWAMP    =3;
 
 // editor
 const DEFAULT_TILESET="forest";
@@ -156,10 +164,10 @@ window.addEventListener("load", function() {
 		overlays.changeIcon(this, $("#icon"), $("#select_upgrades"));
 	});
 	$("#select_restrictions").addEventListener("input", function() {
-		overlays.fillRestrictionProperties();
+		overlays.fillProperties("restrictions");
 	});
 	$("#select_selection").addEventListener("input", function() {
-		overlays.fillSelectionProperties();
+		overlays.fillProperties("unitMap");
 	});
 	$("#range_property").addEventListener("input", function() {
 		overlays.changeResource();
@@ -279,6 +287,13 @@ window.addEventListener("load", function() {
 			overlays.revertProperties(this.value);
 		});
 	});
+
+	// property sheet "Reset to Defaults" buttons
+	$$(".reset").forEach(function(element) {
+		element.addEventListener("click", function() {
+			overlays.resetProperties(this.value);
+		});
+	});
 });
 
 function $(selector) {
@@ -293,6 +308,9 @@ function clear(element) {
 	while (element.lastChild) { // removes all children
 		element.removeChild(element.lastChild);
 	}
+
+	// clones element to remove all event listeners
+	element.parentNode.replaceChild(element.cloneNode(true), element);
 }
 
 /*
@@ -787,7 +805,7 @@ function Overlays() {
 
 	// property sheet working object
 	this.working={};
-	this.index=-1;
+	this.index="";
 }
 
 Overlays.prototype.show=function(id) {
@@ -799,7 +817,7 @@ Overlays.prototype.show=function(id) {
 Overlays.prototype.hide=function(id) {
 	this.active="";
 	this.working={};
-	this.index=-1;
+	this.index="";
 	$("#overlay_"+id).classList.remove("open");
 };
 
@@ -947,7 +965,7 @@ Overlays.prototype.openProperties=function(key) {
 
 	function openRestrictions() {
 		if (editor.pud.restrictions!=undefined) {
-			self.fillRestrictionProperties();
+			self.fillProperties("restrictions");
 		}
 	}
 
@@ -974,7 +992,7 @@ Overlays.prototype.openProperties=function(key) {
 		});
 
 		select.selectedIndex=0;
-		self.fillSelectionProperties();
+		self.fillProperties("unitMap");
 		self.changeResource();
 	}
 };
@@ -984,10 +1002,18 @@ Overlays.prototype.fillProperties=function(key) {
 		return;
 	}
 
+	let self=this;
+
+	if (key=="restrictions") {
+		return fillRestrictionProperties();
+	} else if (key=="unitMap") {
+		return fillSelectionProperties();
+	}
+
 	let index=$("#select_"+key).value, value="";
 
 	$$("."+key).forEach(function(element) {
-		let [undefined, id, sub]=element.id.split(/_/);
+		let [type, id, sub]=element.id.split("_");
 
 		if (editor.pud[key].hasOwnProperty(id)) {
 			if (editor.pud[key][id].hasOwnProperty(index)) {
@@ -1012,7 +1038,7 @@ Overlays.prototype.fillProperties=function(key) {
 		if (sub) {
 			for (let property in value) {
 				if (property==sub) {
-					if (element.type=="checkbox") {
+					if (type=="checkbox") {
 						$("#"+element.id).checked=Boolean(value[property]);
 					} else {
 						$("#"+element.id).value=value[property];
@@ -1020,7 +1046,7 @@ Overlays.prototype.fillProperties=function(key) {
 				}
 			}
 		} else {
-			if (element.type=="checkbox") {
+			if (type=="checkbox") {
 				$("#"+element.id).checked=Boolean(value);
 			} else {
 				$("#"+element.id).value=value;
@@ -1035,123 +1061,141 @@ Overlays.prototype.fillProperties=function(key) {
 	}
 
 	this.index=index;
-};
 
-Overlays.prototype.fillRestrictionProperties=function() {
-	let index=$("#select_restrictions").value;
-	let category=index.replace(/Research(ed|ing)/, "");
+	function fillRestrictionProperties() {
+		let index=$("#select_restrictions").value;
+		let category=index.replace(/Research(ed|ing)/, "");
 
-	let tr=document.createElement("tr");
-	let td=document.createElement("th");
-	tr.appendChild(td);
-
-	for (let i=1; i<=MAX_PLAYERS; i++) {
+		let tr=document.createElement("tr");
 		let td=document.createElement("th");
-		td.className="player"+i;
-		td.textContent=i;
-		tr.appendChild(td);
-	}
-
-	if ($$(".restrictions").length>0) {
-		this.saveWorking("restrictions");
-	}
-
-	clear($("#restrictions table"));
-	$("#restrictions table").appendChild(tr);
-
-	data.restrictions[category].forEach(function(item, i) {
-		if (item=="") {
-			return;
-		}
-
-		tr=document.createElement("tr");
-		td=document.createElement("td");
-		td.textContent=item;
 		tr.appendChild(td);
 
-		for (let j=0; j<MAX_PLAYERS; j++) {
-			let value=false;
+		for (let i=1; i<=MAX_PLAYERS; i++) {
+			let td=document.createElement("th");
+			td.className="player"+i;
+			td.textContent=i;
+			td.addEventListener("click", function() {
+				$$(".restrictions").forEach(function(element) {
+					let [type, index, player]=element.id.split("_");
 
-			if (this.working.hasOwnProperty(index)) {
-				if (this.working[index].hasOwnProperty(i)) {
-					value=this.working[index][i][j];
-				}
-			} else {
-				if (editor.pud.restrictions[index].hasOwnProperty(j)) {
-					value=editor.pud.restrictions[index][j][i];
-				}
-			}
-
-			if (value==undefined) {
-				// false for researched/researching, true otherwise
-				value=index==category;
-			}
-
-			td=document.createElement("td");
-
-			let input=document.createElement("input");
-			input.id="checkbox_"+i+"_"+j;
-			input.className="restrictions";
-			input.checked=Boolean(value);
-			input.value=i;
-			input.setAttribute("type", "checkbox");
-
-			td.appendChild(input);
+					if (player==i-1) {
+						element.checked=!element.checked;
+					}
+				});
+			});
 			tr.appendChild(td);
 		}
 
+		if ($$(".restrictions").length>0) {
+			self.saveWorking("restrictions");
+		}
+
+		clear($("#restrictions table"));
 		$("#restrictions table").appendChild(tr);
-	}, this);
 
-	this.index=index;
-};
-
-Overlays.prototype.fillSelectionProperties=function() {
-	let select=$("#select_selection");
-	let option=select.options[select.selectedIndex], index=option.value;
-
-	$("#legend_selection").textContent=option.label;
-
-	this.saveWorking("unitMap");
-
-	let unit=editor.selected[index], value="";
-
-	$$(".unitMap").forEach(function(element) {
-		let [undefined, id]=element.id.split(/_/);
-
-		if (editor.selected.hasOwnProperty(index)) {
-			if (editor.selected[index].hasOwnProperty(id)) {
-				value=editor.selected[index][id];
+		data.restrictions[category].forEach(function(item, i) {
+			if (item=="") {
+				return;
 			}
-		}
 
-		if (this.working.hasOwnProperty(index)) {
-			if (this.working[index].hasOwnProperty(id)) {
-				value=this.working[index][id];
+			tr=document.createElement("tr");
+			td=document.createElement("td");
+			td.textContent=item;
+			td.addEventListener("click", function() {
+				$$(".restrictions").forEach(function(element) {
+					let [type, index, player]=element.id.split("_");
+
+					if (index==i) {
+						element.checked=!element.checked;
+					}
+				});
+			});
+			tr.appendChild(td);
+
+			for (let j=0; j<MAX_PLAYERS; j++) {
+				let value=false;
+
+				if (self.working.hasOwnProperty(index)) {
+					if (self.working[index].hasOwnProperty(i)) {
+						value=self.working[index][i][j];
+					}
+				} else {
+					if (editor.pud.restrictions[index].hasOwnProperty(j)) {
+						value=editor.pud.restrictions[index][j][i];
+					}
+				}
+
+				if (value==undefined) {
+					// false for researched/researching, true otherwise
+					value=index==category;
+				}
+
+				td=document.createElement("td");
+
+				let input=document.createElement("input");
+				input.id="checkbox_"+i+"_"+j;
+				input.className="restrictions";
+				input.checked=Boolean(value);
+				input.value=i;
+				input.setAttribute("type", "checkbox");
+
+				td.appendChild(input);
+				tr.appendChild(td);
 			}
-		}
 
-		$("#"+element.id).value=value;
-	}, this);
+			$("#restrictions table").appendChild(tr);
+		}, self);
 
-	if (unit.type==GOLD_MINE||unit.type==OIL_PATCH) {
-		$("#row_resource").classList.remove("hidden");
-		$("#range_property").disabled=false;
-	} else {
-		$("#row_resource").classList.add("hidden");
-		$("#range_property").disabled=true;
-		this.changeResource();
+		self.index=index;
 	}
 
-	if (unit.type<UNIT_BOUNDARY) { // units, not buildings
-		$("#row_ai").classList.remove("hidden");
-		$("#select_property").disabled=false;
-	} else {
-		$("#row_ai").classList.add("hidden");
-		$("#select_property").disabled=true;
-	}
+	function fillSelectionProperties() {
+		let select=$("#select_selection");
+		let option=select.options[select.selectedIndex], index=option.value;
 
-	this.index=index;
+		$("#legend_selection").textContent=option.label;
+
+		self.saveWorking("unitMap");
+
+		let unit=editor.selected[index], value="";
+
+		$$(".unitMap").forEach(function(element) {
+			let [type, id]=element.id.split("_");
+
+			if (editor.selected.hasOwnProperty(index)) {
+				if (editor.selected[index].hasOwnProperty(id)) {
+					value=editor.selected[index][id];
+				}
+			}
+
+			if (self.working.hasOwnProperty(index)) {
+				if (self.working[index].hasOwnProperty(id)) {
+					value=self.working[index][id];
+				}
+			}
+
+			$("#"+element.id).value=value;
+		}, self);
+
+		if (unit.type==GOLD_MINE||unit.type==OIL_PATCH) {
+			$("#row_resource").classList.remove("hidden");
+			$("#range_property").disabled=false;
+		} else {
+			$("#row_resource").classList.add("hidden");
+			$("#range_property").disabled=true;
+			self.changeResource();
+		}
+
+		if (unit.type<UNIT_BOUNDARY) { // units, not buildings
+			$("#row_ai").classList.remove("hidden");
+			$("#select_property").disabled=false;
+		} else {
+			$("#row_ai").classList.add("hidden");
+			$("#select_property").disabled=true;
+		}
+
+		self.index=index;
+	}
 };
 
 Overlays.prototype.saveProperties=function(key) {
@@ -1275,17 +1319,48 @@ Overlays.prototype.revertProperties=function(key) {
 	this.fillProperties(key);
 };
 
+Overlays.prototype.resetProperties=function(key) {
+	let index=$("#select_"+key).value;
+
+	if (!this.working.hasOwnProperty(index)) {
+		this.working[index]={};
+	}
+
+	Object.keys(data.defaults[key]).forEach(function(property) {
+		if (property=="useDefaults") {
+			return;
+		}
+
+		let keys=Object.keys(data.defaults[key][property][index]);
+
+		if (keys.length>0) {
+			keys.forEach(function(sub) {
+				if (!this.working[index].hasOwnProperty(property)) {
+					this.working[index][property]={};
+				}
+
+				let value=data.defaults[key][property][index][sub];
+				this.working[index][property][sub]=value;
+			}, this);
+		} else {
+			this.working[index][property]=data.defaults[key][property][index];
+		}
+	}, this);
+
+	this.fillProperties(key);
+};
+
 Overlays.prototype.saveWorking=function(key) {
-	if (this.index<0) {
+	if (this.index=="") {
 		return;
 	}
 
 	this.working[this.index]=$$("."+key).reduce(function(obj, element) {
 		if (!element.disabled) {
-			let [undefined, id, sub]=element.id.split(/_/g);
+			let [type, id, sub]=element.id.split("_");
 			let value=false;
 
-			if (element.type=="checkbox") {
+			if (type=="checkbox") {
 				value=element.checked;
 			} else {
 				value=Number.parseInt(element.value);
@@ -1438,7 +1513,7 @@ Pud.prototype.load=function(filename, buffer) {
 	this.valid=this.tileMap.length==dimensions;
 	this.valid=this.movementMap.length==dimensions;
 
-	this.tileset=this.tileset>0x03?0x00:this.tileset; // forest (default)
+	this.tileset=this.tileset>SWAMP?FOREST:this.tileset;
 
 	this.controller=this.controller.map(function(controller) {
 		if (controller>0xff) {
@@ -1664,8 +1739,8 @@ Pud.prototype.save=function() {
 		["VER ", convertNum(this.version, WORD)],
 		["DESC", saveDesc()],
 		["OWNR", this.controller],
-		["ERA ", convertNum(this.tileset==0x03?0x02:this.tileset, WORD)],
-		["ERAX", this.tileset==0x03?convertNum(this.tileset, WORD):null],
+		["ERA ", convertNum(this.tileset==SWAMP?WASTELAND:this.tileset, WORD)],
+		["ERAX", this.tileset==SWAMP?convertNum(this.tileset, WORD):null],
 		["DIM ", convertNum(this.width|this.height<<16, DWORD)],
 		["UDTA", convertMap(this.units,        data.schema["UDTA"])],
 		["UGRD", convertMap(this.upgrades,     data.schema["UGRD"])],
