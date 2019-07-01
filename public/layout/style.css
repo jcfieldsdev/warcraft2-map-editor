@@ -128,7 +128,7 @@ canvas#frame {
 	padding: 25px;
 }
 
-canvas#frame, canvas#grid {
+canvas#frame, canvas#grid, canvas#movementMap {
 	z-index: 3;
 }
 
@@ -146,7 +146,7 @@ canvas#grid {
 	color: inherit;
 }
 
-canvas#grid, canvas#select, canvas#tileMap, canvas#unitMap {
+canvas#grid, canvas#movementMap, canvas#select, canvas#tileMap, canvas#unitMap {
 	left: 270px;
 	position: absolute;
 	top: 0;
@@ -172,7 +172,7 @@ canvas#select {
 	z-index: 4;
 }
 
-div#editor div, div#filename, div#map, div#terrain {
+div#editor div, div#filename, div#map, div#terrain, div#restrictions table th {
 	text-align: center;
 }
 
@@ -203,7 +203,7 @@ div#filename, h2 {
 	text-shadow: 2px 2px #000;
 }
 
-div#layers, div#terrain {
+div#layers, div#terrain, div#restrictions table td {
 	font-size: 0.75rem;
 }
 
@@ -222,6 +222,16 @@ div#miniMap {
 div#miniMap canvas {
 	height: 200px;
 	width: 200px;
+}
+
+div#restrictions {
+	height: 20em;
+	overflow: auto;
+	width: 40em;
+}
+
+div#restrictions table {
+	width: 100%;
 }
 
 div#terrain>div {
@@ -442,6 +452,7 @@ select {
 	border-radius: 0.5em;
 	border-width: 2px;
 	line-height: 100%;
+	padding-left: 0.25em;
 	padding-right: 1em;
 	-moz-appearance: none;
 	-webkit-appearance: none;

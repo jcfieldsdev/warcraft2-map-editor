@@ -20,6 +20,11 @@ const MAX_PLAYERS=8;
 const TILE_SIZE  =32;
 const MAX_WIDTH  =128;
 const MAX_HEIGHT =128
+const LAST_ICON  =195;
+const UNIT_BOUNDARY=58;
+const CRITTER    =57;
+const GOLD_MINE  =92;
+const OIL_PATCH  =93;
 
 // editor
 const DEFAULT_TILESET="forest";
@@ -33,9 +38,9 @@ const SELECT_COLOR="#0f0";
 const MAPS_DIR="maps/";
 
 // objects
-const editor=new Editor();
+const editor  =new Editor();
 const overlays=new Overlays();
-const files=new Files("files");
+const files   =new Files("files");
 
 /*
  * initialization
@@ -150,6 +155,9 @@ window.addEventListener("load", function() {
 	$("#number_icon").addEventListener("input", function() {
 		overlays.changeIcon(this, $("#icon"), $("#select_upgrades"));
 	});
+	$("#select_restrictions").addEventListener("input", function() {
+		overlays.fillRestrictionProperties();
+	});
 	$("#select_selection").addEventListener("input", function() {
 		overlays.fillSelectionProperties();
 	});
@@ -237,7 +245,7 @@ window.addEventListener("load", function() {
 			let select=$("#select_"+key);
 			let option=select.options[select.selectedIndex];
 
-			$("#legend_"+key).innerHTML=option.label;
+			$("#legend_"+key).textContent=option.label;
 
 			overlays.saveWorking(key);
 			overlays.fillProperties(key);
@@ -279,6 +287,12 @@ function $(selector) {
 
 function $$(selector) {
 	return Array.from(document.querySelectorAll(selector));
+}
+
+function clear(element) {
+	while (element.lastChild) { // removes all children
+		element.removeChild(element.lastChild);
+	}
 }
 
 /*
@@ -331,18 +345,20 @@ Editor.prototype.open=function(filename, path, buffer) {
 	this.path=path;
 	$("#link").disabled=!Boolean(path);
 
-	$("#filename").innerHTML=this.pud.filename;
+	$("#filename").textContent=this.pud.filename;
 
-	setSize("tileMap", this.pud.width*TILE_SIZE, this.pud.height*TILE_SIZE);
-	setSize("unitMap", this.pud.width*TILE_SIZE, this.pud.height*TILE_SIZE);
-	setSize("grid",    this.pud.width*TILE_SIZE, this.pud.height*TILE_SIZE);
-	setSize("select",  this.pud.width*TILE_SIZE, this.pud.height*TILE_SIZE);
+	setSize("tileMap",     this.pud.width*TILE_SIZE, this.pud.height*TILE_SIZE);
+	setSize("unitMap",     this.pud.width*TILE_SIZE, this.pud.height*TILE_SIZE);
+	setSize("movementMap", this.pud.width*TILE_SIZE, this.pud.height*TILE_SIZE);
+	setSize("grid",        this.pud.width*TILE_SIZE, this.pud.height*TILE_SIZE);
+	setSize("select",      this.pud.width*TILE_SIZE, this.pud.height*TILE_SIZE);
 	setSize("miniUnitMap", MINIMAP_SIZE, MINIMAP_SIZE);
 	setSize("miniTileMap", MINIMAP_SIZE, MINIMAP_SIZE);
 	setSize("frame",       MINIMAP_SIZE, MINIMAP_SIZE);
 
 	this.tileMap=$("#tileMap").getContext("2d");
 	this.unitMap=$("#unitMap").getContext("2d");
+	this.movementMap=$("#movementMap").getContext("2d");
 	this.select=$("#select").getContext("2d");
 	this.miniTileMap=$("#miniTileMap").getContext("2d");
 	this.miniUnitMap=$("#miniUnitMap").getContext("2d");
@@ -359,6 +375,8 @@ Editor.prototype.open=function(filename, path, buffer) {
 	// draws tile map and changes unit icons to match tileset
 	this.changeTileset(this.pud.tileset);
 
+	this.drawMovementMap();
+
 	function setSize(id, w, h) {
 		$("#"+id).width=w;
 		$("#"+id).height=h;
@@ -370,21 +388,21 @@ Editor.prototype.drawTileMap=function() {
 	let x=0, y=0;
 
 	this.pud.tileMap.forEach(function(tile, i) {
-		let w=x*TILE_SIZE, h=y*TILE_SIZE;
+		let cx=x*TILE_SIZE, cy=y*TILE_SIZE;
 
 		if (tile in tiles) {
 			this.tileMap.drawImage(
 				this.tiles,
 				tiles[tile].x, tiles[tile].y,
 				TILE_SIZE, TILE_SIZE,
-				w, h,
+				cx, cy,
 				TILE_SIZE, TILE_SIZE
 			);
 			this.miniTileMap.drawImage(
 				this.tiles,
 				tiles[tile].x, tiles[tile].y,
 				TILE_SIZE, TILE_SIZE,
-				w, h,
+				cx, cy,
 				TILE_SIZE, TILE_SIZE
 			);
 		}
@@ -429,7 +447,7 @@ Editor.prototype.drawUnitMap=function() {
 	function drawUnit(unitMap, img, unit, x, y, w, h) {
 		let sx=0, sy=0, type=unit.type, owner=unit.owner;
 
-		if (type<58) { // units, not buildings
+		if (type<UNIT_BOUNDARY) { // units, not buildings
 			// centers unit in tile
 			x-=(img.width-w)/2;
 			y-=(img.width-h)/2;
@@ -490,6 +508,26 @@ Editor.prototype.drawUnitMap=function() {
 		miniUnitMap.fillStyle="#"+r+g+b;
 		miniUnitMap.fillRect(x, y, w, h);
 	}
+};
+
+Editor.prototype.drawMovementMap=function() {
+	let x=0, y=0, w=TILE_SIZE-4, h=w;
+
+	this.movementMap.lineWidth=1;
+
+	this.pud.movementMap.forEach(function(tile, i) {
+		if (tile in data.movement) {
+			this.movementMap.strokeStyle=data.movement[tile];
+			this.movementMap.strokeRect(x*TILE_SIZE+2, y*TILE_SIZE+2, w, h);
+		}
+
+		if ((i+1)%this.pud.width==0) { // new row
+			x=0;
+			y++;
+		} else {
+			x++;
+		}
+	}, this);
 };
 
 Editor.prototype.moveMap=function(x, y) {
@@ -613,7 +651,7 @@ Editor.prototype.selectPlayer=function(player) {
 	// changes owner of selected units
 	Object.values(this.selected).forEach(function(unit) {
 		// does not change ownership of critters, gold mines, or oil patches
-		if (unit.type!=57&&unit.type!=92&&unit.type!=93) {
+		if (unit.type!=CRITTER&&unit.type!=GOLD_MINE&&unit.type!=OIL_PATCH) {
 			unit.owner=player;
 		}
 	}, this);
@@ -698,16 +736,6 @@ Editor.prototype.changeUnitPalette=function() {
 
 	$("#unitsPalette").replaceWith(ul);
 
-	function clear(element) {
-		if (element==null) {
-			return;
-		}
-
-		while (element.lastChild) { // removes all children
-			element.removeChild(element.lastChild);
-		}
-	}
-
 	function getRace() {
 		if (self.player in self.pud.races) {
 			return self.pud.races[self.player]?ORC:HUMAN;
@@ -737,7 +765,7 @@ Editor.prototype.saveImage=function() {
 	// composites all layers into a single image
 	context.drawImage($("#tileMap"), 0, 0, canvas.width, canvas.height);
 	context.drawImage($("#unitMap"), 0, 0, canvas.width, canvas.height);
-	context.drawImage($("#grid"), 0, 0, canvas.width, canvas.height);
+	context.drawImage($("#grid"),    0, 0, canvas.width, canvas.height);
 
 	let filename=this.pud.filename.replace(/\.pud$/, ".png");
 
@@ -769,8 +797,9 @@ Overlays.prototype.show=function(id) {
 };
 
 Overlays.prototype.hide=function(id) {
-	this.resetWorking();
 	this.active="";
+	this.working={};
+	this.index=-1;
 	$("#overlay_"+id).classList.remove("open");
 };
 
@@ -795,6 +824,8 @@ Overlays.prototype.openProperties=function(key) {
 		openUnits();
 	} else if (key=="upgrades") {
 		openUpgrades();
+	} else if (key=="restrictions") {
+		openRestrictions();
 	} else if (key=="unitMap") {
 		openSelection();
 	}
@@ -885,7 +916,7 @@ Overlays.prototype.openProperties=function(key) {
 
 		let select=$("#select_units");
 		let option=select.options[select.selectedIndex];
-		$("#legend_units").innerHTML=option.label;
+		$("#legend_units").textContent=option.label;
 	}
 
 	function openUpgrades() {
@@ -911,15 +942,19 @@ Overlays.prototype.openProperties=function(key) {
 
 		let select=$("#select_upgrades");
 		let option=select.options[select.selectedIndex];
-		$("#legend_upgrades").innerHTML=option.label;
+		$("#legend_upgrades").textContent=option.label;
+	}
+
+	function openRestrictions() {
+		if (editor.pud.restrictions!=undefined) {
+			self.fillRestrictionProperties();
+		}
 	}
 
 	function openSelection() {
 		let select=$("#select_selection"), units={};
 
-		while (select.lastChild) { // removes all children
-			select.removeChild(select.lastChild);
-		}
+		clear(select);
 
 		Object.keys(data.units).forEach(function(group) {
 			Object.keys(data.units[group]).forEach(function(type) {
@@ -952,7 +987,7 @@ Overlays.prototype.fillProperties=function(key) {
 	let index=$("#select_"+key).value, value="";
 
 	$$("."+key).forEach(function(element) {
-		let [type, id, sub]=element.id.split(/_/);
+		let [undefined, id, sub]=element.id.split(/_/);
 
 		if (editor.pud[key].hasOwnProperty(id)) {
 			if (editor.pud[key][id].hasOwnProperty(index)) {
@@ -977,7 +1012,7 @@ Overlays.prototype.fillProperties=function(key) {
 		if (sub) {
 			for (let property in value) {
 				if (property==sub) {
-					if (type=="checkbox") {
+					if (element.type=="checkbox") {
 						$("#"+element.id).checked=Boolean(value[property]);
 					} else {
 						$("#"+element.id).value=value[property];
@@ -985,7 +1020,7 @@ Overlays.prototype.fillProperties=function(key) {
 				}
 			}
 		} else {
-			if (type=="checkbox") {
+			if (element.type=="checkbox") {
 				$("#"+element.id).checked=Boolean(value);
 			} else {
 				$("#"+element.id).value=value;
@@ -994,9 +1029,126 @@ Overlays.prototype.fillProperties=function(key) {
 	}, this);
 
 	if (key=="units") {
-		$("#select_rmbAction").disabled=index>=58; // units, not buildings
+		$("#select_rmbAction").disabled=index>=UNIT_BOUNDARY;
 	} else if (key=="upgrades") {
 		this.changeIcon($("#number_icon"), $("#icon"), $("#select_upgrades"));
+	}
+
+	this.index=index;
+};
+
+Overlays.prototype.fillRestrictionProperties=function() {
+	let index=$("#select_restrictions").value;
+	let category=index.replace(/Research(ed|ing)/, "");
+
+	let tr=document.createElement("tr");
+	let td=document.createElement("th");
+	tr.appendChild(td);
+
+	for (let i=1; i<=MAX_PLAYERS; i++) {
+		let td=document.createElement("th");
+		td.className="player"+i;
+		td.textContent=i;
+		tr.appendChild(td);
+	}
+
+	if ($$(".restrictions").length>0) {
+		this.saveWorking("restrictions");
+	}
+
+	clear($("#restrictions table"));
+	$("#restrictions table").appendChild(tr);
+
+	data.restrictions[category].forEach(function(item, i) {
+		if (item=="") {
+			return;
+		}
+
+		tr=document.createElement("tr");
+		td=document.createElement("td");
+		td.textContent=item;
+		tr.appendChild(td);
+
+		for (let j=0; j<MAX_PLAYERS; j++) {
+			let value=false;
+
+			if (this.working.hasOwnProperty(index)) {
+				if (this.working[index].hasOwnProperty(i)) {
+					value=this.working[index][i][j];
+				}
+			} else {
+				if (editor.pud.restrictions[index].hasOwnProperty(j)) {
+					value=editor.pud.restrictions[index][j][i];
+				}
+			}
+
+			if (value==undefined) {
+				// false for researched/researching, true otherwise
+				value=index==category;
+			}
+
+			td=document.createElement("td");
+
+			let input=document.createElement("input");
+			input.id="checkbox_"+i+"_"+j;
+			input.className="restrictions";
+			input.checked=Boolean(value);
+			input.value=i;
+			input.setAttribute("type", "checkbox");
+
+			td.appendChild(input);
+			tr.appendChild(td);
+		}
+
+		$("#restrictions table").appendChild(tr);
+	}, this);
+
+	this.index=index;
+};
+
+Overlays.prototype.fillSelectionProperties=function() {
+	let select=$("#select_selection");
+	let option=select.options[select.selectedIndex], index=option.value;
+
+	$("#legend_selection").textContent=option.label;
+
+	this.saveWorking("unitMap");
+
+	let unit=editor.selected[index], value="";
+
+	$$(".unitMap").forEach(function(element) {
+		let [undefined, id]=element.id.split(/_/);
+
+		if (editor.selected.hasOwnProperty(index)) {
+			if (editor.selected[index].hasOwnProperty(id)) {
+				value=editor.selected[index][id];
+			}
+		}
+
+		if (this.working.hasOwnProperty(index)) {
+			if (this.working[index].hasOwnProperty(id)) {
+				value=this.working[index][id];
+			}
+		}
+
+		$("#"+element.id).value=value;
+	}, this);
+
+	if (unit.type==GOLD_MINE||unit.type==OIL_PATCH) {
+		$("#row_resource").classList.remove("hidden");
+		$("#range_property").disabled=false;
+	} else {
+		$("#row_resource").classList.add("hidden");
+		$("#range_property").disabled=true;
+		this.changeResource();
+	}
+
+	if (unit.type<UNIT_BOUNDARY) { // units, not buildings
+		$("#row_ai").classList.remove("hidden");
+		$("#select_property").disabled=false;
+	} else {
+		$("#row_ai").classList.add("hidden");
+		$("#select_property").disabled=true;
 	}
 
 	this.index=index;
@@ -1015,10 +1167,12 @@ Overlays.prototype.saveProperties=function(key) {
 		savePlayers();
 	} else if (key=="resources") {
 		saveResources();
+	} else if (key=="restrictions") {
+		saveRestrictions();
 	} else if (key=="unitMap") {
 		saveSelection();
 	} else { // units and upgrades
-		this.mergeWorking(key);
+		mergeWorking(key);
 		editor.pud[key].useDefaults=$("#checkbox_"+key).checked;
 	}
 
@@ -1062,6 +1216,21 @@ Overlays.prototype.saveProperties=function(key) {
 		}
 	}
 
+	function saveRestrictions() {
+		Object.keys(self.working).forEach(function(index) {
+			Object.keys(self.working[index]).forEach(function(i) {
+				Object.keys(self.working[index][i]).forEach(function(j) {
+					if (!self.working[index].hasOwnProperty(j)) {
+						return;
+					}
+
+					let value=Boolean(self.working[index][i][j]);
+					editor.pud.restrictions[index][j][i]=value;
+				}, self);
+			}, self);
+		}, self);
+	}
+
 	function saveSelection() {
 		Object.keys(self.working).forEach(function(index) {
 			Object.keys(self.working[index]).forEach(function(property) {
@@ -1078,60 +1247,32 @@ Overlays.prototype.saveProperties=function(key) {
 			}, self);
 		}, self);
 	}
+
+	function mergeWorking(key) {
+		if (!editor.pud.hasOwnProperty(key)) {
+			return;
+		}
+
+		Object.keys(self.working).forEach(function(index) {
+			Object.keys(self.working[index]).forEach(function(property) {
+				if (!editor.pud[key].hasOwnProperty(property)) {
+					return;
+				}
+
+				if (!editor.pud[key][property].hasOwnProperty(index)) {
+					return;
+				}
+
+				editor.pud[key][property][index]=self.working[index][property];
+			}, self);
+		}, self);
+	}
 };
 
 Overlays.prototype.revertProperties=function(key) {
 	let index=$("#select_"+key).value;
 	delete this.working[index];
 	this.fillProperties(key);
-};
-
-Overlays.prototype.fillSelectionProperties=function() {
-	let select=$("#select_selection");
-	let option=select.options[select.selectedIndex], index=option.value;
-
-	$("#legend_selection").innerHTML=option.label;
-
-	this.saveWorking("unitMap");
-
-	let unit=editor.selected[index], value="";
-
-	$$(".unitMap").forEach(function(element) {
-		let [type, id]=element.id.split(/_/);
-
-		if (editor.selected.hasOwnProperty(index)) {
-			if (editor.selected[index].hasOwnProperty(id)) {
-				value=editor.selected[index][id];
-			}
-		}
-
-		if (this.working.hasOwnProperty(index)) {
-			if (this.working[index].hasOwnProperty(id)) {
-				value=this.working[index][id];
-			}
-		}
-
-		$("#"+element.id).value=value;
-	}, this);
-
-	if (unit.type==92||unit.type==93) { // gold mine or oil patch
-		$("#row_resource").classList.remove("hidden");
-		$("#range_property").disabled=false;
-	} else {
-		$("#row_resource").classList.add("hidden");
-		$("#range_property").disabled=true;
-		this.changeResource();
-	}
-
-	if (unit.type<58) { // units, not buildings
-		$("#row_ai").classList.remove("hidden");
-		$("#select_property").disabled=false;
-	} else {
-		$("#row_ai").classList.add("hidden");
-		$("#select_property").disabled=true;
-	}
-
-	this.index=index;
 };
 
 Overlays.prototype.saveWorking=function(key) {
@@ -1141,10 +1282,10 @@ Overlays.prototype.saveWorking=function(key) {
 
 	this.working[this.index]=$$("."+key).reduce(function(obj, element) {
 		if (!element.disabled) {
-			let [type, id, sub]=element.id.split(/_/g);
+			let [undefined, id, sub]=element.id.split(/_/g);
 			let value=false;
 
-			if (type=="checkbox") {
+			if (element.type=="checkbox") {
 				value=element.checked;
 			} else {
 				value=Number.parseInt(element.value);
@@ -1165,39 +1306,8 @@ Overlays.prototype.saveWorking=function(key) {
 	}, {});
 };
 
-Overlays.prototype.mergeWorking=function(key) {
-	if (!editor.pud.hasOwnProperty(key)) {
-		return;
-	}
-
-	Object.keys(this.working).forEach(function(index) {
-		Object.keys(this.working[index]).forEach(function(property) {
-			if (!editor.pud[key].hasOwnProperty(property)) {
-				return;
-			}
-
-			if (!editor.pud[key][property].hasOwnProperty(index)) {
-				return;
-			}
-
-			editor.pud[key][property][index]=this.working[index][property];
-		}, this);
-	}, this);
-};
-
-Overlays.prototype.resetWorking=function() {
-	this.working={};
-	this.index=-1;
-};
-
 Overlays.prototype.changeIcon=function(input, img, select) {
-	if (input.value<0) { // lower boundary
-		input.value=0;
-	}
-
-	if (input.value>195) { // upper boundary
-		input.value=195;
-	}
+	input.value=Math.min(Math.max(input.value, 0), LAST_ICON);
 
 	let icon=input.value.padStart(4, "0");
 	img.src="icons/"+editor.getTileset(editor.pud.tileset)+"/"+icon+".png";
@@ -1301,7 +1411,7 @@ Pud.prototype.load=function(filename, buffer) {
 	let self=this;
 
 	this.id            =readType();
-	this.expansion     =readSection("VER ");
+	this.version       =readSection("VER ");
 	this.description   =readDesc();
 	this.controller    =readSection("OWNR");
 	this.tileset       =readSection("ERAX", NOT_REQUIRED)||readSection("ERA ");
@@ -1321,12 +1431,14 @@ Pud.prototype.load=function(filename, buffer) {
 	this.signature     =readSection("SIGN", NOT_REQUIRED);
 	this.unitMap       =readUnit();
 
-	this.valid=this.expansion==STANDARD||this.expansion==EXPANSION;
+	this.valid=this.version==STANDARD||this.version==EXPANSION;
 	this.valid=this.tileset<=0xff;
 
-	if (this.tileset>=0x04) { // forest (default)
-		this.tileset=0x00;
-	}
+	let dimensions=this.width*this.height;
+	this.valid=this.tileMap.length==dimensions;
+	this.valid=this.movementMap.length==dimensions;
+
+	this.tileset=this.tileset>0x03?0x00:this.tileset; // forest (default)
 
 	this.controller=this.controller.map(function(controller) {
 		if (controller>0xff) {
@@ -1345,21 +1457,11 @@ Pud.prototype.load=function(filename, buffer) {
 	}, this);
 
 	this.races=this.races.map(function(race) {
-		if (race>0xff) {
-			this.valid=false;
-		}
-
-		if (race>=0x03) { // neutral
-			return 0x02;
-		}
-
-		return race;
+		return race>0x02?0x02:race; // neutral
 	}, this);
 
 	this.ai.forEach(function(ai) {
-		if (ai>0x52) {
-			this.valid=false;
-		}
+		this.valid=ai<=0x52;
 	}, this);
 
 	// converts hex to ASCII
@@ -1454,9 +1556,10 @@ Pud.prototype.load=function(filename, buffer) {
 	// breaks bit fields into arrays of booleans
 	function parseBits(arr) {
 		return arr.map(function(value) {
+			const SIZE=32;
 			let sub=[];
 
-			for (let i=0; i<32; i++) {
+			for (let i=0; i<SIZE; i++) {
 				sub.push(Boolean(value&(1<<i)));
 			}
 
@@ -1556,7 +1659,7 @@ Pud.prototype.load=function(filename, buffer) {
 
 Pud.prototype.save=function() {
 	let self=this;
-	let sections=new Map([
+	let sections=new Map([ // order is significant
 		["TYPE", saveType()],
 		["VER ", convertNum(this.version, WORD)],
 		["DESC", saveDesc()],
@@ -1859,7 +1962,7 @@ Files.prototype.createItem=function(className, file, callback) {
 
 	let a=document.createElement("a");
 	a.className=className;
-	a.innerHTML=file;
+	a.textContent=file;
 	a.addEventListener("click", callback);
 	li.appendChild(a);
 

@@ -143,7 +143,7 @@ data.colors=[
 		{r: 0,   g: 20,  b: 108},
 		{r: 0,   g: 4,   b: 76}
 	],
-	[ // player 3 (green)
+	[ // player 3 (teal)
 		{r: 44,  g: 180, b: 148},
 		{r: 20,  g: 132, b: 92},
 		{r: 4,   g: 84,  b: 44},
@@ -178,6 +178,18 @@ data.colors=[
 		{r: 228, g: 204, b: 40},
 		{r: 204, g: 160, b: 16},
 		{r: 180, g: 116, b: 0}
+	],
+	[ // unused (green)
+		{r: 0,   g: 107, b: 0},
+		{r: 0,   g: 92,  b: 0},
+		{r: 0,   g: 75,  b: 0},
+		{r: 0,   g: 56,  b: 0}
+	],
+	[ // unused (fuschia)
+		{r: 255, g: 148, b: 253},
+		{r: 229, g: 109, b: 207},
+		{r: 195, g: 70,  b: 154},
+		{r: 159, g: 39,  b: 103}
 	]
 ];
 
@@ -1750,6 +1762,17 @@ data.tilesets=[
 	}
 ];
 
+data.movement={
+	0x0000: "#fff",    // bridge (all units)
+	0x0001: "#0f0",    // land
+	0x0002: "#008080", // coast corner
+	0x0011: "#808000", // dirt
+	0x0040: "#000080", // water
+	0x0081: "#008000", // forest/mountains
+	0x0082: "#00f",    // coast
+	0x008d: "#808080"  // walls
+};
+
 data.ai=new Map([
 	[1,  "Passive"],
 	[0,  "Land Attack"],
@@ -2542,4 +2565,85 @@ data.upgrades={
 		[49, "Death Knight: Unholy Armor"],
 		[51, "Death Knight: Death and Decay"]
 	])
+};
+
+data.restrictions={
+	units: [
+		"Footman / Grunt",
+		"Peasant / Peon",
+		"Ballista / Catapult",
+		"Knight / Ogre",
+		"Elven Archer / Troll Axethrower",
+		"Mage / Death Knight",
+		"Oil Tanker",
+		"Elven Destroyer / Troll Destroyer",
+		"Transport",
+		"Battleship / Ogre Juggernaught",
+		"Submarine/Giant Turtle",
+		"Flying Machine / Goblin Zeppelin",
+		"Gryphon Rider / Dragon",
+		"",
+		"Dwarven Demolition Squad / Goblin Sappers",
+		"Gryphon Aviary / Dragon Roost",
+		"Farm / Pig Farm",
+		"Barracks",
+		"Elven Lumber Mill / Troll Lumber Mill",
+		"Stables / Ogre Mound",
+		"Mage Tower / Temple of the Damned",
+		"Foundry",
+		"Oil Refinery",
+		"Gnomish Inventor / Goblin Alchemist",
+		"Church / Altar of Storms",
+		"Scout Tower / Watch Tower",
+		"Town Hall / Great Hall",
+		"Keep / Stronghold",
+		"Castle / Fortress",
+		"Blacksmith",
+		"Shipyard"
+	],
+	upgrades: [
+		"Upgrade Arrow / Throwing Axe Strength 1",
+		"Upgrade Arrow / Throwing Axe Strength 2",
+		"Upgrade Sword / Axe Strength 1",
+		"Upgrade Sword / Axe Strength 2",
+		"Upgrade Shield Strength 1",
+		"Upgrade Shield Strength 2",
+		"Upgrade Ship Attack 1",
+		"Upgrade Ship Attack 2",
+		"Upgrade Ship Armor 1",
+		"Upgrade Ship Armor 2",
+		"",
+		"",
+		"Upgrade Ballista / Catapult Attack 1",
+		"Upgrade Ballista / Catapult Attack 2",
+		"",
+		"",
+		"Elven Ranger / Troll Berserker Training",
+		"Longbow / Lighter Axes",
+		"Scouting",
+		"Marksmanship / Regeneration",
+	],
+	spells: [
+		"Holy Vision",
+		"Healing",
+		"",
+		"Exorcism",
+		"Flame Shield",
+		"Fireball",
+		"Slow",
+		"Invisiblity",
+		"Polymorph",
+		"Blizzard",
+		"Eye of Kilrogg",
+		"Bloodlust",
+		"",
+		"Raise Dead",
+		"Death Coil",
+		"Whirlwind",
+		"Haste",
+		"Unholy Armor",
+		"Runes",
+		"Death and Decay",
+		"Upgrade Knights to Paladins / Ogres to Ogre-Magi"
+	]
 };
