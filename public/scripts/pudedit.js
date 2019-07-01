@@ -19,7 +19,7 @@ const NEUTRAL="neutral";
 const MAX_PLAYERS=8;
 const TILE_SIZE  =32;
 const MAX_WIDTH  =128;
-const MAX_HEIGHT =128
+const MAX_HEIGHT =128;
 const LAST_ICON  =195;
 const UNIT_BOUNDARY=58;
 
@@ -125,7 +125,7 @@ window.addEventListener("load", function() {
 		overlays.show("browser");
 	});
 	$("#save").addEventListener("click", function() {
-		if (editor.pud==null) {
+		if (Object.keys(editor.pud)==0) {
 			return;
 		}
 
@@ -150,27 +150,16 @@ window.addEventListener("load", function() {
 			overlays.show("link");
 		}
 	});
-	$("#copy").addEventListener("click", function() {
-		$("#"+this.value).select();
-		document.execCommand("copy");
-	});
 	$("#about").addEventListener("click", function() {
 		overlays.show("about");
 	});
 	$("#filename").addEventListener("click", function() {
 		overlays.openProperties("map");
 	});
-	// for overlay widgets
 	$("#select_unitsPalette").addEventListener("input", function() {
 		editor.changeUnitPalette();
 	});
-	$("#number_icon").addEventListener("input", function() {
-		overlays.changeIcon(this, $("#icon"), $("#select_upgrades"));
-	});
-	$("#range_property").addEventListener("input", function() {
-		overlays.changeResource();
-	});
-	// for file browser in open overlay
+	// for overlay widgets
 	$("#file").addEventListener("input", function(event) {
 		let file=event.target.files[0];
 
@@ -182,6 +171,16 @@ window.addEventListener("load", function() {
 			});
 			reader.readAsArrayBuffer(file);
 		}
+	});
+	$("#copy").addEventListener("click", function() {
+		$("#"+this.value).select();
+		document.execCommand("copy");
+	});
+	$("#number_icon").addEventListener("input", function() {
+		overlays.changeIcon(this, $("#icon"), $("#select_upgrades"));
+	});
+	$("#range_property").addEventListener("input", function() {
+		overlays.changeResource();
 	});
 
 	window.addEventListener("keyup", function(event) {
@@ -324,7 +323,7 @@ function clear(element, removeListeners=true) {
  */
 
 function Editor() {
-	this.pud=null;
+	this.pud={};
 	this.path="";
 
 	// current player
@@ -502,11 +501,9 @@ Editor.prototype.drawUnitMap=function() {
 		// changes player colors to match unit owner
 		for (let i=0; i<imageData.data.length; i+=4) { // 4 for RGBA
 			for (let j=0; j<4; j++) { // 4 colors for each player
-				if (
-					imageData.data[i]  ==data.colors[0][j].r&&
-					imageData.data[i+1]==data.colors[0][j].g&&
-					imageData.data[i+2]==data.colors[0][j].b
-				) {
+				if (imageData.data[i]  ==data.colors[0][j].r
+				  &&imageData.data[i+1]==data.colors[0][j].g
+				  &&imageData.data[i+2]==data.colors[0][j].b) {
 					imageData.data[i]  =data.colors[owner][j].r;
 					imageData.data[i+1]=data.colors[owner][j].g;
 					imageData.data[i+2]=data.colors[owner][j].b;
@@ -704,6 +701,24 @@ Editor.prototype.changeTileset=function(tileset) {
 	this.tiles.src="tilesets/"+this.getTileset(tileset)+".png";
 	this.tiles.addEventListener("load", this.drawTileMap.bind(this));
 
+	if (tileset==SWAMP) {
+		// remaps tiles that are unspecified for swamp tileset
+		this.pud.tileMap=this.pud.tileMap.map(function(tile) {
+			let rand=Math.floor(Math.random()*3)-1;
+
+			switch (tile) {
+				case 0x003a:
+				case 0x003b:
+					return 0x0030+rand;
+				case 0x004a:
+				case 0x004b:
+					return 0x0040+rand;
+				default:
+					return tile;
+			}
+		});
+	}
+
 	this.drawUnitMap();
 	this.changeTerrainPalette();
 	this.changeUnitPalette();
@@ -865,12 +880,12 @@ Overlays.prototype.openProperties=function(key) {
 	this.show(key);
 
 	function openCreate() {
-		self.setRadio("size",    editor.pud.width);
-		self.setRadio("terrain", editor.pud.tileset);
+		setRadio("size",    editor.pud.width||DEFAULT_SIZE);
+		setRadio("terrain", editor.pud.tileset||DEFAULT_TILESET);
 	}
 
 	function openMap() {
-		self.setRadio("tileset", editor.pud.tileset);
+		setRadio("tileset", editor.pud.tileset);
 
 		$("#text_filename").value   =editor.pud.filename;
 		$("#text_width").value      =editor.pud.width;
@@ -889,9 +904,9 @@ Overlays.prototype.openProperties=function(key) {
 		});
 
 		for (let i=0; i<MAX_PLAYERS; i++) {
-			self.setRadio("race"+i,        editor.pud.races[i]);
-			self.setSelect("controller"+i, editor.pud.controller[i]);
-			self.setSelect("ai"+i,         editor.pud.ai[i]);
+			setRadio("race"+i,        editor.pud.races[i]);
+			setSelect("controller"+i, editor.pud.controller[i]);
+			setSelect("ai"+i,         editor.pud.ai[i]);
 		}
 	}
 
@@ -1010,6 +1025,24 @@ Overlays.prototype.openProperties=function(key) {
 		select.selectedIndex=0;
 		self.changeResource();
 		self.fillProperties("unitMap");
+	}
+
+	function setRadio(name, compare) {
+		let radios=document.getElementsByName("radio_"+name);
+
+		for (let element of radios) {
+			element.checked=element.value==compare;
+		}
+	}
+
+	function setSelect(id, value) {
+		let select=$("#select_"+id), options=select.options;
+
+		for (let i in options) {
+			if (options[i].value==value) {
+				select.selectedIndex=i;
+			}
+		}
 	}
 };
 
@@ -1240,8 +1273,8 @@ Overlays.prototype.saveProperties=function(key) {
 	this.hide(key);
 
 	function saveCreate() {
-		let tileset=self.saveRadio("terrain");
-		let size   =self.saveRadio("size");
+		let tileset=readRadio("terrain");
+		let size   =readRadio("size");
 
 		files.loadTemplate(editor.getTileset(tileset), size);
 	}
@@ -1250,7 +1283,7 @@ Overlays.prototype.saveProperties=function(key) {
 		editor.pud.filename=$("#text_filename").value;
 		editor.pud.description=$("#text_description").value;
 
-		let tileset=self.saveRadio("tileset");
+		let tileset=readRadio("tileset");
 
 		if (editor.pud.tileset!=tileset){
 			editor.changeTileset(tileset);
@@ -1261,9 +1294,9 @@ Overlays.prototype.saveProperties=function(key) {
 
 	function savePlayers() {
 		for (let i=0; i<MAX_PLAYERS; i++) {
-			editor.pud.races[i]     =self.saveRadio("race"+i);
-			editor.pud.controller[i]=self.saveSelect("controller"+i);
-			editor.pud.ai[i]        =self.saveSelect("ai"+i);
+			editor.pud.races[i]     =readRadio("race"+i);
+			editor.pud.controller[i]=$("#controller"+i).value;
+			editor.pud.ai[i]        =$("#ai"+i).value;
 		}
 
 		editor.changeUnitPalette();
@@ -1271,9 +1304,9 @@ Overlays.prototype.saveProperties=function(key) {
 
 	function saveResources() {
 		for (let i=0; i<MAX_PLAYERS; i++) {
-			editor.pud.startingGold[i]  =self.saveNumber("startingGold"+i);
-			editor.pud.startingLumber[i]=self.saveNumber("startingLumber"+i);
-			editor.pud.startingOil[i]   =self.saveNumber("startingOil"+i);
+			editor.pud.startingGold[i]  =readNumber("startingGold"+i);
+			editor.pud.startingLumber[i]=readNumber("startingLumber"+i);
+			editor.pud.startingOil[i]   =readNumber("startingOil"+i);
 		}
 	}
 
@@ -1307,6 +1340,21 @@ Overlays.prototype.saveProperties=function(key) {
 				editor.pud.unitMap[index][property]=value;
 			}, self);
 		}, self);
+	}
+
+	function readNumber(id, size) {
+		let num=Number.parseInt($("#number_"+id).value);
+		return Math.max(num, 0);
+	}
+
+	function readRadio(name) {
+		let radios=document.getElementsByName("radio_"+name);
+
+		for (let element of radios) {
+			if (element.checked) {
+				return Number.parseInt(element.value);
+			}
+		}
 	}
 
 	function mergeWorking(key) {
@@ -1407,43 +1455,6 @@ Overlays.prototype.changeIcon=function(input, img, select) {
 
 Overlays.prototype.changeResource=function() {
 	$("#resource").textContent=$("#range_property").value*2500;
-};
-
-Overlays.prototype.setRadio=function(name, compare) {
-	let radios=document.getElementsByName("radio_"+name);
-
-	for (let element of radios) {
-		element.checked=element.value==compare;
-	}
-};
-
-Overlays.prototype.setSelect=function(id, value) {
-	let select=$("#select_"+id), options=select.options;
-
-	for (let i in options) {
-		if (options[i].value==value) {
-			select.selectedIndex=i;
-		}
-	}
-};
-
-Overlays.prototype.saveNumber=function(id, size) {
-	let num=Number.parseInt($("#number_"+id).value);
-	return Math.max(num, 0);
-};
-
-Overlays.prototype.saveRadio=function(name) {
-	let radios=document.getElementsByName("radio_"+name);
-
-	for (let element of radios) {
-		if (element.checked) {
-			return Number.parseInt(element.value);
-		}
-	}
-};
-
-Overlays.prototype.saveSelect=function(id) {
-	return $("#select_"+id).value;
 };
 
 /*
@@ -1579,7 +1590,7 @@ Pud.prototype.load=function(filename, buffer) {
 
 	if (this.unitMap.length==0) { // generates random ID for new maps
 		this.id=this.id.map(function() {
-			return Math.random()*256;
+			return Math.floor(Math.random()*256);
 		});
 	}
 
@@ -1750,7 +1761,7 @@ Pud.prototype.load=function(filename, buffer) {
 		}
 
 		return [x, y];
-	};
+	}
 
 	// gets unit map
 	function readUnit() {
@@ -1808,6 +1819,12 @@ Pud.prototype.save=function() {
 			continue;
 		}
 
+		// only writes restriction data if not using default values
+		if (key=="ALOW"&&!this.useAlow) {
+			sections.delete(key);
+			continue;
+		}
+
 		length+=QWORD+contents.length;
 	}
 
@@ -1815,11 +1832,6 @@ Pud.prototype.save=function() {
 
 	for (let [key, contents] of sections) {
 		if (contents==undefined) {
-			continue;
-		}
-
-		// only writes restriction data if not using default values
-		if (key=="ALOW"&&!this.useAlow) {
 			continue;
 		}
 
@@ -1844,11 +1856,9 @@ Pud.prototype.save=function() {
 	function convertNum(num, size) {
 		let arr=new Uint8Array(size);
 
-		for (let i=0; i<arr.length; i++) {
-			arr[i]=(num&(0xff<<i*8))>>i*8;
-		}
-
-		return arr;
+		return arr.map(function(undefined, i) {
+			return (num&(0xff<<i*8))>>i*8;
+		});
 	}
 
 	// converts array with elements of given size into typed array
@@ -1907,15 +1917,13 @@ Pud.prototype.save=function() {
 	function convertDim(data) {
 		let arr=new Uint8Array(DWORD*data.length), pos=0;
 
-		for (let i=0; i<data.length; i++) {
+		for (let i=0; i<data.length; i++, pos+=DWORD) {
 			let x=convertNum(data[i].x, WORD), y=convertNum(data[i].y, WORD);
 
 			arr[pos]  =x[0];
 			arr[pos+1]=x[1];
 			arr[pos+2]=y[0];
 			arr[pos+3]=y[1];
-
-			pos+=DWORD;
 		}
 
 		return arr;
