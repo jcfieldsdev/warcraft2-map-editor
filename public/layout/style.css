@@ -173,6 +173,11 @@ canvas#select {
 	z-index: 4;
 }
 
+div#control {
+	display: flex;
+	justify-content: space-between;
+}
+
 div#editor div, div#filename, div#map, div#terrain, div#restrictions table th {
 	text-align: center;
 }

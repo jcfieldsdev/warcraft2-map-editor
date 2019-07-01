@@ -47,7 +47,7 @@
 </ul>
 <div id="layers"><label><input type="checkbox" value="tileMap" checked="checked" class="layer"> Terrain</label>
 <label><input type="checkbox" value="unitMap" checked="checked" class="layer"> Units</label>
-<label><input type="checkbox" value="movementMap" checked="checked" class="layer"> Move</label>
+<label><input type="checkbox" value="movementMap" class="layer"> Move</label>
 <label><input type="checkbox" value="grid" class="layer"> Grid</label></div></div>
 <div id="terrain" class="palette">
 <div>Brightness:</div>
@@ -307,12 +307,13 @@
 <div id="overlay_restrictions" class="overlay"><div class="title"><h2>Restrictions</h2>
 <button type="button" value="restrictions" title="Save" class="save"><img src="layout/widget-save.svg" alt="Save"></button>
 <button type="button" value="restrictions" title="Close" class="close"><img src="layout/widget-close.svg" alt="Close"></button></div>
-<select id="select_restrictions">
+<div id="control"><div><select id="select_restrictions">
 	<option value="units">Units</option>
 	<option value="upgrades">Upgrades</option>
 	<option value="spells">Spells</option>
 	<option value="spellsResearched">Spells Researched</option>
-</select>
+</select></div>
+<div><label><input type="checkbox" value="restrictions" id="checkbox_restrictions" class="defaults"> Use default data.</label></div></div>
 <div id="restrictions"><table></table></div></div>
 <div id="overlay_link" class="overlay"><div class="title"><h2>Link to Map</h2>
 <button type="button" value="link" title="Close" class="close"><img src="layout/widget-close.svg" alt="Close"></button></div>

@@ -964,9 +964,10 @@ Overlays.prototype.openProperties=function(key) {
 	}
 
 	function openRestrictions() {
-		if (editor.pud.restrictions!=undefined) {
-			self.fillProperties("restrictions");
-		}
+		$("#checkbox_restrictions").checked=!editor.pud.useAlow;
+		$("#select_restrictions").disabled=!editor.pud.useAlow;
+
+		self.fillProperties("restrictions");
 	}
 
 	function openSelection() {
@@ -1213,6 +1214,7 @@ Overlays.prototype.saveProperties=function(key) {
 		saveResources();
 	} else if (key=="restrictions") {
 		saveRestrictions();
+		editor.pud.useAlow=!$("#checkbox_restrictions").checked;
 	} else if (key=="unitMap") {
 		saveSelection();
 	} else { // units and upgrades
@@ -1445,6 +1447,7 @@ function Pud(filename="", struct={}) {
 	this.width=0;
 	this.height=0;
 	this.tileset=0;
+	this.useAlow=false;
 
 	this.races=[];
 	this.controller=[];
@@ -1459,9 +1462,9 @@ function Pud(filename="", struct={}) {
 	this.actionMap=[];
 	this.unitMap=[];
 
-	this.units=[];
-	this.upgrades=[];
-	this.restrictions=[];
+	this.units={};
+	this.upgrades={};
+	this.restrictions={};
 }
 
 Pud.prototype.load=function(filename, buffer) {
@@ -1538,6 +1541,26 @@ Pud.prototype.load=function(filename, buffer) {
 	this.ai.forEach(function(ai) {
 		this.valid=ai<=0x52;
 	}, this);
+
+	this.useAlow=this.restrictions!=undefined;
+
+	if (!this.useAlow) {
+		this.restrictions={};
+
+		Object.keys(data.defaults.restrictions).forEach(function(key) {
+			this.restrictions[key]=[];
+
+			Object.keys(data.defaults.restrictions[key]).forEach(function(i) {
+				let keys=Object.keys(data.defaults.restrictions[key][i]);
+				this.restrictions[key][i]=[];
+
+				keys.forEach(function(j) {
+					let value=data.defaults.restrictions[key][i][j];
+					this.restrictions[key][i][j]=value;
+				}, this);
+			}, this);
+		}, this);
+	}
 
 	// converts hex to ASCII
 	function hexToStr(arr) {
@@ -1771,6 +1794,11 @@ Pud.prototype.save=function() {
 
 	for (let [key, contents] of sections) {
 		if (contents==undefined) {
+			continue;
+		}
+
+		// only writes restriction data if not using default values
+		if (key=="ALOW"&&!this.useAlow) {
 			continue;
 		}
 
