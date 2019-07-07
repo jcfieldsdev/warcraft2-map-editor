@@ -16,7 +16,7 @@ const ORC    ="orc";
 const NEUTRAL="neutral";
 
 // game mechanics
-const MAX_PLAYERS=8;
+const PLAYERS    =8;
 const TILE_SIZE  =32;
 const MAX_WIDTH  =128;
 const MAX_HEIGHT =128;
@@ -24,6 +24,7 @@ const LAST_ICON  =195;
 const UNIT_BOUNDARY=58;
 
 // units
+const START_LOCATION=95;
 const CRITTER  =57;
 const GOLD_MINE=92;
 const OIL_PATCH=93;
@@ -40,7 +41,15 @@ const DEFAULT_SIZE=128;
 const MINIMAP_SIZE=200;
 const LEFT_MARGIN =270;
 const FRAME_COLOR ="#fff";
+const PLACE_VALID_COLOR ="#fff";
+const PLACE_ERROR_COLOR ="#f00";
 const SELECT_COLOR="#0f0";
+
+// mouse modes
+const SELECT_UNITS=0;
+const DRAG_SELECT =1;
+const PLACE_UNIT  =2;
+const EDIT_TERRAIN=3;
 
 // file names and locations
 const MAPS_DIR="maps/";
@@ -92,25 +101,38 @@ window.addEventListener("load", function() {
 	// for map
 	$("#select").addEventListener("mousedown", function(event) {
 		if (event.button==LEFT) {
-			editor.startSelect(event.clientX, event.clientY);
+			if (editor.mode==SELECT_UNITS) {
+				editor.startSelect(event.clientX, event.clientY);
+			} else if (editor.mode==PLACE_UNIT) {
+				editor.addUnit(event.clientX, event.clientY);
+			}
 		}
 	});
 	$("#select").addEventListener("mouseup", function(event) {
 		if (event.button==LEFT) {
-			editor.selectUnits(
-				event.clientX, event.clientY,
-				event.shiftKey,
-				editor.selectMultiple
-			);
+			if (editor.mode==DRAG_SELECT) {
+				editor.selectUnits(
+					event.clientX, event.clientY,
+					event.shiftKey,
+					editor.selectMultiple
+				);
+			}
 		} else if (event.button==RIGHT) {
-			if (Object.keys(editor.selected).length>0) {
-				overlays.openProperties("unitMap");
+			if (editor.mode==SELECT_UNITS) {
+				if (Object.keys(editor.selected).length>0) {
+					overlays.openProperties("unitMap");
+				}
+			} else if (editor.mode==PLACE_UNIT) {
+				editor.mode=SELECT_UNITS;
+				editor.clearSelect();
 			}
 		}
 	});
 	$("#select").addEventListener("mousemove", function(event) {
-		if (editor.dragSelect) {
+		if (editor.mode==DRAG_SELECT) {
 			editor.drawSelect(event.clientX, event.clientY);
+		} else if (editor.mode==PLACE_UNIT) {
+			editor.placeUnit(event.clientX, event.clientY);
 		}
 	});
 	$("#select").addEventListener("contextmenu", function(event) {
@@ -193,7 +215,12 @@ window.addEventListener("load", function() {
 		}
 
 		if (key==27) { // Esc
-			overlays.closeAll();
+			if (overlays.active) {
+				overlays.closeAll();
+			} else {
+				editor.mode=SELECT_UNITS;
+				editor.clearSelect();
+			}
 		}
 
 		if (key>=48&&key<=56) { // 0-8
@@ -326,8 +353,7 @@ function Editor() {
 	this.pud={};
 	this.path="";
 
-	// current player
-	this.player=0;
+	this.mode=SELECT_UNITS;
 
 	// canvases
 	this.tileMap=null;
@@ -339,7 +365,6 @@ function Editor() {
 	this.tiles=null;
 
 	// box selection
-	this.dragSelect=false;
 	this.selectMultiple=false;
 	this.selected={};
 	this.selectX=0;
@@ -352,6 +377,11 @@ function Editor() {
 	this.y=0;
 	this.scaleX=0;
 	this.scaleY=0;
+
+	// unit placement
+	this.unitType=0;
+	this.unitSize={};
+	this.player=0;
 }
 
 Editor.prototype.open=function(filename, path, buffer) {
@@ -444,94 +474,80 @@ Editor.prototype.drawTileMap=function() {
 	this.drawFrame();
 };
 
-Editor.prototype.drawUnitMap=function() {
-	let unitMap=this.unitMap, miniUnitMap=this.miniUnitMap;
+Editor.prototype.drawUnit=function(unit) {
+	let unitSize=1, img=new Image();
 
-	// clears canvas every time or units will stack when tileset changed
-	unitMap.clearRect(0, 0, $("#unitMap").width, $("#unitMap").height);
-	miniUnitMap.scale(this.scaleX, this.scaleY);
+	if (unit.id in this.pud.units.unitSize) {
+		unitSize=this.pud.units.unitSize[unit.id];
+	}
 
-	this.pud.unitMap.forEach(function(unit) {
-		let unitSize=1, img=new Image();
+	let path="units/"+this.getTileset(this.pud.tileset)+"/";
 
-		if (unit.type in this.pud.units.unitSize) {
-			unitSize=this.pud.units.unitSize[unit.type];
-		}
+	img.src=path+unit.id.toString().padStart(4, "0")+".png";
+	img.addEventListener("load", function() {
+		let x=unit.x*TILE_SIZE, y=unit.y*TILE_SIZE;
+		let w=unitSize.x*TILE_SIZE, h=unitSize.y*TILE_SIZE;
 
-		let path="units/"+this.getTileset(this.pud.tileset)+"/";
+		this.drawUnitMap(x, y, w, h, unit, img);
+		this.drawMiniMap(x, y, w, h, unit);
+	}.bind(this));
+};
 
-		img.src=path+unit.type.toString().padStart(4, "0")+".png";
-		img.addEventListener("load", function() {
-			let x=unit.x*TILE_SIZE, y=unit.y*TILE_SIZE;
-			let w=unitSize.x*TILE_SIZE, h=unitSize.y*TILE_SIZE;
+Editor.prototype.drawUnitMap=function(x, y, w, h, unit, img) {
+	let sx=0, sy=0, id=unit.id, owner=Math.min(unit.owner, 7);
 
-			drawUnit(unitMap, this, unit, x, y, w, h);
-			drawMiniMap(miniUnitMap, unit.owner, x, y, w, h, unit);
-		});
-	}, this);
+	if (id<UNIT_BOUNDARY) { // units, not buildings
+		// centers unit in tile
+		x-=(img.width-w)/2;
+		y-=(img.width-h)/2;
 
-	function drawUnit(unitMap, img, unit, x, y, w, h) {
-		let sx=0, sy=0, type=unit.type, owner=unit.owner;
+		w=img.width;
+		h=img.width;
 
-		if (type<UNIT_BOUNDARY) { // units, not buildings
-			// centers unit in tile
-			x-=(img.width-w)/2;
-			y-=(img.width-h)/2;
+		// picks random idle frame
+		sy=h*Math.floor(Math.random()*5);
+	}
 
-			w=img.width;
-			h=img.width;
+	this.unitMap.drawImage(img, sx, sy, w, h, x, y, w, h);
 
-			// picks random idle frame
-			sy=h*Math.floor(Math.random()*5);
-		}
+	if (owner==0) { // artwork is already in player 1 colors by default
+		return;
+	}
 
-		unitMap.drawImage(img, sx, sy, w, h, x, y, w, h);
+	let imageData=this.unitMap.getImageData(x, y, w, h);
+	owner=Number.parseInt(owner);
 
-		if (owner==0) { // artwork is already in player 1 colors by default
-			return;
-		}
-
-		if (owner>7) { // neutral players use same colors as player 8
-			owner=7;
-		}
-
-		let imageData=unitMap.getImageData(x, y, w, h);
-		owner=Number.parseInt(owner);
-
-		// changes player colors to match unit owner
-		for (let i=0; i<imageData.data.length; i+=4) { // 4 for RGBA
-			for (let j=0; j<4; j++) { // 4 colors for each player
-				if (imageData.data[i]  ==data.colors[0][j].r
-				  &&imageData.data[i+1]==data.colors[0][j].g
-				  &&imageData.data[i+2]==data.colors[0][j].b) {
-					imageData.data[i]  =data.colors[owner][j].r;
-					imageData.data[i+1]=data.colors[owner][j].g;
-					imageData.data[i+2]=data.colors[owner][j].b;
-				}
+	// changes player colors to match unit owner
+	for (let i=0; i<imageData.data.length; i+=4) { // 4 for RGBA
+		for (let j=0; j<4; j++) { // 4 colors for each player
+			if (imageData.data[i]  ==data.colors[0][j].r
+			  &&imageData.data[i+1]==data.colors[0][j].g
+			  &&imageData.data[i+2]==data.colors[0][j].b) {
+				imageData.data[i]  =data.colors[owner][j].r;
+				imageData.data[i+1]=data.colors[owner][j].g;
+				imageData.data[i+2]=data.colors[owner][j].b;
 			}
 		}
-
-		unitMap.putImageData(imageData, x, y);
 	}
 
-	function drawMiniMap(miniUnitMap, owner, x, y, w, h) {
-		if (owner>7) { // neutral players use same color as player 8
-			owner=7;
-		}
+	this.unitMap.putImageData(imageData, x, y);
+};
 
-		// uses first player color for minimap squares
-		let r=data.colors[owner][0].r.toString(16).padStart(2, "0");
-		let g=data.colors[owner][0].g.toString(16).padStart(2, "0");
-		let b=data.colors[owner][0].b.toString(16).padStart(2, "0");
+Editor.prototype.drawMiniMap=function(x, y, w, h, unit) {
+	let owner=Math.min(unit.owner, 7); // neutral players use player 8 colors
 
-		x=Math.floor(x);
-		y=Math.floor(y);
-		w=Math.ceil(w);
-		h=Math.ceil(h);
+	// uses first player color for minimap squares
+	let r=data.colors[owner][0].r.toString(16).padStart(2, "0");
+	let g=data.colors[owner][0].g.toString(16).padStart(2, "0");
+	let b=data.colors[owner][0].b.toString(16).padStart(2, "0");
 
-		miniUnitMap.fillStyle="#"+r+g+b;
-		miniUnitMap.fillRect(x, y, w, h);
-	}
+	x=Math.floor(x);
+	y=Math.floor(y);
+	w=Math.ceil(w);
+	h=Math.ceil(h);
+
+	this.miniUnitMap.fillStyle="#"+r+g+b;
+	this.miniUnitMap.fillRect(x, y, w, h);
 };
 
 Editor.prototype.drawMovementMap=function() {
@@ -582,8 +598,12 @@ Editor.prototype.drawFrame=function() {
 	this.frame.stroke();
 };
 
+Editor.prototype.clearSelect=function() {
+	this.select.clearRect(0, 0, $("#select").width, $("#select").height);
+};
+
 Editor.prototype.startSelect=function(x, y) {
-	this.dragSelect=true;
+	this.mode=DRAG_SELECT;
 	this.selectX=window.scrollX+x-LEFT_MARGIN;
 	this.selectY=window.scrollY+y;
 };
@@ -593,7 +613,7 @@ Editor.prototype.drawSelect=function(x, y) {
 	let w=window.scrollX+x-this.selectX-LEFT_MARGIN;
 	let h=window.scrollY+y-this.selectY;
 
-	this.select.clearRect(0, 0, $("#select").width, $("#select").height);
+	this.clearSelect();
 	this.select.beginPath();
 	this.select.rect(this.selectX, this.selectY, w, h);
 	this.select.lineWidth=1;
@@ -602,13 +622,13 @@ Editor.prototype.drawSelect=function(x, y) {
 };
 
 Editor.prototype.selectUnits=function(x, y, add=false, multiple=false) {
-	this.dragSelect=false;
+	this.mode=SELECT_UNITS;
 	this.selectMultiple=false;
 
 	if (!add) {
 		this.selected={};
 
-		this.select.clearRect(0, 0, $("#select").width, $("#select").height);
+		this.clearSelect();
 		this.select.lineWidth=1;
 		this.select.strokeStyle=SELECT_COLOR;
 	}
@@ -624,11 +644,11 @@ Editor.prototype.selectUnits=function(x, y, add=false, multiple=false) {
 	y2=Math.floor((window.scrollY+y)/TILE_SIZE);
 
 	Object.values(this.pud.unitMap).forEach(function(unit, i) {
-		if (!this.pud.units.unitSize.hasOwnProperty(unit.type)) {
+		if (!this.pud.units.unitSize.hasOwnProperty(unit.id)) {
 			return;
 		}
 
-		let unitSize=this.pud.units.unitSize[unit.type];
+		let unitSize=this.pud.units.unitSize[unit.id];
 		let gx1=unit.x, gy1=unit.y; // top left
 		let gx2=unit.x+unitSize.x-1, gy2=unit.y+unitSize.y-1; // bottom right
 
@@ -665,6 +685,176 @@ Editor.prototype.selectUnits=function(x, y, add=false, multiple=false) {
 	}, this);
 };
 
+Editor.prototype.placeUnit=function(x, y) {
+	[x, y]=this.findNearestTile(x, y, this.unitSize.x, this.unitSize.y);
+
+	let valid=this.validateArea(x, y);
+
+	this.clearSelect();
+	this.select.beginPath();
+	this.select.rect(
+		x*TILE_SIZE, y*TILE_SIZE,
+		TILE_SIZE*this.unitSize.x, TILE_SIZE*this.unitSize.y
+	);
+	this.select.lineWidth=1;
+	this.select.strokeStyle=valid?PLACE_VALID_COLOR:PLACE_ERROR_COLOR;
+	this.select.stroke();
+};
+
+Editor.prototype.addUnit=function(x, y) {
+	[x, y]=this.findNearestTile(x, y);
+
+	if (!this.validateArea(x, y)) {
+		return;
+	}
+
+	let property=0;
+
+	// default resources
+	if (this.unitType==GOLD_MINE) {
+		property=6;
+	} else if (this.unitType==OIL_PATCH) {
+		property=2;
+	}
+
+	// removes existing start location if new one is placed
+	if (this.unitType==START_LOCATION) {
+		this.pud.unitMap=this.pud.unitMap.filter(function(unit) {
+			return unit.id!=START_LOCATION||unit.owner!=this.player;
+		}, this);
+	}
+
+	let unit={
+		owner: this.player,
+		id:    this.unitType,
+		property,
+		x,
+		y
+	};
+	this.pud.unitMap.push(unit);
+	this.drawUnit(unit);
+};
+
+Editor.prototype.findNearestTile=function(x, y, w, h) {
+	x+=window.scrollX;
+	y+=window.scrollY;
+
+	x=Math.max(Math.floor((x-LEFT_MARGIN)/TILE_SIZE), 0);
+	y=Math.max(Math.floor(y/TILE_SIZE), 0);
+
+	let flags=this.pud.units.flags[this.unitType];
+	const AIR=flags[1], SEA=flags[3];
+	const OIL_PLATFORM=flags[11], OIL_PATCH=flags[21];
+
+	// oil patches are only allowed on odd dimensions
+	if (OIL_PATCH||OIL_PLATFORM) {
+		if (x%2==0) {
+			x++;
+		}
+
+		if (y%2==0) {
+			y++;
+		}
+	}
+
+	if (x+w>this.pud.width) {
+		x=this.pud.width-w; // prevents placing past map width
+	}
+
+	if (y+h>this.pud.width) {
+		y=this.pud.height-h; // prevents placing past map height
+	}
+
+	// air and sea units are only allowed on even dimensions
+	if (AIR||SEA) {
+		if (x%2!=0) {
+			x++;
+		}
+
+		if (y%2!=0) {
+			y++;
+		}
+	}
+
+	return [x, y];
+};
+
+Editor.prototype.validateArea=function(x, y) {
+	let self=this;
+	let points=computePoints(x, y, this.unitSize), valid=true;
+
+	let flags=this.pud.units.flags[this.unitType];
+	const LAND=1, AIR=2, SEA=3;
+	let unitType=getUnitType(flags);
+	const BUILDING=flags[5], SHORE_BUILDING=flags[16];
+	const OIL_PLATFORM=flags[11], OIL_PATCH=flags[21];
+
+	// checks if area contains other units
+	this.pud.unitMap.forEach(function(unit) {
+		if (unitType!=getUnitType(this.pud.units.flags[unit.id])) {
+			return; // prevents stacking unit of same type (land, air, sea)
+		}
+
+		computePoints(
+			unit.x, unit.y,
+			this.pud.units.unitSize[unit.id]
+		).forEach(function(pt) {
+			if (points.includes(pt)) {
+				valid=false;
+			}
+		});
+	}, this);
+
+	// checks if unit is allowed on movement tile
+	for (let i in points) {
+		let point=points[i];
+		let special=this.pud.movementMap[point]&0xff00;
+		let tile   =this.pud.movementMap[point]&0x00ff;
+
+		if (special==0x00) {
+			if (unitType==LAND) {
+				valid&=tile==0x00||tile==0x01||tile==0x11;
+			} else if (unitType==AIR) {
+				valid&=true;
+			} else if (unitType==SEA||OIL_PATCH||OIL_PLATFORM) {
+				valid&=tile==0x00||tile==0x40;
+			} else if (BUILDING) {
+				valid&=tile==0x00||tile==0x01;
+			} else if (SHORE_BUILDING) {
+				valid&=tile==0x00||tile==0x02||tile==0x82;
+			}
+		} else if (special==0x02) {
+			if (unitType==AIR) {
+				valid=false;
+			}
+		} else if (special=0xff) {
+			valid=false;
+		}
+
+		if (!valid) {
+			break;
+		}
+	}
+
+	return valid;
+
+	function computePoints(x, y, unitSize) {
+		let points=[];
+
+		for (let i=0; i<unitSize.y; i++) {
+			for (let j=0; j<unitSize.x; j++) {
+				points.push(x+j+self.pud.width*(y+i));
+			}
+		}
+
+		return points;
+	}
+
+	function getUnitType(flags) {
+		return LAND*flags[0]+AIR*flags[1]+SEA*flags[3];
+	}
+};
+
 Editor.prototype.selectPlayer=function(player) {
 	$$(".player").forEach(function(element) {
 		element.classList.toggle("current", element.value==player);
@@ -675,13 +865,13 @@ Editor.prototype.selectPlayer=function(player) {
 	// changes owner of selected units
 	Object.values(this.selected).forEach(function(unit) {
 		// does not change ownership of critters, gold mines, or oil patches
-		if (unit.type!=CRITTER&&unit.type!=GOLD_MINE&&unit.type!=OIL_PATCH) {
+		if (unit.id!=CRITTER&&unit.id!=GOLD_MINE&&unit.id!=OIL_PATCH) {
 			unit.owner=player;
 		}
 	}, this);
 
 	this.player=player;
-	this.changeUnitPalette();
+	this.changeUnitPalette(); // in case race changes
 };
 
 Editor.prototype.selectPalette=function(palette) {
@@ -719,7 +909,12 @@ Editor.prototype.changeTileset=function(tileset) {
 		});
 	}
 
-	this.drawUnitMap();
+	// clears canvas every time or units will stack when tileset changed
+	this.unitMap.clearRect(0, 0, $("#unitMap").width, $("#unitMap").height);
+	this.miniUnitMap.scale(this.scaleX, this.scaleY);
+
+	this.pud.unitMap.forEach(this.drawUnit.bind(this));
+
 	this.changeTerrainPalette();
 	this.changeUnitPalette();
 };
@@ -749,14 +944,14 @@ Editor.prototype.changeUnitPalette=function() {
 	let ul=document.createElement("ul");
 	ul.id="unitsPalette";
 
-	for (let type in data.units[group]) {
+	for (let id in data.units[group]) {
 		let race=getRace();
 
-		if (!data.units[group][type].hasOwnProperty(race)) {
+		if (!data.units[group][id].hasOwnProperty(race)) {
 			race=NEUTRAL;
 		}
 
-		let unit=data.units[group][type][race];
+		let unit=data.units[group][id][race];
 
 		let li=document.createElement("li");
 		let button=document.createElement("button");
@@ -765,7 +960,12 @@ Editor.prototype.changeUnitPalette=function() {
 		let icon=unit.icon.toString().padStart(4, "0")+".png";
 
 		button.className="unit";
-		button.value=unit.icon;
+		button.value=unit.id;
+		button.addEventListener("click", function() {
+			this.mode=PLACE_UNIT;
+			this.unitType=unit.id;
+			this.unitSize=this.pud.units.unitSize[unit.id];
+		}.bind(this));
 
 		img.src="icons/"+this.getTileset(this.pud.tileset)+"/"+icon;
 		img.setAttribute("alt", "["+unit.name+"]");
@@ -836,6 +1036,10 @@ Overlays.prototype.show=function(id) {
 	this.closeAll();
 	this.active=id;
 	$("#overlay_"+id).classList.add("open");
+
+	editor.dragFrame=false;
+	editor.mode=SELECT_UNITS;
+	editor.clearSelect();
 };
 
 Overlays.prototype.hide=function(id) {
@@ -903,7 +1107,7 @@ Overlays.prototype.openProperties=function(key) {
 			}
 		});
 
-		for (let i=0; i<MAX_PLAYERS; i++) {
+		for (let i=0; i<PLAYERS; i++) {
 			setRadio("race"+i,        editor.pud.races[i]);
 			setSelect("controller"+i, editor.pud.controller[i]);
 			setSelect("ai"+i,         editor.pud.ai[i]);
@@ -911,7 +1115,7 @@ Overlays.prototype.openProperties=function(key) {
 	}
 
 	function openResources() {
-		for (let i=0; i<MAX_PLAYERS; i++) {
+		for (let i=0; i<PLAYERS; i++) {
 			$("#number_startingGold"+i).value  =editor.pud.startingGold[i];
 			$("#number_startingLumber"+i).value=editor.pud.startingLumber[i];
 			$("#number_startingOil"+i).value   =editor.pud.startingOil[i];
@@ -922,13 +1126,13 @@ Overlays.prototype.openProperties=function(key) {
 		let select=$("#select_units"), units={};
 
 		Object.keys(data.units).forEach(function(group) {
-			Object.keys(data.units[group]).forEach(function(type) {
-				Object.keys(data.units[group][type]).forEach(function(race) {
+			Object.keys(data.units[group]).forEach(function(id) {
+				Object.keys(data.units[group][id]).forEach(function(race) {
 					if (!units.hasOwnProperty(race)) {
 						units[race]=[];
 					}
 
-					let unit=data.units[group][type][race];
+					let unit=data.units[group][id][race];
 
 					if (unit.skip) {
 						return;
@@ -1007,9 +1211,9 @@ Overlays.prototype.openProperties=function(key) {
 		clear(select, false);
 
 		Object.keys(data.units).forEach(function(group) {
-			Object.keys(data.units[group]).forEach(function(type) {
-				Object.keys(data.units[group][type]).forEach(function(race) {
-					let unit=data.units[group][type][race];
+			Object.keys(data.units[group]).forEach(function(id) {
+				Object.keys(data.units[group][id]).forEach(function(race) {
+					let unit=data.units[group][id][race];
 					units[unit.id]=unit.name;
 				});
 			});
@@ -1018,13 +1222,13 @@ Overlays.prototype.openProperties=function(key) {
 		Object.entries(editor.selected).forEach(function([key, value]) {
 			let item=document.createElement("option");
 			item.value=key;
-			item.textContent=units[value.type]||"Unknown";
+			item.textContent=units[value.id]||"Unknown";
 			select.appendChild(item);
 		});
 
 		select.selectedIndex=0;
-		self.changeResource();
 		self.fillProperties("unitMap");
+		self.changeResource();
 	}
 
 	function setRadio(name, compare) {
@@ -1119,7 +1323,7 @@ Overlays.prototype.fillProperties=function(key) {
 		let td=document.createElement("th");
 		tr.appendChild(td);
 
-		for (let i=1; i<=MAX_PLAYERS; i++) {
+		for (let i=1; i<=PLAYERS; i++) {
 			let td=document.createElement("th");
 			td.className="player"+i;
 			td.textContent=i;
@@ -1161,7 +1365,7 @@ Overlays.prototype.fillProperties=function(key) {
 			});
 			tr.appendChild(td);
 
-			for (let j=0; j<MAX_PLAYERS; j++) {
+			for (let j=0; j<PLAYERS; j++) {
 				let value=false;
 
 				if (self.working.hasOwnProperty(index)) {
@@ -1226,7 +1430,7 @@ Overlays.prototype.fillProperties=function(key) {
 			$("#"+element.id).value=value;
 		}, self);
 
-		if (unit.type==GOLD_MINE||unit.type==OIL_PATCH) {
+		if (unit.id==GOLD_MINE||unit.id==OIL_PATCH) {
 			$("#row_resource").classList.remove("hidden");
 			$("#range_property").disabled=false;
 		} else {
@@ -1235,7 +1439,7 @@ Overlays.prototype.fillProperties=function(key) {
 			self.changeResource();
 		}
 
-		if (unit.type<UNIT_BOUNDARY) { // units, not buildings
+		if (unit.id<UNIT_BOUNDARY) { // units, not buildings
 			$("#row_ai").classList.remove("hidden");
 			$("#select_property").disabled=false;
 		} else {
@@ -1293,7 +1497,7 @@ Overlays.prototype.saveProperties=function(key) {
 	}
 
 	function savePlayers() {
-		for (let i=0; i<MAX_PLAYERS; i++) {
+		for (let i=0; i<PLAYERS; i++) {
 			editor.pud.races[i]     =readRadio("race"+i);
 			editor.pud.controller[i]=$("#controller"+i).value;
 			editor.pud.ai[i]        =$("#ai"+i).value;
@@ -1303,7 +1507,7 @@ Overlays.prototype.saveProperties=function(key) {
 	}
 
 	function saveResources() {
-		for (let i=0; i<MAX_PLAYERS; i++) {
+		for (let i=0; i<PLAYERS; i++) {
 			editor.pud.startingGold[i]  =readNumber("startingGold"+i);
 			editor.pud.startingLumber[i]=readNumber("startingLumber"+i);
 			editor.pud.startingOil[i]   =readNumber("startingOil"+i);
@@ -1570,7 +1774,7 @@ Pud.prototype.load=function(filename, buffer) {
 
 	this.useAlow=this.restrictions!=undefined;
 
-	if (!this.useAlow) {
+	if (!this.useAlow) { // copies default restriction data if no ALOW section
 		this.restrictions={};
 
 		Object.keys(data.defaults.restrictions).forEach(function(key) {
@@ -1777,7 +1981,7 @@ Pud.prototype.load=function(filename, buffer) {
 			unitMap.push({
 				x:        parseNum(unit.slice(i,   i+WORD)),
 				y:        parseNum(unit.slice(i+2, i+2+WORD)),
-				type:     unit[i+4],
+				id:       unit[i+4],
 				owner:    unit[i+5],
 				property: parseNum(unit.slice(i+6, i+6+WORD))
 			});
@@ -1994,7 +2198,7 @@ Pud.prototype.save=function() {
 			arr[pos+1]=x[1];
 			arr[pos+2]=y[0];
 			arr[pos+3]=y[1];
-			arr[pos+4]=unit.type;
+			arr[pos+4]=unit.id;
 			arr[pos+5]=unit.owner;
 			arr[pos+6]=property[0];
 			arr[pos+7]=property[1];
