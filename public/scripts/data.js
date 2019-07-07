@@ -2579,7 +2579,7 @@ data.restrictions={
 		"Elven Destroyer / Troll Destroyer",
 		"Transport",
 		"Battleship / Ogre Juggernaught",
-		"Submarine/Giant Turtle",
+		"Submarine / Giant Turtle",
 		"Flying Machine / Goblin Zeppelin",
 		"Gryphon Rider / Dragon",
 		"",
