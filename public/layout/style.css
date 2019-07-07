@@ -423,6 +423,10 @@ input[type="number"] {
 	width: 5em;
 }
 
+input[type="range"] {
+	width: 18em;
+}
+
 input[type="text"]:disabled {
 	border: 0;
 	text-align: center;
