@@ -10,11 +10,6 @@ const STANDARD =0x11;
 const EXPANSION=0x13;
 const MIME_TYPE="application/x-warcraft2-scenario";
 
-// factions
-const HUMAN  ="human";
-const ORC    ="orc";
-const NEUTRAL="neutral";
-
 // game mechanics
 const PLAYERS    =8;
 const TILE_SIZE  =32;
@@ -22,12 +17,6 @@ const MAX_WIDTH  =128;
 const MAX_HEIGHT =128;
 const LAST_ICON  =195;
 const UNIT_BOUNDARY=58;
-
-// units
-const START_LOCATION=95;
-const CRITTER  =57;
-const GOLD_MINE=92;
-const OIL_PATCH=93;
 
 // tilesets
 const FOREST   =0;
@@ -379,8 +368,7 @@ function Editor() {
 	this.scaleY=0;
 
 	// unit placement
-	this.unitType=0;
-	this.unitSize={};
+	this.unit=0;
 	this.player=0;
 }
 
@@ -686,7 +674,8 @@ Editor.prototype.selectUnits=function(x, y, add=false, multiple=false) {
 };
 
 Editor.prototype.placeUnit=function(x, y) {
-	[x, y]=this.findNearestTile(x, y, this.unitSize.x, this.unitSize.y);
+	let unitSize=this.pud.units.unitSize[this.unit];
+	[x, y]=this.findNearestTile(x, y, unitSize.x, unitSize.y);
 
 	let valid=this.validateArea(x, y);
 
@@ -694,7 +683,7 @@ Editor.prototype.placeUnit=function(x, y) {
 	this.select.beginPath();
 	this.select.rect(
 		x*TILE_SIZE, y*TILE_SIZE,
-		TILE_SIZE*this.unitSize.x, TILE_SIZE*this.unitSize.y
+		TILE_SIZE*unitSize.x, TILE_SIZE*unitSize.y
 	);
 	this.select.lineWidth=1;
 	this.select.strokeStyle=valid?PLACE_VALID_COLOR:PLACE_ERROR_COLOR;
@@ -710,15 +699,20 @@ Editor.prototype.addUnit=function(x, y) {
 
 	let property=0;
 
+	let flags=this.pud.units.flags[this.unit];
+	const GOLD_MINE=flags[22], OIL_PATCH=flags[21], OIL_PLATFORM=flags[11];
+
 	// default resources
-	if (this.unitType==GOLD_MINE) {
+	if (GOLD_MINE) {
 		property=6;
-	} else if (this.unitType==OIL_PATCH) {
+	} else if (OIL_PATCH||OIL_PLATFORM) {
 		property=2;
 	}
 
+	const START_LOCATION=95;
+
 	// removes existing start location if new one is placed
-	if (this.unitType==START_LOCATION) {
+	if (this.unit==START_LOCATION) {
 		this.pud.unitMap=this.pud.unitMap.filter(function(unit) {
 			return unit.id!=START_LOCATION||unit.owner!=this.player;
 		}, this);
@@ -726,7 +720,7 @@ Editor.prototype.addUnit=function(x, y) {
 
 	let unit={
 		owner: this.player,
-		id:    this.unitType,
+		id:    this.unit,
 		property,
 		x,
 		y
@@ -742,9 +736,8 @@ Editor.prototype.findNearestTile=function(x, y, w, h) {
 	x=Math.max(Math.floor((x-LEFT_MARGIN)/TILE_SIZE), 0);
 	y=Math.max(Math.floor(y/TILE_SIZE), 0);
 
-	let flags=this.pud.units.flags[this.unitType];
-	const AIR=flags[1], SEA=flags[3];
-	const OIL_PLATFORM=flags[11], OIL_PATCH=flags[21];
+	let flags=this.pud.units.flags[this.unit];
+	const OIL_PATCH=flags[21], OIL_PLATFORM=flags[11];
 
 	// oil patches are only allowed on odd dimensions
 	if (OIL_PATCH||OIL_PLATFORM) {
@@ -765,6 +758,8 @@ Editor.prototype.findNearestTile=function(x, y, w, h) {
 		y=this.pud.height-h; // prevents placing past map height
 	}
 
+	const AIR=flags[1], SEA=flags[3];
+
 	// air and sea units are only allowed on even dimensions
 	if (AIR||SEA) {
 		if (x%2!=0) {
@@ -780,30 +775,31 @@ Editor.prototype.findNearestTile=function(x, y, w, h) {
 };
 
 Editor.prototype.validateArea=function(x, y) {
-	let self=this;
-	let points=computePoints(x, y, this.unitSize), valid=true;
+	let self=this, valid=true;
+	let points=computePoints(x, y, this.pud.units.unitSize[this.unit]);
 
-	let flags=this.pud.units.flags[this.unitType];
+	let flags=this.pud.units.flags[this.unit];
 	const LAND=1, AIR=2, SEA=3;
 	let unitType=getUnitType(flags);
-	const BUILDING=flags[5], SHORE_BUILDING=flags[16];
-	const OIL_PLATFORM=flags[11], OIL_PATCH=flags[21];
 
 	// checks if area contains other units
 	this.pud.unitMap.forEach(function(unit) {
 		if (unitType!=getUnitType(this.pud.units.flags[unit.id])) {
-			return; // prevents stacking unit of same type (land, air, sea)
+			return; // prevents stacking units of same type (land, air, sea)
 		}
 
 		computePoints(
-			unit.x, unit.y,
-			this.pud.units.unitSize[unit.id]
+			unit.x, unit.y, this.pud.units.unitSize[unit.id]
 		).forEach(function(pt) {
 			if (points.includes(pt)) {
 				valid=false;
 			}
 		});
 	}, this);
+
+	const BUILDING=flags[5], SHORE_BUILDING=flags[16];
+	const OIL_PATCH=flags[21], OIL_PLATFORM=flags[11];
+	let coast=0;
 
 	// checks if unit is allowed on movement tile
 	for (let i in points) {
@@ -821,7 +817,7 @@ Editor.prototype.validateArea=function(x, y) {
 			} else if (BUILDING) {
 				valid&=tile==0x00||tile==0x01;
 			} else if (SHORE_BUILDING) {
-				valid&=tile==0x00||tile==0x02||tile==0x82;
+				valid&=tile==0x00||tile==0x02||tile==0x82||tile==0x40;
 			}
 		} else if (special==0x02) {
 			if (unitType==AIR) {
@@ -831,9 +827,17 @@ Editor.prototype.validateArea=function(x, y) {
 			valid=false;
 		}
 
+		if (SHORE_BUILDING) { // counts coast tiles
+			coast+=tile==0x02||tile==0x82;
+		}
+
 		if (!valid) {
 			break;
 		}
+	}
+
+	if (SHORE_BUILDING) {
+		valid=coast>0; // shore buildings must be on at least one coast tile
 	}
 
 	return valid;
@@ -861,6 +865,8 @@ Editor.prototype.selectPlayer=function(player) {
 	});
 
 	player=Number.parseInt(player);
+
+	const CRITTER=57, GOLD_MINE=92, OIL_PATCH=93;
 
 	// changes owner of selected units
 	Object.values(this.selected).forEach(function(unit) {
@@ -944,6 +950,8 @@ Editor.prototype.changeUnitPalette=function() {
 	let ul=document.createElement("ul");
 	ul.id="unitsPalette";
 
+	const HUMAN="human", ORC="orc", NEUTRAL="neutral";
+
 	for (let id in data.units[group]) {
 		let race=getRace();
 
@@ -963,8 +971,7 @@ Editor.prototype.changeUnitPalette=function() {
 		button.value=unit.id;
 		button.addEventListener("click", function() {
 			this.mode=PLACE_UNIT;
-			this.unitType=unit.id;
-			this.unitSize=this.pud.units.unitSize[unit.id];
+			this.unit=unit.id;
 		}.bind(this));
 
 		img.src="icons/"+this.getTileset(this.pud.tileset)+"/"+icon;
@@ -1430,7 +1437,10 @@ Overlays.prototype.fillProperties=function(key) {
 			$("#"+element.id).value=value;
 		}, self);
 
-		if (unit.id==GOLD_MINE||unit.id==OIL_PATCH) {
+		let flags=editor.pud.units.flags[unit.id];
+		const GOLD_MINE=flags[22], OIL_PATCH=flags[21], OIL_PLATFORM=flags[11];
+
+		if (GOLD_MINE||OIL_PATCH||OIL_PLATFORM) {
 			$("#row_resource").classList.remove("hidden");
 			$("#range_property").disabled=false;
 		} else {
