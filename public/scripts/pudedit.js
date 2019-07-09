@@ -57,7 +57,7 @@ window.addEventListener("load", function() {
 
 	if (query=="") {
 		files.loadTemplate(DEFAULT_TILESET, DEFAULT_SIZE);
-	} else {
+	} else { // loads map specified in optional URL parameter
 		let dirs=query.split("/");
 		let filename=decodeURIComponent(dirs.pop());
 
@@ -225,42 +225,42 @@ window.addEventListener("load", function() {
 	});
 
 	// new/open/save buttons
-	$$(".basic").forEach(function(element) {
+	for (let element of $$(".basic")) {
 		element.addEventListener("click", function() {
 			$("#"+this.value).click();
 		});
-	});
+	}
 
 	// player buttons under minimap
-	$$(".player").forEach(function(element) {
+	for (let element of $$(".player")) {
 		element.addEventListener("click", function() {
 			editor.selectPlayer(this.value);
 		});
-	});
+	}
 
 	// tool palette tabs
-	$$(".tab").forEach(function(element) {
+	for (let element of $$(".tab")) {
 		element.addEventListener("click", function() {
 			editor.selectPalette(this.value);
 		});
-	});
+	}
 
 	// layer toggles
-	$$(".layer").forEach(function(element) {
+	for (let element of $$(".layer")) {
 		element.addEventListener("click", function() {
 			$("#"+this.value).classList.toggle("hidden", !this.checked);
 		});
-	});
+	}
 
 	// property sheet open buttons
-	$$(".properties").forEach(function(element) {
+	for (let element of $$(".properties")) {
 		element.addEventListener("click", function() {
 			overlays.openProperties(this.value);
 		});
-	});
+	}
 
 	// property sheet select boxes
-	$$(".fill").forEach(function(element) {
+	for (let element of $$(".fill")) {
 		element.addEventListener("input", function() {
 			let key=this.id.replace("select_", "");
 
@@ -273,42 +273,42 @@ window.addEventListener("load", function() {
 			overlays.saveWorking(key);
 			overlays.fillProperties(key);
 		});
-	});
+	}
 
 	// overlay save buttons
-	$$(".save").forEach(function(element) {
+	for (let element of $$(".save")) {
 		element.addEventListener("click", function() {
 			overlays.saveProperties(this.value);
 		});
-	});
+	}
 
 	// overlay close buttons
-	$$(".close").forEach(function(element) {
+	for (let element of $$(".close")) {
 		element.addEventListener("click", function() {
 			overlays.hide(this.value);
 		});
-	});
+	}
 
 	// property sheet "Use default values" buttons
-	$$(".defaults").forEach(function(element) {
+	for (let element of $$(".defaults")) {
 		element.addEventListener("click", function() {
 			$("#select_"+this.value).disabled=this.checked;
 		});
-	});
+	}
 
 	// property sheet "Revert" buttons
-	$$(".revert").forEach(function(element) {
+	for (let element of $$(".revert")) {
 		element.addEventListener("click", function() {
 			overlays.revertProperties(this.value);
 		});
-	});
+	}
 
 	// property sheet "Reset to Defaults" buttons
-	$$(".reset").forEach(function(element) {
+	for (let element of $$(".reset")) {
 		element.addEventListener("click", function() {
 			overlays.resetProperties(this.value);
 		});
-	});
+	}
 });
 
 function $(selector) {
@@ -316,7 +316,7 @@ function $(selector) {
 }
 
 function $$(selector) {
-	return Array.from(document.querySelectorAll(selector));
+	return document.querySelectorAll(selector);
 }
 
 function clear(element, removeListeners=true) {
@@ -387,6 +387,8 @@ Editor.prototype.open=function(filename, path, buffer) {
 	}
 
 	this.path=path;
+
+	// disables "Link to Map" button if user map is loaded
 	$("#link").disabled=!Boolean(path);
 
 	$("#filename").textContent=this.pud.filename;
@@ -422,7 +424,7 @@ Editor.prototype.open=function(filename, path, buffer) {
 	this.drawMovementMap();
 
 	function setSize(id, w, h) {
-		$("#"+id).width=w;
+		$("#"+id).width =w;
 		$("#"+id).height=h;
 	}
 };
@@ -431,7 +433,7 @@ Editor.prototype.drawTileMap=function() {
 	let tiles=data.tilesets[this.pud.tileset];
 	let x=0, y=0;
 
-	this.pud.tileMap.forEach(function(tile, i) {
+	for (let [i, tile] of this.pud.tileMap.entries()) {
 		let cx=x*TILE_SIZE, cy=y*TILE_SIZE;
 
 		if (tile in tiles) {
@@ -457,7 +459,7 @@ Editor.prototype.drawTileMap=function() {
 		} else {
 			x++;
 		}
-	}, this);
+	}
 
 	this.drawFrame();
 };
@@ -490,7 +492,7 @@ Editor.prototype.drawUnitMap=function(x, y, w, h, unit, img) {
 		y-=(img.width-h)/2;
 
 		w=img.width;
-		h=img.width;
+		h=w;
 
 		// picks random idle frame
 		sy=h*Math.floor(Math.random()*5);
@@ -543,7 +545,7 @@ Editor.prototype.drawMovementMap=function() {
 
 	this.movementMap.lineWidth=1;
 
-	this.pud.movementMap.forEach(function(tile, i) {
+	for (let [i, tile] of this.pud.movementMap.entries()) {
 		if (tile in data.movement) {
 			this.movementMap.strokeStyle=data.movement[tile];
 			this.movementMap.strokeRect(x*TILE_SIZE+2, y*TILE_SIZE+2, w, h);
@@ -555,7 +557,7 @@ Editor.prototype.drawMovementMap=function() {
 		} else {
 			x++;
 		}
-	}, this);
+	}
 };
 
 Editor.prototype.moveMap=function(x, y) {
@@ -575,15 +577,13 @@ Editor.prototype.updateCoords=function() {
 
 Editor.prototype.drawFrame=function() {
 	this.frame.clearRect(0, 0, $("#frame").width, $("#frame").height);
-	this.frame.beginPath();
-	this.frame.rect(
+	this.frame.lineWidth=2;
+	this.frame.strokeStyle=FRAME_COLOR;
+	this.frame.strokeRect(
 		this.x, this.y,
 		this.scaleX*(window.innerWidth-LEFT_MARGIN),
 		this.scaleY*window.innerHeight
 	);
-	this.frame.lineWidth=2;
-	this.frame.strokeStyle=FRAME_COLOR;
-	this.frame.stroke();
 };
 
 Editor.prototype.clearSelect=function() {
@@ -602,11 +602,9 @@ Editor.prototype.drawSelect=function(x, y) {
 	let h=window.scrollY+y-this.selectY;
 
 	this.clearSelect();
-	this.select.beginPath();
-	this.select.rect(this.selectX, this.selectY, w, h);
 	this.select.lineWidth=1;
 	this.select.strokeStyle=SELECT_COLOR;
-	this.select.stroke();
+	this.select.strokeRect(this.selectX, this.selectY, w, h);
 };
 
 Editor.prototype.selectUnits=function(x, y, add=false, multiple=false) {
@@ -631,7 +629,7 @@ Editor.prototype.selectUnits=function(x, y, add=false, multiple=false) {
 	x2=Math.floor((window.scrollX+x-LEFT_MARGIN)/TILE_SIZE);
 	y2=Math.floor((window.scrollY+y)/TILE_SIZE);
 
-	Object.values(this.pud.unitMap).forEach(function(unit, i) {
+	for (let [i, unit] of this.pud.unitMap.entries()) {
 		if (!this.pud.units.unitSize.hasOwnProperty(unit.id)) {
 			return;
 		}
@@ -662,15 +660,14 @@ Editor.prototype.selectUnits=function(x, y, add=false, multiple=false) {
 
 		if (boundaries&&(!add||!this.selected.hasOwnProperty(i))) {
 			this.select.beginPath();
-			this.select.rect(
+			this.select.strokeRect(
 				gx1*TILE_SIZE, gy1*TILE_SIZE,
 				unitSize.x*TILE_SIZE, unitSize.y*TILE_SIZE
 			);
-			this.select.stroke();
 
 			this.selected[i]=unit;
 		}
-	}, this);
+	}
 };
 
 Editor.prototype.placeUnit=function(x, y) {
@@ -680,14 +677,12 @@ Editor.prototype.placeUnit=function(x, y) {
 	let valid=this.validateArea(x, y);
 
 	this.clearSelect();
-	this.select.beginPath();
-	this.select.rect(
+	this.select.lineWidth=1;
+	this.select.strokeStyle=valid?PLACE_VALID_COLOR:PLACE_ERROR_COLOR;
+	this.select.strokeRect(
 		x*TILE_SIZE, y*TILE_SIZE,
 		TILE_SIZE*unitSize.x, TILE_SIZE*unitSize.y
 	);
-	this.select.lineWidth=1;
-	this.select.strokeStyle=valid?PLACE_VALID_COLOR:PLACE_ERROR_COLOR;
-	this.select.stroke();
 };
 
 Editor.prototype.addUnit=function(x, y) {
@@ -782,28 +777,29 @@ Editor.prototype.validateArea=function(x, y) {
 	const LAND=1, AIR=2, SEA=3;
 	let unitType=getUnitType(flags);
 
-	// checks if area contains other units
-	this.pud.unitMap.forEach(function(unit) {
-		if (unitType!=getUnitType(this.pud.units.flags[unit.id])) {
-			return; // prevents stacking units of same type (land, air, sea)
-		}
-
-		computePoints(
-			unit.x, unit.y, this.pud.units.unitSize[unit.id]
-		).forEach(function(pt) {
-			if (points.includes(pt)) {
-				valid=false;
-			}
-		});
-	}, this);
-
 	const BUILDING=flags[5], SHORE_BUILDING=flags[16];
 	const OIL_PATCH=flags[21], OIL_PLATFORM=flags[11];
+
+	// checks if area contains other units
+	for (let unit of Array.from(this.pud.unitMap)) {
+		if (!BUILDING&&unitType!=getUnitType(this.pud.units.flags[unit.id])) {
+			return; // allows air units over ground and sea units
+		}
+
+		let unitSize=this.pud.units.unitSize[unit.id];
+
+		for (let point of computePoints(unit.x, unit.y, unitSize)) {
+			if (points.includes(point)) {
+				valid=false;
+				break;
+			}
+		}
+	}
+
 	let coast=0;
 
 	// checks if unit is allowed on movement tile
-	for (let i in points) {
-		let point=points[i];
+	for (let [i, point] of points.entries()) {
 		let special=this.pud.movementMap[point]&0xff00;
 		let tile   =this.pud.movementMap[point]&0x00ff;
 
@@ -815,9 +811,12 @@ Editor.prototype.validateArea=function(x, y) {
 			} else if (unitType==SEA||OIL_PATCH||OIL_PLATFORM) {
 				valid&=tile==0x00||tile==0x40;
 			} else if (BUILDING) {
-				valid&=tile==0x00||tile==0x01;
-			} else if (SHORE_BUILDING) {
-				valid&=tile==0x00||tile==0x02||tile==0x82||tile==0x40;
+				if (SHORE_BUILDING) {
+					valid&=tile==0x02||tile==0x82||tile==0x40;
+					coast+=tile==0x02||tile==0x82; // counts coast tiles
+				} else {
+					valid&=tile==0x00||tile==0x01;
+				}
 			}
 		} else if (special==0x02) {
 			if (unitType==AIR) {
@@ -827,17 +826,13 @@ Editor.prototype.validateArea=function(x, y) {
 			valid=false;
 		}
 
-		if (SHORE_BUILDING) { // counts coast tiles
-			coast+=tile==0x02||tile==0x82;
-		}
-
 		if (!valid) {
 			break;
 		}
 	}
 
 	if (SHORE_BUILDING) {
-		valid=coast>0; // shore buildings must be on at least one coast tile
+		valid&=coast>0; // shore buildings must be on at least one coast tile
 	}
 
 	return valid;
@@ -860,34 +855,34 @@ Editor.prototype.validateArea=function(x, y) {
 };
 
 Editor.prototype.selectPlayer=function(player) {
-	$$(".player").forEach(function(element) {
+	for (let element of $$(".player")) {
 		element.classList.toggle("current", element.value==player);
-	});
+	}
 
 	player=Number.parseInt(player);
 
 	const CRITTER=57, GOLD_MINE=92, OIL_PATCH=93;
 
 	// changes owner of selected units
-	Object.values(this.selected).forEach(function(unit) {
+	for (let unit of Object.values(this.selected)) {
 		// does not change ownership of critters, gold mines, or oil patches
 		if (unit.id!=CRITTER&&unit.id!=GOLD_MINE&&unit.id!=OIL_PATCH) {
 			unit.owner=player;
 		}
-	}, this);
+	}
 
 	this.player=player;
 	this.changeUnitPalette(); // in case race changes
 };
 
 Editor.prototype.selectPalette=function(palette) {
-	$$(".palette").forEach(function(element) {
+	for (let element of $$(".palette")) {
 		element.classList.toggle("open", element.id==palette);
-	});
+	}
 
-	$$(".tab").forEach(function(element) {
+	for (let element of $$(".tab")) {
 		element.classList.toggle("current", element.value==palette);
-	});
+	}
 };
 
 Editor.prototype.changeTileset=function(tileset) {
@@ -926,7 +921,7 @@ Editor.prototype.changeTileset=function(tileset) {
 };
 
 Editor.prototype.changeTerrainPalette=function() {
-	$$(".terrain img").forEach(function(element) {
+	for (let element of $$(".terrain img")) {
 		let icon=element.parentElement.value+".png";
 
 		let img=new Image();
@@ -934,7 +929,7 @@ Editor.prototype.changeTerrainPalette=function() {
 		img.addEventListener("load", function() {
 			element.src=this.src;
 		});
-	}, this);
+	}
 };
 
 Editor.prototype.changeUnitPalette=function() {
@@ -952,14 +947,14 @@ Editor.prototype.changeUnitPalette=function() {
 
 	const HUMAN="human", ORC="orc", NEUTRAL="neutral";
 
-	for (let id in data.units[group]) {
+	for (let type of Object.values(data.units[group])) {
 		let race=getRace();
 
-		if (!data.units[group][id].hasOwnProperty(race)) {
+		if (!type.hasOwnProperty(race)) {
 			race=NEUTRAL;
 		}
 
-		let unit=data.units[group][id][race];
+		let unit=type[race];
 
 		let li=document.createElement("li");
 		let button=document.createElement("button");
@@ -1105,14 +1100,14 @@ Overlays.prototype.openProperties=function(key) {
 	}
 
 	function openPlayers() {
-		$$(".ai").forEach(function(element) {
+		for (let element of $$(".ai")) {
 			for (let [id, name] of data.ai) {
 				let option=document.createElement("option");
 				option.value=id;
 				option.textContent=name;
 				element.appendChild(option);
 			}
-		});
+		}
 
 		for (let i=0; i<PLAYERS; i++) {
 			setRadio("race"+i,        editor.pud.races[i]);
@@ -1132,9 +1127,9 @@ Overlays.prototype.openProperties=function(key) {
 	function openUnits() {
 		let select=$("#select_units"), units={};
 
-		Object.keys(data.units).forEach(function(group) {
-			Object.keys(data.units[group]).forEach(function(id) {
-				Object.keys(data.units[group][id]).forEach(function(race) {
+		for (let group of Object.keys(data.units)) {
+			for (let id of Object.keys(data.units[group])) {
+				for (let race of Object.keys(data.units[group][id])) {
 					if (!units.hasOwnProperty(race)) {
 						units[race]=[];
 					}
@@ -1142,15 +1137,15 @@ Overlays.prototype.openProperties=function(key) {
 					let unit=data.units[group][id][race];
 
 					if (unit.skip) {
-						return;
+						continue;
 					}
 
 					units[race].push(unit);
-				});
-			});
-		});
+				}
+			}
+		}
 
-		Object.keys(units).forEach(function(race) {
+		for (let race of Object.keys(units)) {
 			let optgroup=document.createElement("optgroup");
 			let label=race.charAt(0).toUpperCase()+race.slice(1);
 			optgroup.setAttribute("label", label);
@@ -1165,7 +1160,7 @@ Overlays.prototype.openProperties=function(key) {
 			}
 
 			select.appendChild(optgroup);
-		});
+		}
 
 		$("#checkbox_units").checked=editor.pud.units.useDefaults;
 		select.disabled=editor.pud.units.useDefaults;
@@ -1180,7 +1175,7 @@ Overlays.prototype.openProperties=function(key) {
 	function openUpgrades() {
 		let select=$("#select_upgrades");
 
-		Object.keys(data.upgrades).forEach(function(race) {
+		for (let race of Object.keys(data.upgrades)) {
 			let optgroup=document.createElement("optgroup");
 			let label=race.charAt(0).toUpperCase()+race.slice(1);
 			optgroup.setAttribute("label", label);
@@ -1193,7 +1188,7 @@ Overlays.prototype.openProperties=function(key) {
 			}
 
 			select.appendChild(optgroup);
-		});
+		}
 
 		$("#checkbox_upgrades").checked=editor.pud.upgrades.useDefaults;
 		select.disabled=editor.pud.upgrades.useDefaults;
@@ -1217,21 +1212,21 @@ Overlays.prototype.openProperties=function(key) {
 
 		clear(select, false);
 
-		Object.keys(data.units).forEach(function(group) {
-			Object.keys(data.units[group]).forEach(function(id) {
-				Object.keys(data.units[group][id]).forEach(function(race) {
+		for (let group of Object.keys(data.units)) {
+			for (let id of Object.keys(data.units[group])) {
+				for (let race of Object.keys(data.units[group][id])) {
 					let unit=data.units[group][id][race];
 					units[unit.id]=unit.name;
-				});
-			});
-		});
+				}
+			}
+		}
 
-		Object.entries(editor.selected).forEach(function([key, value]) {
+		for (let [key, value] of Object.entries(editor.selected)) {
 			let item=document.createElement("option");
 			item.value=key;
 			item.textContent=units[value.id]||"Unknown";
 			select.appendChild(item);
-		});
+		}
 
 		select.selectedIndex=0;
 		self.fillProperties("unitMap");
@@ -1272,7 +1267,7 @@ Overlays.prototype.fillProperties=function(key) {
 
 	let index=$("#select_"+key).value, value="";
 
-	$$("."+key).forEach(function(element) {
+	for (let element of $$("."+key)) {
 		let [type, id, sub]=element.id.split("_");
 
 		if (editor.pud[key].hasOwnProperty(id)) {
@@ -1312,7 +1307,7 @@ Overlays.prototype.fillProperties=function(key) {
 				$("#"+element.id).value=value;
 			}
 		}
-	}, this);
+	}
 
 	if (key=="units") {
 		$("#select_rmbAction").disabled=index>=UNIT_BOUNDARY;
@@ -1335,13 +1330,13 @@ Overlays.prototype.fillProperties=function(key) {
 			td.className="player"+i;
 			td.textContent=i;
 			td.addEventListener("click", function() {
-				$$(".restrictions").forEach(function(element) {
+				for (let element of $$(".restrictions")) {
 					let [type, index, player]=element.id.split("_");
 
 					if (player==i-1) {
 						element.checked=!element.checked;
 					}
-				});
+				}
 			});
 			tr.appendChild(td);
 		}
@@ -1353,7 +1348,7 @@ Overlays.prototype.fillProperties=function(key) {
 		clear($("#restrictions table"));
 		$("#restrictions table").appendChild(tr);
 
-		data.restrictions[category].forEach(function(item, i) {
+		for (let [i, item] of data.restrictions[category].entries()) {
 			if (item=="") {
 				return;
 			}
@@ -1362,13 +1357,13 @@ Overlays.prototype.fillProperties=function(key) {
 			td=document.createElement("td");
 			td.textContent=item;
 			td.addEventListener("click", function() {
-				$$(".restrictions").forEach(function(element) {
+				for (let element of $$(".restrictions")) {
 					let [type, index, player]=element.id.split("_");
 
 					if (index==i) {
 						element.checked=!element.checked;
 					}
-				});
+				}
 			});
 			tr.appendChild(td);
 
@@ -1404,7 +1399,7 @@ Overlays.prototype.fillProperties=function(key) {
 			}
 
 			$("#restrictions table").appendChild(tr);
-		}, self);
+		}
 
 		self.index=index;
 	}
@@ -1419,7 +1414,7 @@ Overlays.prototype.fillProperties=function(key) {
 
 		let unit=editor.selected[index], value="";
 
-		$$(".unitMap").forEach(function(element) {
+		for (let element of $$(".unitMap")) {
 			let [type, id]=element.id.split("_");
 
 			if (editor.selected.hasOwnProperty(index)) {
@@ -1435,7 +1430,7 @@ Overlays.prototype.fillProperties=function(key) {
 			}
 
 			$("#"+element.id).value=value;
-		}, self);
+		}
 
 		let flags=editor.pud.units.flags[unit.id];
 		const GOLD_MINE=flags[22], OIL_PATCH=flags[21], OIL_PLATFORM=flags[11];
@@ -1525,35 +1520,35 @@ Overlays.prototype.saveProperties=function(key) {
 	}
 
 	function saveRestrictions() {
-		Object.keys(self.working).forEach(function(index) {
-			Object.keys(self.working[index]).forEach(function(i) {
-				Object.keys(self.working[index][i]).forEach(function(j) {
+		for (let index of Object.keys(self.working)) {
+			for (let i of Object.keys(self.working[index])) {
+				for (let j of Object.keys(self.working[index][i])) {
 					if (!self.working[index].hasOwnProperty(j)) {
-						return;
+						continue;
 					}
 
 					let value=Boolean(self.working[index][i][j]);
 					editor.pud.restrictions[index][j][i]=value;
-				}, self);
-			}, self);
-		}, self);
+				}
+			}
+		}
 	}
 
 	function saveSelection() {
-		Object.keys(self.working).forEach(function(index) {
-			Object.keys(self.working[index]).forEach(function(property) {
+		for (let index of Object.keys(self.working)) {
+			for (let property of Object.keys(self.working[index])) {
 				if (!editor.pud.unitMap.hasOwnProperty(index)) {
-					return;
+					continue;
 				}
 
 				if (!editor.pud.unitMap[index].hasOwnProperty(property)) {
-					return;
+					continue;
 				}
 
 				let value=Number(self.working[index][property]);
 				editor.pud.unitMap[index][property]=value;
-			}, self);
-		}, self);
+			}
+		}
 	}
 
 	function readNumber(id, size) {
@@ -1576,19 +1571,19 @@ Overlays.prototype.saveProperties=function(key) {
 			return;
 		}
 
-		Object.keys(self.working).forEach(function(index) {
-			Object.keys(self.working[index]).forEach(function(property) {
+		for (let index of Object.keys(self.working)) {
+			for (let property of Object.keys(self.working[index])) {
 				if (!editor.pud[key].hasOwnProperty(property)) {
-					return;
+					continue;
 				}
 
 				if (!editor.pud[key][property].hasOwnProperty(index)) {
-					return;
+					continue;
 				}
 
 				editor.pud[key][property][index]=self.working[index][property];
-			}, self);
-		}, self);
+			}
+		}
 	}
 };
 
@@ -1605,26 +1600,26 @@ Overlays.prototype.resetProperties=function(key) {
 		this.working[index]={};
 	}
 
-	Object.keys(data.defaults[key]).forEach(function(property) {
+	for (let property of Object.keys(data.defaults[key])) {
 		if (property=="useDefaults") {
-			return;
+			continue;
 		}
 
 		let keys=Object.keys(data.defaults[key][property][index]);
 
 		if (keys.length>0) {
-			keys.forEach(function(sub) {
+			for (let sub of keys) {
 				if (!this.working[index].hasOwnProperty(property)) {
 					this.working[index][property]={};
 				}
 
 				let value=data.defaults[key][property][index][sub];
 				this.working[index][property][sub]=value;
-			}, this);
+			}
 		} else {
 			this.working[index][property]=data.defaults[key][property][index];
 		}
-	}, this);
+	}
 
 	this.fillProperties(key);
 };
@@ -1776,30 +1771,30 @@ Pud.prototype.load=function(filename, buffer) {
 
 	this.races=this.races.map(function(race) {
 		return race>0x02?0x02:race; // neutral
-	}, this);
+	});
 
-	this.ai.forEach(function(ai) {
-		this.valid=ai<=0x52;
-	}, this);
+	this.ai=this.ai.map(function(ai) {
+		return Math.min(ai, 0x52);
+	});
 
 	this.useAlow=this.restrictions!=undefined;
 
 	if (!this.useAlow) { // copies default restriction data if no ALOW section
 		this.restrictions={};
 
-		Object.keys(data.defaults.restrictions).forEach(function(key) {
+		for (let key of Object.keys(data.defaults.restrictions)) {
 			this.restrictions[key]=[];
 
-			Object.keys(data.defaults.restrictions[key]).forEach(function(i) {
+			for (let i of Object.keys(data.defaults.restrictions[key])) {
 				let keys=Object.keys(data.defaults.restrictions[key][i]);
 				this.restrictions[key][i]=[];
 
-				keys.forEach(function(j) {
+				for (let j of keys) {
 					let value=data.defaults.restrictions[key][i][j];
 					this.restrictions[key][i][j]=value;
-				}, this);
-			}, this);
-		}, this);
+				}
+			}
+		}
 	}
 
 	if (this.unitMap.length==0) { // generates random ID for new maps
