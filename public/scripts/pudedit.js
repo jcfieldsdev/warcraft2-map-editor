@@ -212,6 +212,10 @@ window.addEventListener("load", function() {
 			}
 		}
 
+		if (key==46) { // Del
+			editor.removeSelected();
+		}
+
 		if (key>=48&&key<=56) { // 0-8
 			editor.selectPlayer(key==48?15:key-49);
 		}
@@ -316,7 +320,7 @@ function $(selector) {
 }
 
 function $$(selector) {
-	return document.querySelectorAll(selector);
+	return Array.from(document.querySelectorAll(selector));
 }
 
 function clear(element, removeListeners=true) {
@@ -370,6 +374,7 @@ function Editor() {
 	// unit placement
 	this.unit=0;
 	this.player=0;
+	this.positions=[];
 }
 
 Editor.prototype.open=function(filename, path, buffer) {
@@ -417,6 +422,8 @@ Editor.prototype.open=function(filename, path, buffer) {
 
 	this.selectPlayer(this.player);
 	this.selectPalette("units");
+
+	this.positions=Array(this.pud.unitMap.length).fill();
 
 	// draws tile map and changes unit icons to match tileset
 	this.changeTileset(this.pud.tileset);
@@ -494,8 +501,13 @@ Editor.prototype.drawUnitMap=function(x, y, w, h, unit, img) {
 		w=img.width;
 		h=w;
 
-		// picks random idle frame
-		sy=h*Math.floor(Math.random()*5);
+		if (this.positions[id]==undefined) {
+			// picks random idle frame
+			sy=h*Math.floor(Math.random()*5);
+			this.positions[id]=sy;
+		} else {
+			sy=this.positions[id];
+		}
 	}
 
 	this.unitMap.drawImage(img, sx, sy, w, h, x, y, w, h);
@@ -521,6 +533,14 @@ Editor.prototype.drawUnitMap=function(x, y, w, h, unit, img) {
 	}
 
 	this.unitMap.putImageData(imageData, x, y);
+};
+
+Editor.prototype.drawUnits=function() {
+	// clears canvas every time or units will stack when tileset changed
+	this.unitMap.clearRect(0, 0, $("#unitMap").width, $("#unitMap").height);
+	this.miniUnitMap.scale(this.scaleX, this.scaleY);
+
+	this.pud.unitMap.forEach(this.drawUnit.bind(this));
 };
 
 Editor.prototype.drawMiniMap=function(x, y, w, h, unit) {
@@ -704,13 +724,13 @@ Editor.prototype.addUnit=function(x, y) {
 		property=2;
 	}
 
-	const START_LOCATION=95;
-
 	// removes existing start location if new one is placed
-	if (this.unit==START_LOCATION) {
-		this.pud.unitMap=this.pud.unitMap.filter(function(unit) {
-			return unit.id!=START_LOCATION||unit.owner!=this.player;
-		}, this);
+	if (this.unit==94||this.unit==95) {
+		for (let [i, unit] of this.pud.unitMap.entries()) {
+			if ((unit.id==94||unit.id==95)&&unit.owner==this.player) {
+				this.removeUnit(i);
+			}
+		}
 	}
 
 	let unit={
@@ -722,6 +742,21 @@ Editor.prototype.addUnit=function(x, y) {
 	};
 	this.pud.unitMap.push(unit);
 	this.drawUnit(unit);
+};
+
+Editor.prototype.removeUnit=function(id) {
+	this.pud.unitMap=this.pud.unitMap.filter(function(undefined, i) {
+		return id!=i;
+	});
+	this.drawUnits();
+};
+
+Editor.prototype.removeSelected=function() {
+	this.pud.unitMap=this.pud.unitMap.filter(function(undefined, i) {
+		return !(i in this.selected);
+	}, this);
+	this.clearSelect();
+	this.drawUnits();
 };
 
 Editor.prototype.findNearestTile=function(x, y, w, h) {
@@ -783,7 +818,7 @@ Editor.prototype.validateArea=function(x, y) {
 	// checks if area contains other units
 	for (let unit of Array.from(this.pud.unitMap)) {
 		if (!BUILDING&&unitType!=getUnitType(this.pud.units.flags[unit.id])) {
-			return; // allows air units over ground and sea units
+			continue; // allows air units over ground and sea units
 		}
 
 		let unitSize=this.pud.units.unitSize[unit.id];
@@ -796,6 +831,7 @@ Editor.prototype.validateArea=function(x, y) {
 		}
 	}
 
+	let startLocation=this.unit==94||this.unit==95;
 	let coast=0;
 
 	// checks if unit is allowed on movement tile
@@ -804,7 +840,7 @@ Editor.prototype.validateArea=function(x, y) {
 		let tile   =this.pud.movementMap[point]&0x00ff;
 
 		if (special==0x00) {
-			if (unitType==LAND) {
+			if (unitType==LAND||startLocation) {
 				valid&=tile==0x00||tile==0x01||tile==0x11;
 			} else if (unitType==AIR) {
 				valid&=true;
@@ -862,13 +898,19 @@ Editor.prototype.selectPlayer=function(player) {
 	player=Number.parseInt(player);
 
 	const CRITTER=57, GOLD_MINE=92, OIL_PATCH=93;
+	let changed=0;
 
 	// changes owner of selected units
 	for (let unit of Object.values(this.selected)) {
 		// does not change ownership of critters, gold mines, or oil patches
 		if (unit.id!=CRITTER&&unit.id!=GOLD_MINE&&unit.id!=OIL_PATCH) {
 			unit.owner=player;
+			changed++;
 		}
+	}
+
+	if (changed) {
+		this.drawUnits();
 	}
 
 	this.player=player;
@@ -910,12 +952,7 @@ Editor.prototype.changeTileset=function(tileset) {
 		});
 	}
 
-	// clears canvas every time or units will stack when tileset changed
-	this.unitMap.clearRect(0, 0, $("#unitMap").width, $("#unitMap").height);
-	this.miniUnitMap.scale(this.scaleX, this.scaleY);
-
-	this.pud.unitMap.forEach(this.drawUnit.bind(this));
-
+	this.drawUnits();
 	this.changeTerrainPalette();
 	this.changeUnitPalette();
 };
@@ -1040,8 +1077,11 @@ Overlays.prototype.show=function(id) {
 	$("#overlay_"+id).classList.add("open");
 
 	editor.dragFrame=false;
-	editor.mode=SELECT_UNITS;
-	editor.clearSelect();
+
+	if (editor.mode!=SELECT_UNITS) {
+		editor.mode=SELECT_UNITS;
+		editor.clearSelect();
+	}
 };
 
 Overlays.prototype.hide=function(id) {
@@ -1432,6 +1472,14 @@ Overlays.prototype.fillProperties=function(key) {
 			$("#"+element.id).value=value;
 		}
 
+		if (unit.id==94||unit.id==95) {
+			$("#row_owner").classList.add("hidden");
+			$("#select_owner").disabled=true;
+		} else {
+			$("#row_owner").classList.remove("hidden");
+			$("#select_owner").disabled=false;
+		}
+
 		let flags=editor.pud.units.flags[unit.id];
 		const GOLD_MINE=flags[22], OIL_PATCH=flags[21], OIL_PLATFORM=flags[11];
 
@@ -1549,6 +1597,8 @@ Overlays.prototype.saveProperties=function(key) {
 				editor.pud.unitMap[index][property]=value;
 			}
 		}
+
+		editor.drawUnits();
 	}
 
 	function readNumber(id, size) {
