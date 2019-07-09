@@ -1770,7 +1770,8 @@ data.movement={
 	0x0040: "#000080", // water
 	0x0081: "#008000", // forest/mountains
 	0x0082: "#00f",    // coast
-	0x008d: "#808080"  // walls
+	0x0089: "#808080", // orc wall
+	0x008d: "#808080"  // human wall
 };
 
 data.ai=new Map([
