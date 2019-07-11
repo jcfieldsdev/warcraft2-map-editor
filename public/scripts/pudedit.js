@@ -158,14 +158,19 @@ window.addEventListener("load", function() {
 			return;
 		}
 
-		if (editor.pud.unitMap.length==0) {
-			return overlays.displayError("Must place at least one unit.");
+		let blob=null;
+
+		try {
+			blob=editor.pud.save();
+		} catch (err) {
+			return overlays.displayError(err);
 		}
 
 		let a=$("#download");
 		a.download=editor.pud.filename;
-		a.href=window.URL.createObjectURL(editor.pud.save());
+		a.href=window.URL.createObjectURL(blob);
 		a.click();
+		window.URL.revokeObjectURL(blob);
 	});
 	$("#saveImage").addEventListener("click", function() {
 		editor.saveImage();
@@ -1086,9 +1091,11 @@ Editor.prototype.selectPlayer=function(player) {
 		this.changeUnitPalette();
 
 		if (this.mode==PLACE_UNIT) {
-			// clear selection to prevent placing units for wrong race
-			this.mode=SELECT_UNITS;
-			this.clearSelect();
+			this.unit=this.convertUnit(
+				this.unit,
+				editor.pud.races[player],
+				editor.pud.races[this.player]
+			);
 		}
 	}
 
@@ -1225,6 +1232,7 @@ Editor.prototype.saveImage=function() {
 		a.download=filename;
 		a.href=window.URL.createObjectURL(blob);
 		a.click();
+		window.URL.revokeObjectURL(blob);
 	}, "image/png");
 };
 
@@ -2235,6 +2243,11 @@ Pud.prototype.load=function(filename, buffer) {
 
 Pud.prototype.save=function() {
 	let self=this;
+
+	if (!validateMap()) {
+		return;
+	}
+
 	let sections=new Map([ // order is significant
 		["TYPE", saveType()],
 		["VER ", convertNum(this.version, WORD)],
@@ -2297,6 +2310,46 @@ Pud.prototype.save=function() {
 	}
 
 	return new Blob([file], {type: MIME_TYPE});
+
+	function validateMap() {
+		if (self.unitMap.length==0) {
+			throw "The map is empty. Place one or more units.";
+		}
+
+		let players=new Set();
+		let start=Array(self.controller.length).fill();
+
+		// determines active players (i.e., players with units placed)
+		for (let unit of self.unitMap) {
+			players.add(unit.owner);
+
+			// requires start locations for active players
+			if (unit.id==HUMAN_START_LOC||unit.id==ORC_START_LOC) {
+				start[unit.owner]=true;
+			}
+		}
+
+		const NEUTRAL=15;
+		const NOBODY=3, HUMAN=5;
+
+		for (let player of players) {
+			if (player!=NEUTRAL&&start[player]==undefined) {
+				throw "Must place a start location for player "+(player+1)+".";
+			}
+		}
+
+		self.controller=self.controller.map(function(controller, i) {
+			if (players.has(i)) {
+				if (controller==NOBODY) {
+					return HUMAN; // sets nobody to human if player has units
+				}
+			} else { // sets inactive players to nobody
+				return NOBODY;
+			}
+		});
+
+		return true;
+	}
 
 	// converts number to big-endian typed array
 	function convertNum(num, size) {
