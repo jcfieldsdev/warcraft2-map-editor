@@ -348,9 +348,10 @@ function Editor() {
 
 	this.mode=SELECT_UNITS;
 
-	// canvases
+	// canvas drawing contexts
 	this.tileMap=null;
 	this.unitMap=null;
+	this.unitBuffer=null;
 	this.select=null;
 	this.miniTileMap=null;
 	this.miniUnitMap=null;
@@ -398,11 +399,13 @@ Editor.prototype.open=function(filename, path, buffer) {
 
 	$("#filename").textContent=this.pud.filename;
 
-	setSize("tileMap",     this.pud.width*TILE_SIZE, this.pud.height*TILE_SIZE);
-	setSize("unitMap",     this.pud.width*TILE_SIZE, this.pud.height*TILE_SIZE);
-	setSize("movementMap", this.pud.width*TILE_SIZE, this.pud.height*TILE_SIZE);
-	setSize("grid",        this.pud.width*TILE_SIZE, this.pud.height*TILE_SIZE);
-	setSize("select",      this.pud.width*TILE_SIZE, this.pud.height*TILE_SIZE);
+	let width=this.pud.width*TILE_SIZE, height=this.pud.height*TILE_SIZE;
+
+	setSize("tileMap",     width,        height);
+	setSize("unitMap",     width,        height);
+	setSize("movementMap", width,        height);
+	setSize("grid",        width,        height);
+	setSize("select",      width,        height);
 	setSize("miniUnitMap", MINIMAP_SIZE, MINIMAP_SIZE);
 	setSize("miniTileMap", MINIMAP_SIZE, MINIMAP_SIZE);
 	setSize("frame",       MINIMAP_SIZE, MINIMAP_SIZE);
@@ -414,6 +417,12 @@ Editor.prototype.open=function(filename, path, buffer) {
 	this.miniTileMap=$("#miniTileMap").getContext("2d");
 	this.miniUnitMap=$("#miniUnitMap").getContext("2d");
 	this.frame=$("#frame").getContext("2d");
+
+	// buffer is kept in memory but never inserted into DOM
+	let unitBuffer=document.createElement("canvas");
+	unitBuffer.width =$("#unitMap").width;
+	unitBuffer.height=$("#unitMap").height;
+	this.unitBuffer=unitBuffer.getContext("2d");
 
 	this.pos=$("#frame").getBoundingClientRect();
 	this.scaleX=MINIMAP_SIZE/$("#tileMap").width;
@@ -471,7 +480,7 @@ Editor.prototype.drawTileMap=function() {
 	this.drawFrame();
 };
 
-Editor.prototype.drawUnit=function(unit) {
+Editor.prototype.drawUnit=function(resolve, unit) {
 	let unitSize=1, img=new Image();
 
 	if (unit.id in this.pud.units.unitSize) {
@@ -487,7 +496,11 @@ Editor.prototype.drawUnit=function(unit) {
 
 		this.drawUnitMap(x, y, w, h, unit, img);
 		this.drawMiniMap(x, y, w, h, unit);
+
+		resolve();
 	}.bind(this));
+
+	return img;
 };
 
 Editor.prototype.drawUnitMap=function(x, y, w, h, unit, img) {
@@ -510,13 +523,13 @@ Editor.prototype.drawUnitMap=function(x, y, w, h, unit, img) {
 		}
 	}
 
-	this.unitMap.drawImage(img, sx, sy, w, h, x, y, w, h);
+	this.unitBuffer.drawImage(img, sx, sy, w, h, x, y, w, h);
 
 	if (owner==0) { // artwork is already in player 1 colors by default
 		return;
 	}
 
-	let imageData=this.unitMap.getImageData(x, y, w, h);
+	let imageData=this.unitBuffer.getImageData(x, y, w, h);
 	owner=Number.parseInt(owner);
 
 	// changes player colors to match unit owner
@@ -532,15 +545,31 @@ Editor.prototype.drawUnitMap=function(x, y, w, h, unit, img) {
 		}
 	}
 
-	this.unitMap.putImageData(imageData, x, y);
+	this.unitBuffer.putImageData(imageData, x, y);
 };
 
 Editor.prototype.drawUnits=function() {
 	// clears canvas every time or units will stack when tileset changed
-	this.unitMap.clearRect(0, 0, $("#unitMap").width, $("#unitMap").height);
-	this.miniUnitMap.scale(this.scaleX, this.scaleY);
+	this.unitBuffer.clearRect(0, 0, $("#unitMap").width, $("#unitMap").height);
 
-	this.pud.unitMap.forEach(this.drawUnit.bind(this));
+	let promises=[];
+
+	this.miniUnitMap.scale(this.scaleX, this.scaleY);
+	this.pud.unitMap.forEach(function(unit) {
+		promises.push(new Promise(function(resolve) {
+			this.drawUnit(resolve, unit);
+		}.bind(this)));
+	}.bind(this));
+
+	Promise.all(promises).then(function() {
+		this.unitMap.clearRect(0, 0, $("#unitMap").width, $("#unitMap").height);
+		this.unitMap.drawImage(
+			this.unitBuffer.canvas,
+			0, 0,
+			$("#unitMap").width,
+			$("#unitMap").height
+		);
+	}.bind(this));
 };
 
 Editor.prototype.drawMiniMap=function(x, y, w, h, unit) {
@@ -741,7 +770,7 @@ Editor.prototype.addUnit=function(x, y) {
 		y
 	};
 	this.pud.unitMap.push(unit);
-	this.drawUnit(unit);
+	this.drawUnits();
 };
 
 Editor.prototype.removeUnit=function(id) {
@@ -897,13 +926,24 @@ Editor.prototype.selectPlayer=function(player) {
 
 	player=Number.parseInt(player);
 
-	const CRITTER=57, GOLD_MINE=92, OIL_PATCH=93;
+	const HUMAN=0, ORC=1;
 	let changed=0;
 
 	// changes owner of selected units
 	for (let unit of Object.values(this.selected)) {
-		// does not change ownership of critters, gold mines, or oil patches
-		if (unit.id!=CRITTER&&unit.id!=GOLD_MINE&&unit.id!=OIL_PATCH) {
+		// does not change ownership of critters, gold mines, oil patches,
+		// or start locations in box selections
+		if (unit.id!=57&&unit.id!=92&&unit.id!=93&&unit.id!=94&&unit.id!=95) {
+			let race=this.pud.races[unit.owner];
+
+			if (race!=this.pud.races[player]) {
+				if (race==HUMAN) {
+					unit.id++;
+				} else {
+					unit.id--;
+				}
+			}
+
 			unit.owner=player;
 			changed++;
 		}
@@ -913,8 +953,17 @@ Editor.prototype.selectPlayer=function(player) {
 		this.drawUnits();
 	}
 
+	let redraw=this.pud.races[this.player]!=this.pud.races[player];
+
 	this.player=player;
-	this.changeUnitPalette(); // in case race changes
+
+	if (redraw) { // redraw units if race changes
+		this.changeUnitPalette();
+
+		// clear selection to prevent placing units for wrong race
+		this.mode=SELECT_UNITS;
+		this.clearSelect();
+	}
 };
 
 Editor.prototype.selectPalette=function(palette) {
@@ -982,13 +1031,11 @@ Editor.prototype.changeUnitPalette=function() {
 	let ul=document.createElement("ul");
 	ul.id="unitsPalette";
 
-	const HUMAN="human", ORC="orc", NEUTRAL="neutral";
-
 	for (let type of Object.values(data.units[group])) {
-		let race=getRace();
+		let race=this.pud.races[this.player]?"orc":"human";
 
 		if (!type.hasOwnProperty(race)) {
-			race=NEUTRAL;
+			race="neutral";
 		}
 
 		let unit=type[race];
@@ -1016,12 +1063,6 @@ Editor.prototype.changeUnitPalette=function() {
 	}
 
 	$("#unitsPalette").replaceWith(ul);
-
-	function getRace() {
-		if (self.player in self.pud.races) {
-			return self.pud.races[self.player]?ORC:HUMAN;
-		}
-	}
 };
 
 Editor.prototype.getTileset=function(num) {
@@ -2290,7 +2331,7 @@ Files.prototype.browse=function() {
 			ul.id=self.id;
 
 			if (self.dirs.length>0) { // except root directory
-				ul.appendChild(self.createItem("dir", "[..]",
+				ul.appendChild(createItem("dir", "[..]",
 					function() {
 						self.dirs.pop();
 						self.browse();
@@ -2299,7 +2340,7 @@ Files.prototype.browse=function() {
 			}
 
 			for (let dir of dirs) {
-				ul.appendChild(self.createItem("dir", "["+dir+"]",
+				ul.appendChild(createItem("dir", "["+dir+"]",
 					function() {
 						self.dirs.push(dir);
 						self.browse();
@@ -2308,7 +2349,7 @@ Files.prototype.browse=function() {
 			}
 
 			for (let file of files) {
-				ul.appendChild(self.createItem("pud", file,
+				ul.appendChild(createItem("pud", file,
 					function() {
 						overlays.hide("browser");
 						self.load(file, editor.open.bind(editor));
@@ -2322,6 +2363,18 @@ Files.prototype.browse=function() {
 	xhr.open("GET", MAPS_DIR+this.dirs.join("/")+"/index.json", true);
 	xhr.responseType="json";
 	xhr.send();
+
+	function createItem(className, file, callback) {
+		let li=document.createElement("li");
+
+		let a=document.createElement("a");
+		a.className=className;
+		a.textContent=file;
+		a.addEventListener("click", callback);
+		li.appendChild(a);
+
+		return li;
+	}
 };
 
 Files.prototype.load=function(filename, callback) {
@@ -2346,16 +2399,4 @@ Files.prototype.load=function(filename, callback) {
 Files.prototype.loadTemplate=function(tileset, size) {
 	this.dirs=["templates", tileset];
 	this.load(size+"x"+size+".pud", editor.open.bind(editor));
-};
-
-Files.prototype.createItem=function(className, file, callback) {
-	let li=document.createElement("li");
-
-	let a=document.createElement("a");
-	a.className=className;
-	a.textContent=file;
-	a.addEventListener("click", callback);
-	li.appendChild(a);
-
-	return li;
 };
