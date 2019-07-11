@@ -10,19 +10,8 @@ const STANDARD =0x11;
 const EXPANSION=0x13;
 const MIME_TYPE="application/x-warcraft2-scenario";
 
-// game mechanics
-const PLAYERS    =8;
-const TILE_SIZE  =32;
-const MAX_WIDTH  =128;
-const MAX_HEIGHT =128;
-const LAST_ICON  =195;
-const UNIT_BOUNDARY=58;
-
-// tilesets
-const FOREST   =0;
-const WINTER   =1;
-const WASTELAND=2;
-const SWAMP    =3;
+// file names and locations
+const MAPS_DIR="maps/";
 
 // editor
 const DEFAULT_TILESET="forest";
@@ -40,8 +29,31 @@ const DRAG_SELECT =1;
 const PLACE_UNIT  =2;
 const EDIT_TERRAIN=3;
 
-// file names and locations
-const MAPS_DIR="maps/";
+// game mechanics
+const PLAYERS    =8;
+const TILE_SIZE  =32;
+const MAX_WIDTH  =128;
+const MAX_HEIGHT =128;
+const LAST_ICON  =195;
+const UNIT_BOUNDARY=58;
+
+// tilesets
+const FOREST   =0;
+const WINTER   =1;
+const WASTELAND=2;
+const SWAMP    =3;
+
+// unit flags
+const LAND_UNIT     =0;
+const AIR_UNIT      =1;
+const SEA_UNIT      =3;
+const BUILDING      =5;
+const SHORE_BUILDING=16;
+const GOLD_MINE     =22;
+const GOLD_DEPOT    =12; // town halls
+const OIL_PATCH     =21;
+const OIL_PLATFORM  =11;
+const OIL_DEPOT     =24;
 
 // objects
 const editor  =new Editor();
@@ -434,6 +446,7 @@ Editor.prototype.open=function(filename, path, buffer) {
 	this.selectPlayer(this.player);
 	this.selectPalette("units");
 
+	// keeps track of unit positions so they persist when units are redrawn
 	this.positions=Array(this.pud.unitMap.length).fill();
 
 	// draws tile map and unit map, changes unit icons to match tileset
@@ -573,7 +586,6 @@ Editor.prototype.drawUnitMap=function() {
 		}
 
 		let imageData=self.unitBuffer.getImageData(x, y, w, h);
-		owner=Number.parseInt(owner);
 
 		// changes player colors to match unit owner
 		for (let i=0; i<imageData.data.length; i+=4) { // 4 for RGBA
@@ -592,7 +604,8 @@ Editor.prototype.drawUnitMap=function() {
 	}
 
 	function drawToMiniMap(x, y, w, h, unit) {
-		let owner=Math.min(unit.owner, 7); // neutral players use player 8 colors
+		// neutral players use player 8 colors
+		let owner=Math.min(unit.owner, 7);
 
 		// uses first player color for minimap squares
 		let r=data.colors[owner][0].r.toString(16).padStart(2, "0");
@@ -765,12 +778,11 @@ Editor.prototype.addUnit=function(x, y) {
 	let property=0;
 
 	let flags=this.pud.units.flags[this.unit];
-	const GOLD_MINE=flags[22], OIL_PATCH=flags[21], OIL_PLATFORM=flags[11];
 
 	// default resources
-	if (GOLD_MINE) {
+	if (flags[GOLD_MINE]) {
 		property=6;
-	} else if (OIL_PATCH||OIL_PLATFORM) {
+	} else if (flags[OIL_PATCH]||flags[OIL_PLATFORM]) {
 		property=2;
 	}
 
@@ -798,6 +810,9 @@ Editor.prototype.removeUnit=function(id) {
 	this.pud.unitMap=this.pud.unitMap.filter(function(undefined, i) {
 		return id!=i;
 	});
+	this.positions=this.positions.filter(function(undefined, i) {
+		return id!=i;
+	});
 	this.drawUnitMap();
 };
 
@@ -809,6 +824,38 @@ Editor.prototype.removeSelected=function() {
 	this.drawUnitMap();
 };
 
+Editor.prototype.convertUnit=function(id, race, otherRace) {
+	if (race==otherRace) {
+		return id;
+	}
+
+	let races=["orc", "human"];
+	race=races[race];
+	otherRace=races[otherRace];
+
+	for (let group of Object.keys(data.units)) {
+		for (let type of Object.keys(data.units[group])) {
+			for (let race of Object.keys(data.units[group][type])) {
+				if (!data.units[group][type].hasOwnProperty(race)) {
+					continue;
+				}
+
+				if (data.units[group][type][race].id!=id) {
+					continue;
+				}
+
+				if (!data.units[group][type].hasOwnProperty(otherRace)) {
+					continue;
+				}
+
+				return data.units[group][type][otherRace].id;
+			}
+		}
+	}
+
+	return id;
+};
+
 Editor.prototype.findNearestTile=function(x, y, w, h) {
 	x+=window.scrollX;
 	y+=window.scrollY;
@@ -817,10 +864,9 @@ Editor.prototype.findNearestTile=function(x, y, w, h) {
 	y=Math.max(Math.floor(y/TILE_SIZE), 0);
 
 	let flags=this.pud.units.flags[this.unit];
-	const OIL_PATCH=flags[21], OIL_PLATFORM=flags[11];
 
 	// oil patches are only allowed on odd dimensions
-	if (OIL_PATCH||OIL_PLATFORM) {
+	if (flags[OIL_PATCH]||flags[OIL_PLATFORM]) {
 		if (x%2==0) {
 			x++;
 		}
@@ -838,10 +884,8 @@ Editor.prototype.findNearestTile=function(x, y, w, h) {
 		y=this.pud.height-h; // prevents placing past map height
 	}
 
-	const AIR=flags[1], SEA=flags[3];
-
 	// air and sea units are only allowed on even dimensions
-	if (AIR||SEA) {
+	if (flags[AIR_UNIT]||flags[SEA_UNIT]) {
 		if (x%2!=0) {
 			x++;
 		}
@@ -858,22 +902,22 @@ Editor.prototype.validateArea=function(x, y) {
 	let self=this, valid=true;
 	let points=computePoints(x, y, this.pud.units.unitSize[this.unit]);
 
-	let flags=this.pud.units.flags[this.unit];
 	const LAND=1, AIR=2, SEA=3;
+	let flags=this.pud.units.flags[this.unit];
 	let unitType=getUnitType(flags);
-
-	const BUILDING=flags[5], SHORE_BUILDING=flags[16];
-	const OIL_PATCH=flags[21], OIL_PLATFORM=flags[11];
 
 	// checks if area contains other units
 	for (let unit of Array.from(this.pud.unitMap)) {
-		if (!BUILDING&&unitType!=getUnitType(this.pud.units.flags[unit.id])) {
+		let compareUnitType=getUnitType(this.pud.units.flags[unit.id]);
+
+		if (!flags[BUILDING]&&unitType!=compareUnitType) {
 			continue; // allows air units over ground and sea units
 		}
 
-		let unitSize=this.pud.units.unitSize[unit.id];
+		let compareUnitSize=this.pud.units.unitSize[unit.id];
+		let compareFlags=this.pud.units.flags[unit.id];
 
-		for (let point of computePoints(unit.x, unit.y, unitSize)) {
+		for (let point of computePoints(unit.x, unit.y, compareUnitSize)) {
 			if (points.includes(point)) {
 				valid=false;
 				break;
@@ -894,10 +938,10 @@ Editor.prototype.validateArea=function(x, y) {
 				valid&=tile==0x00||tile==0x01||tile==0x11;
 			} else if (unitType==AIR) {
 				valid&=true;
-			} else if (unitType==SEA||OIL_PATCH||OIL_PLATFORM) {
+			} else if (unitType==SEA||flags[OIL_PATCH]||flags[OIL_PLATFORM]) {
 				valid&=tile==0x00||tile==0x40;
-			} else if (BUILDING) {
-				if (SHORE_BUILDING) {
+			} else if (flags[BUILDING]) {
+				if (flags[SHORE_BUILDING]) {
 					valid&=tile==0x02||tile==0x82||tile==0x40;
 					coast+=tile==0x02||tile==0x82; // counts coast tiles
 				} else {
@@ -917,7 +961,7 @@ Editor.prototype.validateArea=function(x, y) {
 		}
 	}
 
-	if (SHORE_BUILDING) {
+	if (flags[SHORE_BUILDING]) {
 		valid&=coast>0; // shore buildings must be on at least one coast tile
 	}
 
@@ -947,38 +991,27 @@ Editor.prototype.selectPlayer=function(player) {
 
 	player=Number.parseInt(player);
 
-	const HUMAN=0, ORC=1;
-	let changed=0;
+	let reassigned=0;
 
-	// changes owner of selected units
+	// reassigns owner of selected units
 	for (let unit of Object.values(this.selected)) {
-		// does not change ownership of critters, gold mines, oil patches,
+		// does not reassign ownership of critters, gold mines, oil patches,
 		// or start locations in box selections
 		if (unit.id!=57&&unit.id!=92&&unit.id!=93&&unit.id!=94&&unit.id!=95) {
-			let race=this.pud.races[unit.owner];
-
-			if (race!=this.pud.races[player]) {
-				if (race==HUMAN) {
-					unit.id++;
-				} else {
-					unit.id--;
-				}
-			}
-
+			// changes race of unit when owner is changed if necessary
+			unit.id=this.convertUnit(
+				unit.id,
+				this.pud.races[player],
+				this.pud.races[unit.owner]
+			);
 			unit.owner=player;
-			changed++;
+			reassigned++;
 		}
 	}
 
-	if (changed) {
+	if (reassigned||this.pud.races[this.player]!=this.pud.races[player]) {
+		// redraw units if owner reassigned or race changes
 		this.drawUnitMap();
-	}
-
-	let redraw=this.pud.races[this.player]!=this.pud.races[player];
-
-	this.player=player;
-
-	if (redraw) { // redraw units if race changes
 		this.changeUnitPalette();
 
 		if (this.mode==PLACE_UNIT) {
@@ -987,6 +1020,8 @@ Editor.prototype.selectPlayer=function(player) {
 			this.clearSelect();
 		}
 	}
+
+	this.player=player;
 };
 
 Editor.prototype.selectPalette=function(palette) {
@@ -1232,13 +1267,13 @@ Overlays.prototype.openProperties=function(key) {
 		let select=$("#select_units"), units={};
 
 		for (let group of Object.keys(data.units)) {
-			for (let id of Object.keys(data.units[group])) {
-				for (let race of Object.keys(data.units[group][id])) {
+			for (let type of Object.keys(data.units[group])) {
+				for (let race of Object.keys(data.units[group][type])) {
 					if (!units.hasOwnProperty(race)) {
 						units[race]=[];
 					}
 
-					let unit=data.units[group][id][race];
+					let unit=data.units[group][type][race];
 
 					if (unit.skip) {
 						continue;
@@ -1545,9 +1580,8 @@ Overlays.prototype.fillProperties=function(key) {
 		}
 
 		let flags=editor.pud.units.flags[unit.id];
-		const GOLD_MINE=flags[22], OIL_PATCH=flags[21], OIL_PLATFORM=flags[11];
 
-		if (GOLD_MINE||OIL_PATCH||OIL_PLATFORM) {
+		if (flags[GOLD_MINE]||flags[OIL_PATCH]||flags[OIL_PLATFORM]) {
 			$("#row_resource").classList.remove("hidden");
 			$("#range_property").disabled=false;
 		} else {
@@ -1647,6 +1681,8 @@ Overlays.prototype.saveProperties=function(key) {
 	}
 
 	function saveSelection() {
+		let reassigned=0;
+
 		for (let index of Object.keys(self.working)) {
 			for (let property of Object.keys(self.working[index])) {
 				if (!editor.pud.unitMap.hasOwnProperty(index)) {
@@ -1658,11 +1694,27 @@ Overlays.prototype.saveProperties=function(key) {
 				}
 
 				let value=Number(self.working[index][property]);
+
+				if (property=="owner") {
+					let unit=editor.pud.unitMap[index];
+
+					// changes race of unit when owner is changed if necessary
+					unit.id=editor.convertUnit(
+						unit.id,
+						editor.pud.races[value],
+						editor.pud.races[unit.owner]
+					);
+					reassigned++;
+				}
+
 				editor.pud.unitMap[index][property]=value;
+
 			}
 		}
 
-		editor.drawUnitMap();
+		if (reassigned) { // redraws units if a unit's owner has changed
+			editor.drawUnitMap();
+		}
 	}
 
 	function readNumber(id, size) {
@@ -1855,7 +1907,7 @@ Pud.prototype.load=function(filename, buffer) {
 	this.movementMap   =readSection("SQM ");
 	this.oilMap        =readSection("OILM"); // unused
 	this.actionMap     =readSection("REGM");
-	this.signature     =readSection("SIGN", NOT_REQUIRED);
+	this.signature     =readSection("SIGN", NOT_REQUIRED)||0;
 	this.unitMap       =readUnit();
 
 	this.valid=this.version==STANDARD||this.version==EXPANSION;
@@ -1996,10 +2048,10 @@ Pud.prototype.load=function(filename, buffer) {
 	function parseDim(data) {
 		let dim=[];
 
-		for (let i=0; i<data.length; i+=4) {
+		for (let i=0; i<data.length; i+=DWORD) {
 			dim.push({
-				x: Number.parseInt(data.slice(i,   i+WORD)),
-				y: Number.parseInt(data.slice(i+2, i+2+WORD))
+				x: data[i],
+				y: data[i+WORD]
 			});
 		}
 
@@ -2009,7 +2061,7 @@ Pud.prototype.load=function(filename, buffer) {
 	// breaks bit fields into arrays of booleans
 	function parseBits(arr) {
 		return arr.map(function(value) {
-			const SIZE=32;
+			const SIZE=4*QWORD;
 			let sub=[];
 
 			for (let i=0; i<SIZE; i++) {
@@ -2093,10 +2145,9 @@ Pud.prototype.load=function(filename, buffer) {
 			return;
 		}
 
-		const SIZE=8;
 		let unit=self.struct["UNIT"], unitMap=[];
 
-		for (let i=0; i<unit.length; i+=SIZE) {
+		for (let i=0; i<unit.length; i+=QWORD) {
 			unitMap.push({
 				x:        parseNum(unit.slice(i,   i+WORD)),
 				y:        parseNum(unit.slice(i+2, i+2+WORD)),
