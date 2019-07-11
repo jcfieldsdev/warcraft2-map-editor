@@ -43,6 +43,10 @@ const WINTER   =1;
 const WASTELAND=2;
 const SWAMP    =3;
 
+// start locations
+const HUMAN_START_LOC=94
+const ORC_START_LOC  =95;
+
 // unit flags
 const LAND_UNIT     =0;
 const AIR_UNIT      =1;
@@ -511,16 +515,25 @@ Editor.prototype.drawUnitMap=function() {
 	this.miniUnitBuffer.clearRect(0, 0, width, height);
 
 	let self=this;
-	let promises=[];
+	let bottom=[], top=[], start=[];
 
-	for (let unit of this.pud.unitMap) {
-		promises.push(new Promise(function(resolve) {
-			drawUnit(resolve, unit);
-		}));
+	// sorts unit by stacking priority
+	for (let [i, unit] of this.pud.unitMap.entries()) {
+		let promise=new Promise(function(resolve) {
+			drawUnit(resolve, i);
+		});
+
+		if (unit.id==HUMAN_START_LOC||unit.id==ORC_START_LOC) {
+			start.push(promise);
+		} else if (this.pud.units.flags[unit.id][AIR_UNIT]) {
+			top.push(promise);
+		} else {
+			bottom.push(promise);
+		}
 	}
 
 	// draws units after all images have loaded
-	Promise.all(promises).then(function() {
+	Promise.all(start.concat(bottom, top)).then(function() {
 		this.unitMap.clearRect(0, 0, width, height);
 		this.unitMap.drawImage(
 			this.unitBuffer.canvas,
@@ -536,8 +549,8 @@ Editor.prototype.drawUnitMap=function() {
 		);
 	}.bind(this));
 
-	function drawUnit(resolve, unit) {
-		let unitSize=1, img=new Image();
+	function drawUnit(resolve, i) {
+		let unit=self.pud.unitMap[i], unitSize=1;
 
 		if (unit.id in self.pud.units.unitSize) {
 			unitSize=self.pud.units.unitSize[unit.id];
@@ -545,12 +558,13 @@ Editor.prototype.drawUnitMap=function() {
 
 		let path="units/"+self.getTileset(self.pud.tileset)+"/";
 
+		let img=new Image();
 		img.src=path+unit.id.toString().padStart(4, "0")+".png";
 		img.addEventListener("load", function() {
 			let x=unit.x*TILE_SIZE, y=unit.y*TILE_SIZE;
 			let w=unitSize.x*TILE_SIZE, h=unitSize.y*TILE_SIZE;
 
-			drawToUnitMap(x, y, w, h, unit, img);
+			drawToUnitMap(x, y, w, h, i, unit, img);
 			drawToMiniMap(x, y, w, h, unit);
 
 			resolve();
@@ -559,7 +573,7 @@ Editor.prototype.drawUnitMap=function() {
 		return img;
 	}
 
-	function drawToUnitMap(x, y, w, h, unit, img) {
+	function drawToUnitMap(x, y, w, h, i, unit, img) {
 		let sx=0, sy=0, id=unit.id, owner=Math.min(unit.owner, 7);
 
 		if (id<UNIT_BOUNDARY) { // units, not buildings
@@ -570,12 +584,12 @@ Editor.prototype.drawUnitMap=function() {
 			w=img.width;
 			h=w;
 
-			if (self.positions[id]==undefined) {
+			if (self.positions[i]==undefined) {
 				// picks random idle frame
 				sy=h*Math.floor(Math.random()*5);
-				self.positions[id]=sy;
+				self.positions[i]=sy;
 			} else {
-				sy=self.positions[id];
+				sy=self.positions[i];
 			}
 		}
 
@@ -592,7 +606,8 @@ Editor.prototype.drawUnitMap=function() {
 			for (let j=0; j<4; j++) { // 4 colors for each player
 				if (imageData.data[i]  ==data.colors[0][j].r
 				  &&imageData.data[i+1]==data.colors[0][j].g
-				  &&imageData.data[i+2]==data.colors[0][j].b) {
+				  &&imageData.data[i+2]==data.colors[0][j].b
+				) {
 					imageData.data[i]  =data.colors[owner][j].r;
 					imageData.data[i+1]=data.colors[owner][j].g;
 					imageData.data[i+2]=data.colors[owner][j].b;
@@ -787,9 +802,11 @@ Editor.prototype.addUnit=function(x, y) {
 	}
 
 	// removes existing start location if new one is placed
-	if (this.unit==94||this.unit==95) {
+	if (this.unit==HUMAN_START_LOC||this.unit==ORC_START_LOC) {
 		for (let [i, unit] of this.pud.unitMap.entries()) {
-			if ((unit.id==94||unit.id==95)&&unit.owner==this.player) {
+			let startLocation=unit.id==HUMAN_START_LOC||unit.id==ORC_START_LOC;
+
+			if (startLocation&&unit.owner==this.player) {
 				this.removeUnit(i);
 			}
 		}
@@ -908,14 +925,25 @@ Editor.prototype.validateArea=function(x, y) {
 
 	// checks if area contains other units
 	for (let unit of Array.from(this.pud.unitMap)) {
-		let compareUnitType=getUnitType(this.pud.units.flags[unit.id]);
+		let compareType=getUnitType(this.pud.units.flags[unit.id]);
+		let compareFlags=this.pud.units.flags[unit.id];
 
-		if (!flags[BUILDING]&&unitType!=compareUnitType) {
-			continue; // allows air units over ground and sea units
+		if ((flags[AIR_UNIT]^compareFlags[AIR_UNIT])
+		  &&((unitType==LAND||unitType==SEA||flags[BUILDING])
+		    ^(compareType==LAND||compareType==SEA||compareFlags[BUILDING]))
+		) {
+			continue; // allows air units over ground and sea units/buildings
+		}
+
+		if ((this.unit==HUMAN_START_LOC||this.unit==ORC_START_LOC)
+		   ^(unit.id==HUMAN_START_LOC||unit.id==ORC_START_LOC)
+		) {
+			// start locations ignore collision with everything except
+			// other start locations
+			continue;
 		}
 
 		let compareUnitSize=this.pud.units.unitSize[unit.id];
-		let compareFlags=this.pud.units.flags[unit.id];
 
 		for (let point of computePoints(unit.x, unit.y, compareUnitSize)) {
 			if (points.includes(point)) {
@@ -925,7 +953,7 @@ Editor.prototype.validateArea=function(x, y) {
 		}
 	}
 
-	let startLocation=this.unit==94||this.unit==95;
+	let startLocation=this.unit==HUMAN_START_LOC||this.unit==ORC_START_LOC;
 	let coast=0;
 
 	// checks if unit is allowed on movement tile
@@ -993,20 +1021,24 @@ Editor.prototype.selectPlayer=function(player) {
 
 	let reassigned=0;
 
+	// does not reassign ownership of critters, gold mines, oil patches,
+	// or start locations in box selections
+	let omit=[57, 92, 93, HUMAN_START_LOC, ORC_START_LOC];
+
 	// reassigns owner of selected units
 	for (let unit of Object.values(this.selected)) {
-		// does not reassign ownership of critters, gold mines, oil patches,
-		// or start locations in box selections
-		if (unit.id!=57&&unit.id!=92&&unit.id!=93&&unit.id!=94&&unit.id!=95) {
-			// changes race of unit when owner is changed if necessary
-			unit.id=this.convertUnit(
-				unit.id,
-				this.pud.races[player],
-				this.pud.races[unit.owner]
-			);
-			unit.owner=player;
-			reassigned++;
+		if (omit.includes(unit.id)) {
+			continue;
 		}
+
+		// changes race of unit when owner is changed if necessary
+		unit.id=this.convertUnit(
+			unit.id,
+			this.pud.races[player],
+			this.pud.races[unit.owner]
+		);
+		unit.owner=player;
+		reassigned++;
 	}
 
 	if (reassigned||this.pud.races[this.player]!=this.pud.races[player]) {
@@ -1571,7 +1603,7 @@ Overlays.prototype.fillProperties=function(key) {
 			$("#"+element.id).value=value;
 		}
 
-		if (unit.id==94||unit.id==95) {
+		if (unit.id==HUMAN_START_LOC||unit.id==ORC_START_LOC) {
 			$("#row_owner").classList.add("hidden");
 			$("#select_owner").disabled=true;
 		} else {
@@ -2061,7 +2093,7 @@ Pud.prototype.load=function(filename, buffer) {
 	// breaks bit fields into arrays of booleans
 	function parseBits(arr) {
 		return arr.map(function(value) {
-			const SIZE=4*QWORD;
+			const SIZE=32;
 			let sub=[];
 
 			for (let i=0; i<SIZE; i++) {
