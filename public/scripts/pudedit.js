@@ -355,6 +355,7 @@ function Editor() {
 	this.select=null;
 	this.miniTileMap=null;
 	this.miniUnitMap=null;
+	this.miniUnitBuffer=null;
 	this.frame=null;
 	this.tiles=null;
 
@@ -418,30 +419,39 @@ Editor.prototype.open=function(filename, path, buffer) {
 	this.miniUnitMap=$("#miniUnitMap").getContext("2d");
 	this.frame=$("#frame").getContext("2d");
 
-	// buffer is kept in memory but never inserted into DOM
-	let unitBuffer=document.createElement("canvas");
-	unitBuffer.width =$("#unitMap").width;
-	unitBuffer.height=$("#unitMap").height;
-	this.unitBuffer=unitBuffer.getContext("2d");
+	// buffers are kept in memory but never inserted into DOM
+	this.unitBuffer    =createBuffer("unitMap");
+	this.miniUnitBuffer=createBuffer("miniUnitMap");
 
 	this.pos=$("#frame").getBoundingClientRect();
 	this.scaleX=MINIMAP_SIZE/$("#tileMap").width;
 	this.scaleY=MINIMAP_SIZE/$("#tileMap").height;
+
 	this.miniTileMap.scale(this.scaleX, this.scaleY);
+	this.miniUnitMap.scale(this.scaleX, this.scaleY);
+	this.miniUnitBuffer.scale(this.scaleX, this.scaleY);
 
 	this.selectPlayer(this.player);
 	this.selectPalette("units");
 
 	this.positions=Array(this.pud.unitMap.length).fill();
 
-	// draws tile map and changes unit icons to match tileset
+	// draws tile map and unit map, changes unit icons to match tileset
 	this.changeTileset(this.pud.tileset);
-
+	// draws movement map
 	this.drawMovementMap();
 
 	function setSize(id, w, h) {
 		$("#"+id).width =w;
 		$("#"+id).height=h;
+	}
+
+	function createBuffer(id) {
+		let buffer=document.createElement("canvas");
+		buffer.width =$("#"+id).width;
+		buffer.height=$("#"+id).height;
+
+		return buffer.getContext("2d");
 	}
 };
 
@@ -480,114 +490,125 @@ Editor.prototype.drawTileMap=function() {
 	this.drawFrame();
 };
 
-Editor.prototype.drawUnit=function(resolve, unit) {
-	let unitSize=1, img=new Image();
+Editor.prototype.drawUnitMap=function() {
+	let width=$("#unitMap").width, height=$("#unitMap").height;
 
-	if (unit.id in this.pud.units.unitSize) {
-		unitSize=this.pud.units.unitSize[unit.id];
-	}
-
-	let path="units/"+this.getTileset(this.pud.tileset)+"/";
-
-	img.src=path+unit.id.toString().padStart(4, "0")+".png";
-	img.addEventListener("load", function() {
-		let x=unit.x*TILE_SIZE, y=unit.y*TILE_SIZE;
-		let w=unitSize.x*TILE_SIZE, h=unitSize.y*TILE_SIZE;
-
-		this.drawUnitMap(x, y, w, h, unit, img);
-		this.drawMiniMap(x, y, w, h, unit);
-
-		resolve();
-	}.bind(this));
-
-	return img;
-};
-
-Editor.prototype.drawUnitMap=function(x, y, w, h, unit, img) {
-	let sx=0, sy=0, id=unit.id, owner=Math.min(unit.owner, 7);
-
-	if (id<UNIT_BOUNDARY) { // units, not buildings
-		// centers unit in tile
-		x-=(img.width-w)/2;
-		y-=(img.width-h)/2;
-
-		w=img.width;
-		h=w;
-
-		if (this.positions[id]==undefined) {
-			// picks random idle frame
-			sy=h*Math.floor(Math.random()*5);
-			this.positions[id]=sy;
-		} else {
-			sy=this.positions[id];
-		}
-	}
-
-	this.unitBuffer.drawImage(img, sx, sy, w, h, x, y, w, h);
-
-	if (owner==0) { // artwork is already in player 1 colors by default
-		return;
-	}
-
-	let imageData=this.unitBuffer.getImageData(x, y, w, h);
-	owner=Number.parseInt(owner);
-
-	// changes player colors to match unit owner
-	for (let i=0; i<imageData.data.length; i+=4) { // 4 for RGBA
-		for (let j=0; j<4; j++) { // 4 colors for each player
-			if (imageData.data[i]  ==data.colors[0][j].r
-			  &&imageData.data[i+1]==data.colors[0][j].g
-			  &&imageData.data[i+2]==data.colors[0][j].b) {
-				imageData.data[i]  =data.colors[owner][j].r;
-				imageData.data[i+1]=data.colors[owner][j].g;
-				imageData.data[i+2]=data.colors[owner][j].b;
-			}
-		}
-	}
-
-	this.unitBuffer.putImageData(imageData, x, y);
-};
-
-Editor.prototype.drawUnits=function() {
 	// clears canvas every time or units will stack when tileset changed
-	this.unitBuffer.clearRect(0, 0, $("#unitMap").width, $("#unitMap").height);
+	this.unitBuffer.clearRect(0, 0, width, height);
+	this.miniUnitBuffer.clearRect(0, 0, width, height);
 
+	let self=this;
 	let promises=[];
 
-	this.miniUnitMap.scale(this.scaleX, this.scaleY);
-	this.pud.unitMap.forEach(function(unit) {
+	for (let unit of this.pud.unitMap) {
 		promises.push(new Promise(function(resolve) {
-			this.drawUnit(resolve, unit);
-		}.bind(this)));
-	}.bind(this));
+			drawUnit(resolve, unit);
+		}));
+	}
 
+	// draws units after all images have loaded
 	Promise.all(promises).then(function() {
-		this.unitMap.clearRect(0, 0, $("#unitMap").width, $("#unitMap").height);
+		this.unitMap.clearRect(0, 0, width, height);
 		this.unitMap.drawImage(
 			this.unitBuffer.canvas,
 			0, 0,
-			$("#unitMap").width,
-			$("#unitMap").height
+			width, height
+		);
+
+		this.miniUnitMap.clearRect(0, 0, width, height);
+		this.miniUnitMap.drawImage(
+			this.miniUnitBuffer.canvas,
+			0, 0,
+			width, height
 		);
 	}.bind(this));
+
+	function drawUnit(resolve, unit) {
+		let unitSize=1, img=new Image();
+
+		if (unit.id in self.pud.units.unitSize) {
+			unitSize=self.pud.units.unitSize[unit.id];
+		}
+
+		let path="units/"+self.getTileset(self.pud.tileset)+"/";
+
+		img.src=path+unit.id.toString().padStart(4, "0")+".png";
+		img.addEventListener("load", function() {
+			let x=unit.x*TILE_SIZE, y=unit.y*TILE_SIZE;
+			let w=unitSize.x*TILE_SIZE, h=unitSize.y*TILE_SIZE;
+
+			drawToUnitMap(x, y, w, h, unit, img);
+			drawToMiniMap(x, y, w, h, unit);
+
+			resolve();
+		});
+
+		return img;
+	}
+
+	function drawToUnitMap(x, y, w, h, unit, img) {
+		let sx=0, sy=0, id=unit.id, owner=Math.min(unit.owner, 7);
+
+		if (id<UNIT_BOUNDARY) { // units, not buildings
+			// centers unit in tile
+			x-=(img.width-w)/2;
+			y-=(img.width-h)/2;
+
+			w=img.width;
+			h=w;
+
+			if (self.positions[id]==undefined) {
+				// picks random idle frame
+				sy=h*Math.floor(Math.random()*5);
+				self.positions[id]=sy;
+			} else {
+				sy=self.positions[id];
+			}
+		}
+
+		self.unitBuffer.drawImage(img, sx, sy, w, h, x, y, w, h);
+
+		if (owner==0) { // artwork is already in player 1 colors by default
+			return;
+		}
+
+		let imageData=self.unitBuffer.getImageData(x, y, w, h);
+		owner=Number.parseInt(owner);
+
+		// changes player colors to match unit owner
+		for (let i=0; i<imageData.data.length; i+=4) { // 4 for RGBA
+			for (let j=0; j<4; j++) { // 4 colors for each player
+				if (imageData.data[i]  ==data.colors[0][j].r
+				  &&imageData.data[i+1]==data.colors[0][j].g
+				  &&imageData.data[i+2]==data.colors[0][j].b) {
+					imageData.data[i]  =data.colors[owner][j].r;
+					imageData.data[i+1]=data.colors[owner][j].g;
+					imageData.data[i+2]=data.colors[owner][j].b;
+				}
+			}
+		}
+
+		self.unitBuffer.putImageData(imageData, x, y);
+	}
+
+	function drawToMiniMap(x, y, w, h, unit) {
+		let owner=Math.min(unit.owner, 7); // neutral players use player 8 colors
+
+		// uses first player color for minimap squares
+		let r=data.colors[owner][0].r.toString(16).padStart(2, "0");
+		let g=data.colors[owner][0].g.toString(16).padStart(2, "0");
+		let b=data.colors[owner][0].b.toString(16).padStart(2, "0");
+
+		x=Math.floor(x);
+		y=Math.floor(y);
+		w=Math.ceil(w);
+		h=Math.ceil(h);
+
+		self.miniUnitBuffer.fillStyle="#"+r+g+b;
+		self.miniUnitBuffer.fillRect(x, y, w, h);
+	}
 };
 
-Editor.prototype.drawMiniMap=function(x, y, w, h, unit) {
-	let owner=Math.min(unit.owner, 7); // neutral players use player 8 colors
-
-	// uses first player color for minimap squares
-	let r=data.colors[owner][0].r.toString(16).padStart(2, "0");
-	let g=data.colors[owner][0].g.toString(16).padStart(2, "0");
-	let b=data.colors[owner][0].b.toString(16).padStart(2, "0");
-
-	x=Math.floor(x);
-	y=Math.floor(y);
-	w=Math.ceil(w);
-	h=Math.ceil(h);
-
-	this.miniUnitMap.fillStyle="#"+r+g+b;
-	this.miniUnitMap.fillRect(x, y, w, h);
-};
 
 Editor.prototype.drawMovementMap=function() {
 	let x=0, y=0, w=TILE_SIZE-4, h=w;
@@ -770,14 +791,14 @@ Editor.prototype.addUnit=function(x, y) {
 		y
 	};
 	this.pud.unitMap.push(unit);
-	this.drawUnits();
+	this.drawUnitMap();
 };
 
 Editor.prototype.removeUnit=function(id) {
 	this.pud.unitMap=this.pud.unitMap.filter(function(undefined, i) {
 		return id!=i;
 	});
-	this.drawUnits();
+	this.drawUnitMap();
 };
 
 Editor.prototype.removeSelected=function() {
@@ -785,7 +806,7 @@ Editor.prototype.removeSelected=function() {
 		return !(i in this.selected);
 	}, this);
 	this.clearSelect();
-	this.drawUnits();
+	this.drawUnitMap();
 };
 
 Editor.prototype.findNearestTile=function(x, y, w, h) {
@@ -950,7 +971,7 @@ Editor.prototype.selectPlayer=function(player) {
 	}
 
 	if (changed) {
-		this.drawUnits();
+		this.drawUnitMap();
 	}
 
 	let redraw=this.pud.races[this.player]!=this.pud.races[player];
@@ -960,9 +981,11 @@ Editor.prototype.selectPlayer=function(player) {
 	if (redraw) { // redraw units if race changes
 		this.changeUnitPalette();
 
-		// clear selection to prevent placing units for wrong race
-		this.mode=SELECT_UNITS;
-		this.clearSelect();
+		if (this.mode==PLACE_UNIT) {
+			// clear selection to prevent placing units for wrong race
+			this.mode=SELECT_UNITS;
+			this.clearSelect();
+		}
 	}
 };
 
@@ -1001,7 +1024,7 @@ Editor.prototype.changeTileset=function(tileset) {
 		});
 	}
 
-	this.drawUnits();
+	this.drawUnitMap();
 	this.changeTerrainPalette();
 	this.changeUnitPalette();
 };
@@ -1639,7 +1662,7 @@ Overlays.prototype.saveProperties=function(key) {
 			}
 		}
 
-		editor.drawUnits();
+		editor.drawUnitMap();
 	}
 
 	function readNumber(id, size) {
