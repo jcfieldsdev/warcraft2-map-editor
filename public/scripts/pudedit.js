@@ -19,8 +19,8 @@ const DEFAULT_SIZE=128;
 const MINIMAP_SIZE=200;
 const LEFT_MARGIN =270;
 const FRAME_COLOR ="#fff";
-const PLACE_VALID_COLOR ="#fff";
-const PLACE_ERROR_COLOR ="#f00";
+const PLACE_VALID_COLOR="#fff";
+const PLACE_ERROR_COLOR="#f00";
 const SELECT_COLOR="#0f0";
 
 // mouse modes
@@ -46,7 +46,7 @@ const WASTELAND=2;
 const SWAMP    =3;
 
 // units
-const HUMAN_START_LOC=94
+const HUMAN_START_LOC=94;
 const ORC_START_LOC  =95;
 
 // unit flags
@@ -744,7 +744,7 @@ Editor.prototype.selectUnits=function(x, y, add=false, multiple=false) {
 
 	for (let [i, unit] of this.pud.unitMap.entries()) {
 		if (!this.pud.units.unitSize.hasOwnProperty(unit.id)) {
-			return;
+			continue;
 		}
 
 		let unitSize=this.pud.units.unitSize[unit.id];
@@ -939,7 +939,7 @@ Editor.prototype.validateArea=function(x, y) {
 	let flags=this.pud.units.flags[this.unit];
 	let unitType=getUnitType(flags);
 
-	let exclude=[];
+	let resourceArea=[];
 
 	if (flags[GOLD_MINE]||flags[GOLD_DEPOT]
 	  ||flags[OIL_PATCH]||flags[OIL_PLATFORM]
@@ -970,7 +970,7 @@ Editor.prototype.validateArea=function(x, y) {
 					continue;
 				}
 
-				exclude.push(coord);
+				resourceArea.push(coord);
 			}
 		}
 	}
@@ -1010,7 +1010,7 @@ Editor.prototype.validateArea=function(x, y) {
 			  ||(flags[OIL_DEPOT]
 			    &&(compareFlags[OIL_PATCH]||compareFlags[OIL_PLATFORM]))
 			) {
-				if (exclude.includes(point)) {
+				if (resourceArea.includes(point)) {
 					valid=false;
 					break;
 				}
@@ -1019,7 +1019,7 @@ Editor.prototype.validateArea=function(x, y) {
 	}
 
 	let startLocation=this.unit==HUMAN_START_LOC||this.unit==ORC_START_LOC;
-	let coast=0;
+	let coastTiles=0;
 
 	// checks if unit is allowed on movement tile
 	for (let point of points) {
@@ -1036,7 +1036,7 @@ Editor.prototype.validateArea=function(x, y) {
 			} else if (flags[BUILDING]) {
 				if (flags[SHORE_BUILDING]) {
 					valid&=tile==0x02||tile==0x82||tile==0x40;
-					coast+=tile==0x02||tile==0x82; // counts coast tiles
+					coastTiles+=tile==0x02||tile==0x82; // counts coast tiles
 				} else {
 					valid&=tile==0x00||tile==0x01;
 				}
@@ -1045,7 +1045,7 @@ Editor.prototype.validateArea=function(x, y) {
 			if (unitType==AIR) {
 				valid=false;
 			}
-		} else if (special=0xff) {
+		} else if (special==0xff) {
 			valid=false;
 		}
 
@@ -1055,7 +1055,8 @@ Editor.prototype.validateArea=function(x, y) {
 	}
 
 	if (flags[SHORE_BUILDING]) {
-		valid&=coast>0; // shore buildings must be on at least one coast tile
+		// shore buildings must be on at least one coast tile
+		valid&=coastTiles>0;
 	}
 
 	return valid;
@@ -1084,7 +1085,7 @@ Editor.prototype.selectPlayer=function(player) {
 
 	player=Number.parseInt(player);
 
-	let reassigned=0;
+	let ownerChanged=0;
 
 	// does not reassign ownership of critters, gold mines, oil patches,
 	// or start locations in box selections
@@ -1103,13 +1104,14 @@ Editor.prototype.selectPlayer=function(player) {
 			this.pud.races[unit.owner]
 		);
 		unit.owner=player;
-		reassigned++;
+		ownerChanged++;
 	}
 
-	if (reassigned||this.pud.races[this.player]!=this.pud.races[player]) {
-		// redraw units if owner reassigned or race changes
+	let raceChanged=this.pud.races[this.player]!=this.pud.races[player];
+
+	if (ownerChanged||raceChanged) {
+		// redraw units if owner or race changes
 		this.drawUnitMap();
-		this.changeUnitPalette();
 
 		if (this.mode==PLACE_UNIT) {
 			this.unit=this.convertUnit(
@@ -1121,6 +1123,10 @@ Editor.prototype.selectPlayer=function(player) {
 	}
 
 	this.player=player;
+
+	if (raceChanged) {
+		this.changeUnitPalette();
+	}
 };
 
 Editor.prototype.selectPalette=function(palette) {
@@ -1176,7 +1182,6 @@ Editor.prototype.changeTerrainPalette=function() {
 };
 
 Editor.prototype.changeUnitPalette=function() {
-	let self=this;
 	let group=$("#select_unitsPalette").value;
 
 	if (!data.units.hasOwnProperty(group)) {
@@ -1590,7 +1595,7 @@ Overlays.prototype.fillProperties=function(key) {
 
 		for (let [i, item] of data.restrictions[category].entries()) {
 			if (item=="") {
-				return;
+				continue;
 			}
 
 			tr=document.createElement("tr");
@@ -1770,7 +1775,7 @@ Overlays.prototype.saveProperties=function(key) {
 		for (let index of Object.keys(self.working)) {
 			for (let i of Object.keys(self.working[index])) {
 				for (let j of Object.keys(self.working[index][i])) {
-					if (!self.working[index].hasOwnProperty(j)) {
+					if (!editor.pud.restrictions[index].hasOwnProperty(j)) {
 						continue;
 					}
 
@@ -1782,7 +1787,7 @@ Overlays.prototype.saveProperties=function(key) {
 	}
 
 	function saveSelection() {
-		let reassigned=0;
+		let ownerChanged=0;
 
 		for (let index of Object.keys(self.working)) {
 			for (let property of Object.keys(self.working[index])) {
@@ -1805,7 +1810,7 @@ Overlays.prototype.saveProperties=function(key) {
 						editor.pud.races[value],
 						editor.pud.races[unit.owner]
 					);
-					reassigned++;
+					ownerChanged++;
 				}
 
 				editor.pud.unitMap[index][property]=value;
@@ -1813,7 +1818,7 @@ Overlays.prototype.saveProperties=function(key) {
 			}
 		}
 
-		if (reassigned) { // redraws units if a unit's owner has changed
+		if (ownerChanged) { // redraws units if a unit's owner has changed
 			editor.drawUnitMap();
 		}
 	}

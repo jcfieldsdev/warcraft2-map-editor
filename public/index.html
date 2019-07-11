@@ -107,7 +107,7 @@
 <div id="overlay_create" class="overlay"><div class="title"><h2>Create</h2>
 <button type="button" value="create" title="Create" class="save"><img src="layout/widget-save.svg" alt="Create"></button>
 <button type="button" value="create" title="Close" class="close"><img src="layout/widget-close.svg" alt="Close"></button></div>
-<div class="view"><fieldset><legend>Map Size:</legend>
+<fieldset><legend>Map Size:</legend>
 <div><label><input type="radio" value="128" name="radio_size"> Large (128×128)</label></div>
 <div><label><input type="radio" value="96" name="radio_size"> Medium (96×96)</label></div>
 <div><label><input type="radio" value="64" name="radio_size"> Small (64×64)</label></div>
@@ -116,7 +116,7 @@
 <div><label><input type="radio" value="0" name="radio_terrain"> Forest</label></div>
 <div><label><input type="radio" value="1" name="radio_terrain"> Winter</label></div>
 <div><label><input type="radio" value="2" name="radio_terrain"> Wasteland</label></div>
-<div><label><input type="radio" value="3" name="radio_terrain"> Swamp</label></div></fieldset></div></div>
+<div><label><input type="radio" value="3" name="radio_terrain"> Swamp</label></div></fieldset></div>
 <div id="overlay_browser" class="overlay"><div class="title"><h2>Open</h2>
 <button type="button" value="browser" title="Close" class="close"><img src="layout/widget-close.svg" alt="Close" title="Close"></button></div>
 <ul id="files"></ul>
@@ -186,7 +186,7 @@
 <div><label><input type="checkbox" value="units" id="checkbox_units" class="defaults"> Use default data.</label></div>
 <div class="view"><select size="10" id="select_units" class="fill"></select>
 <fieldset><legend id="legend_units"></legend>
-<table><tr><td><label for="number_hp">Hit points:</label></td><td><input type="number" min="0" max="65535" id="number_hp" class="units"></td></tr>
+<div><table><tr><td><label for="number_hp">Hit points:</label></td><td><input type="number" min="0" max="65535" id="number_hp" class="units"></td></tr>
 <tr><td><label for="number_armor">Armor:</label></td><td><input type="number" min="0" max="255" id="number_armor" class="units"></td></tr>
 <tr><td><label for="number_unitGold">Gold cost:</label></td><td><input type="number" min="0" max="255" id="number_unitGold" class="units gold"> × 10</td></tr>
 <tr><td><label for="number_unitLumber">Lumber cost:</label></td><td><input type="number" min="0" max="255" id="number_unitLumber" class="units lumber"> × 10</td></tr>
@@ -196,9 +196,9 @@
 <tr><td><label for="number_piercingDamage">Piercing damage:</label></td><td><input type="number" min="0" max="255" id="number_piercingDamage" class="units"></td></tr>
 <tr><td><label for="number_range">Attack range:</label></td><td><input type="number" min="0" max="255" id="number_range" class="units"></td></tr>
 <tr><td><label for="number_sight">Sight range:</label></td><td><input type="number" min="0" max="9" id="number_sight" class="units"></td></tr>
-<tr><td><label for="number_weaponsUpgradable">Weapons upgradable:</label></td><td><input type="checkbox" id="checkbox_weaponsUpgradable" class="units"></td></tr>
-<tr><td><label for="number_armorUpgradable">Armor upgradable:</label></td><td><input type="checkbox" id="checkbox_armorUpgradable" class="units"></td></tr>
-<tr><td><label for="number_type">Unit type:</label></td><td>
+<tr><td><label for="checkbox_weaponsUpgradable">Weapons upgradable:</label></td><td><input type="checkbox" id="checkbox_weaponsUpgradable" class="units"></td></tr>
+<tr><td><label for="checkbox_armorUpgradable">Armor upgradable:</label></td><td><input type="checkbox" id="checkbox_armorUpgradable" class="units"></td></tr>
+<tr><td><label for="select_type">Unit type:</label></td><td>
 <select id="select_type" class="units">
 	<option value="0">Land</option>
 	<option value="1">Air</option>
@@ -206,9 +206,9 @@
 </select></td></tr>
 <tr><td><label for="number_unitSize_x">Unit size:</label></td><td><input type="number" size="1" id="number_unitSize_x" class="units">×<input type="number" size="1" id="number_unitSize_y" class="units"></td></tr>
 <tr><td><label for="number_boxSize_x">Box size:</label></td><td><input type="number" size="1" id="number_boxSize_x" class="units">×<input type="number" size="1" id="number_boxSize_y" class="units"></td></tr>
-<tr><td><label for="number_selectable">Group selectable:</label></td><td><input type="checkbox" id="checkbox_selectable" class="units"></td></tr>
-<tr><td><label for="number_magic">Magic:</label></td><td><input type="checkbox" id="checkbox_magic" class="units"></td></tr>
-<tr><td><label for="number_rmbAction">Right-click action:</label></td><td>
+<tr><td><label for="checkbox_selectable">Group selectable:</label></td><td><input type="checkbox" id="checkbox_selectable" class="units"></td></tr>
+<tr><td><label for="checkbox_magic">Magic:</label></td><td><input type="checkbox" id="checkbox_magic" class="units"></td></tr>
+<tr><td><label for="select_rmbAction">Right-click action:</label></td><td>
 <select id="select_rmbAction" class="units">
 	<option value="2">Move</option>
 	<option value="1">Attack</option>
@@ -217,7 +217,7 @@
 	<option value="5">Demolish</option>
 	<option value="6">Sail</option>
 </select></td></tr>
-<tr><td><label for="number_missile">Missile:</label></td><td>
+<tr><td><label for="select_missile">Missile:</label></td><td>
 <select id="select_missile" class="units">
 	<option value="29">(None)</option>
 	<option value="15">Arrow</option>
@@ -255,47 +255,47 @@
 <tr><td><label for="number_annoyFactor">Annoy factor:</label></td><td><input type="number" min="0" max="4294967295" id="number_annoyFactor" class="units"></td></tr>
 <tr><td><label for="number_decayRate">Decay rate:</label></td><td><input type="number" min="0" max="4294967295" id="number_decayRate" class="units"></td></tr>
 <tr><td><label for="number_points">Points:</label></td><td><input type="number" min="0" max="4294967295" id="number_points" class="units"></td></tr>
-<tr><td><label for="number_canTarget">Can Target:</label></td><td>
+<tr><td>Can Target:</td><td>
 <label><input type="checkbox" id="checkbox_canTarget_0" class="units"> Land</label>
 <label><input type="checkbox" id="checkbox_canTarget_1" class="units"> Air</label>
 <label><input type="checkbox" id="checkbox_canTarget_2" class="units"> Sea</label></td></tr>
-<tr><td><label for="number_flags">Flags:</label></td><td>
+<tr><td>Flags:</td><td>
 <div><label><input type="checkbox" id="checkbox_flags_0" class="units"> Land unit</label></div>
-<div><label><input type="checkbox" id="checkbox_flags_1" class="units"> Air unit<label></div>
-<div><label><input type="checkbox" id="checkbox_flags_3" class="units"> Sea unit<label></div>
-<div><label><input type="checkbox" id="checkbox_flags_8" class="units"> Worker<label></div>
-<div><label><input type="checkbox" id="checkbox_flags_5" class="units"> Building<label></div>
-<div><label><input type="checkbox" id="checkbox_flags_20" class="units"> Tower<label></div>
-<div><label><input type="checkbox" id="checkbox_flags_16" class="units"> Shore building<label></div>
-<div><label><input type="checkbox" id="checkbox_flags_4" class="units"> Critter<label></div>
-<div><label><input type="checkbox" id="checkbox_flags_9" class="units"> Tanker<label></div>
-<div><label><input type="checkbox" id="checkbox_flags_10" class="units"> Transport<label></div>
-<div><label><input type="checkbox" id="checkbox_flags_6" class="units"> Submarine<label></div>
-<div><label><input type="checkbox" id="checkbox_flags_7" class="units"> Can see submarine<label></div>
-<div><label><input type="checkbox" id="checkbox_flags_22" class="units"> Gold mine<label></div>
-<div><label><input type="checkbox" id="checkbox_flags_12" class="units"> Gold depot<label></div>
-<div><label><input type="checkbox" id="checkbox_flags_18" class="units"> Wood depot<label></div>
-<div><label><input type="checkbox" id="checkbox_flags_11" class="units"> Oil source<label></div>
-<div><label><input type="checkbox" id="checkbox_flags_21" class="units"> Oil patch<label></div>
-<div><label><input type="checkbox" id="checkbox_flags_24" class="units"> Oil depot<label></div>
-<div><label><input type="checkbox" id="checkbox_flags_19" class="units"> Can attack<label></div>
-<div><label><input type="checkbox" id="checkbox_flags_14" class="units"> Can attack ground<label></div>
-<div><label><input type="checkbox" id="checkbox_flags_17" class="units"> Can cast spells<label></div>
-<div><label><input type="checkbox" id="checkbox_flags_23" class="units"> Hero<label></div>
-<div><label><input type="checkbox" id="checkbox_flags_26" class="units"> Mage<label></div>
-<div><label><input type="checkbox" id="checkbox_flags_27" class="units"> Organic<label></div>
-<div><label><input type="checkbox" id="checkbox_flags_15" class="units"> Undead<label></div>
-<div><label><input type="checkbox" id="checkbox_flags_25" class="units"> Volatile<label></div>
-<div><label><input type="checkbox" id="checkbox_flags_2" class="units"> Explode on death<label></div></td></tr></table>
+<div><label><input type="checkbox" id="checkbox_flags_1" class="units"> Air unit</label></div>
+<div><label><input type="checkbox" id="checkbox_flags_3" class="units"> Sea unit</label></div>
+<div><label><input type="checkbox" id="checkbox_flags_8" class="units"> Worker</label></div>
+<div><label><input type="checkbox" id="checkbox_flags_5" class="units"> Building</label></div>
+<div><label><input type="checkbox" id="checkbox_flags_20" class="units"> Tower</label></div>
+<div><label><input type="checkbox" id="checkbox_flags_16" class="units"> Shore building</label></div>
+<div><label><input type="checkbox" id="checkbox_flags_4" class="units"> Critter</label></div>
+<div><label><input type="checkbox" id="checkbox_flags_9" class="units"> Tanker</label></div>
+<div><label><input type="checkbox" id="checkbox_flags_10" class="units"> Transport</label></div>
+<div><label><input type="checkbox" id="checkbox_flags_6" class="units"> Submarine</label></div>
+<div><label><input type="checkbox" id="checkbox_flags_7" class="units"> Can see submarine</label></div>
+<div><label><input type="checkbox" id="checkbox_flags_22" class="units"> Gold mine</label></div>
+<div><label><input type="checkbox" id="checkbox_flags_12" class="units"> Gold depot</label></div>
+<div><label><input type="checkbox" id="checkbox_flags_18" class="units"> Wood depot</label></div>
+<div><label><input type="checkbox" id="checkbox_flags_11" class="units"> Oil source</label></div>
+<div><label><input type="checkbox" id="checkbox_flags_21" class="units"> Oil patch</label></div>
+<div><label><input type="checkbox" id="checkbox_flags_24" class="units"> Oil depot</label></div>
+<div><label><input type="checkbox" id="checkbox_flags_19" class="units"> Can attack</label></div>
+<div><label><input type="checkbox" id="checkbox_flags_14" class="units"> Can attack ground</label></div>
+<div><label><input type="checkbox" id="checkbox_flags_17" class="units"> Can cast spells</label></div>
+<div><label><input type="checkbox" id="checkbox_flags_23" class="units"> Hero</label></div>
+<div><label><input type="checkbox" id="checkbox_flags_26" class="units"> Mage</label></div>
+<div><label><input type="checkbox" id="checkbox_flags_27" class="units"> Organic</label></div>
+<div><label><input type="checkbox" id="checkbox_flags_15" class="units"> Undead</label></div>
+<div><label><input type="checkbox" id="checkbox_flags_25" class="units"> Volatile</label></div>
+<div><label><input type="checkbox" id="checkbox_flags_2" class="units"> Explode on death</label></div></td></tr></table>
 <p><button type="button" value="units" class="revert">Revert</button>
-<button type="button" value="units" class="reset">Reset to Defaults</button></p></fieldset></div></div>
+<button type="button" value="units" class="reset">Reset to Defaults</button></p></div></fieldset></div></div>
 <div id="overlay_upgrades" class="overlay"><div class="title"><h2>Upgrade Properties</h2>
 <button type="button" value="upgrades" title="Save" class="save"><img src="layout/widget-save.svg" alt="Save"></button>
 <button type="button" value="upgrades" title="Close" class="close"><img src="layout/widget-close.svg" alt="Close"></button></div>
 <div><label><input type="checkbox" value="upgrades" id="checkbox_upgrades" class="defaults"> Use default data.</label></div>
 <div class="view"><select size="10" id="select_upgrades" class="fill"></select>
 <fieldset><legend id="legend_upgrades"></legend>
-<table><tr><td><label for="number_upgradeTime">Research time:</label></td><td><input type="number" min="0" max="255" id="number_upgradeTime" class="upgrades"></td></tr>
+<div><table><tr><td><label for="number_upgradeTime">Research time:</label></td><td><input type="number" min="0" max="255" id="number_upgradeTime" class="upgrades"></td></tr>
 <tr><td><label for="number_upgradeGold">Gold cost:</label></td><td><input type="number" min="0" max="65535" id="number_upgradeGold" class="upgrades gold"></td></tr>
 <tr><td><label for="number_upgradeLumber">Lumber cost:</label></td><td><input type="number" min="0" max="65535" id="number_upgradeLumber" class="upgrades lumber"></td></tr>
 <tr><td><label for="number_upgradeOil">Oil cost:</label></td><td><input type="number" min="0" max="65535" id="number_upgradeOil" class="upgrades oil"></td></tr>
@@ -303,7 +303,7 @@
 <tr><td><label for="number_group">Group:</label></td><td><input type="number" min="0" max="65535" id="number_group" class="upgrades"></td></tr>
 <tr><td><label for="select_effect">Effect:</label></td><td><select id="select_effect" class="upgrades"><option value="1">0</option><option value="2">1</option><option value="4">2</option><option value="8">3</option><option value="16">4</option><option value="32">5</option><option value="64">6</option><option value="128">7</option><option value="256">8</option><option value="512">9</option><option value="1024">10</option><option value="2048">11</option><option value="4096">12</option><option value="8192">13</option><option value="16384">14</option><option value="32768">15</option><option value="65536">16</option><option value="131072">17</option><option value="262144">18</option><option value="524288">19</option><option value="1048576">20</option></select></td></tr></table>
 <p><button type="button" value="upgrades" class="revert">Revert</button>
-<button type="button" value="upgrades" class="reset">Reset to Defaults</button></p></fieldset></div></div>
+<button type="button" value="upgrades" class="reset">Reset to Defaults</button></p></div></fieldset></div></div>
 <div id="overlay_restrictions" class="overlay"><div class="title"><h2>Restrictions</h2>
 <button type="button" value="restrictions" title="Save" class="save"><img src="layout/widget-save.svg" alt="Save"></button>
 <button type="button" value="restrictions" title="Close" class="close"><img src="layout/widget-close.svg" alt="Close"></button></div>
@@ -321,10 +321,9 @@
 <div id="overlay_unitMap" class="overlay"><div class="title"><h2>Selection Properties</h2>
 <button type="button" value="unitMap" title="Save" class="save"><img src="layout/widget-save.svg" alt="Save"></button>
 <button type="button" value="unitMap" title="Close" class="close"><img src="layout/widget-close.svg" alt="Close"></button></div>
-<div class="view">
-<select size="10" id="select_unitMap" class="fill"></select>
+<div class="view"><select size="10" id="select_unitMap" class="fill"></select>
 <fieldset><legend id="legend_unitMap"></legend>
-<table><tr><td>Position:</td><td><input type="text" size="3" disabled="disabled" id="text_x" class="unitMap">×<input type="text" size="3" disabled="disabled" id="text_y" class="unitMap"></td></tr>
+<div><table><tr><td>Position:</td><td><input type="text" size="3" disabled="disabled" id="text_x" class="unitMap">×<input type="text" size="3" disabled="disabled" id="text_y" class="unitMap"></td></tr>
 <tr id="row_owner"><td>Owner:</td><td>
 <select id="select_owner" class="unitMap">
 	<option value="0" class="player1">Player 1</option>
@@ -338,7 +337,7 @@
 	<option value="15" class="player15">Neutral</option>
 </select></td></tr>
 <tr id="row_resource"><td>Resources:</td><td><input type="range" min="1" max="255" value="6" id="range_property" class="unitMap"> <span id="resource"></span></td></tr>
-<tr id="row_ai"><td>A.I.:</td><td><select id="select_property" class="unitMap"><option value="1">Active</option><option value="0">Passive</option></select></td></tr></table></fieldset></div></div>
+<tr id="row_ai"><td>A.I.:</td><td><select id="select_property" class="unitMap"><option value="1">Active</option><option value="0">Passive</option></select></td></tr></table></div></fieldset></div></div>
 <div id="overlay_about" class="overlay"><div class="title"><h2>About</h2>
 <button type="button" value="about" title="Close" class="close"><img src="layout/widget-close.svg" alt="Close"></button></div>
 <p>Created by <a href="mailto:jcfields+pudedit@gmail.com">J.C. Fields</a>. Hosted by <a href="https://gitlab.com/jcfields/warcraft2-map-editor">GitLab</a>.</p>

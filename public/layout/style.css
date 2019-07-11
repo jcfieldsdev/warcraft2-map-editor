@@ -217,7 +217,7 @@ div#overlay_create fieldset {
 	width: 16em;
 }
 
-div#overlay_startingConditions input {
+div#overlay_resources input {
 	width: 6em;
 }
 
@@ -342,9 +342,18 @@ div.view {
 }
 
 div.view fieldset {
-	height: 20em;
+	padding: 0 1em;
+}
+
+div.view fieldset>div {
+	height: 19em;
 	overflow: auto;
+	margin: 0.5em 0;
 	width: 30em;
+}
+
+div.view fieldset>div p {
+	margin: 1em 0 0;
 }
 
 div.view img.icon {
@@ -352,7 +361,7 @@ div.view img.icon {
 }
 
 div.view>select {
-	height: 21em;
+	height: 23em;
 	margin-right: 1em;
 	min-width: 15em;
 }
