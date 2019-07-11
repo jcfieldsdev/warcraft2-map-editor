@@ -798,7 +798,8 @@ Editor.prototype.placeUnit=function(x, y) {
 };
 
 Editor.prototype.addUnit=function(x, y) {
-	[x, y]=this.findNearestTile(x, y);
+	let unitSize=this.pud.units.unitSize[this.unit];
+	[x, y]=this.findNearestTile(x, y, unitSize.x, unitSize.y);
 
 	if (!this.validateArea(x, y)) {
 		return;
@@ -949,7 +950,27 @@ Editor.prototype.validateArea=function(x, y) {
 
 		for (let i=0; i<col; i++) {
 			for (let j=0; j<row; j++) {
-				exclude.push(start+j+i*this.pud.width);
+				let coord=start+j+i*this.pud.width;
+
+				// ignores negative values from placing building on top or left
+				// edges of map
+				if (coord<0) {
+					continue;
+				}
+
+				// computes distance from building to calculated point to omit
+				// "wraparound" values from placing building on right or bottom
+				// edges of map
+				let h=Math.abs(x-coord%this.pud.width);
+				let v=Math.abs(y-Math.floor(coord/this.pud.height));
+
+				if (h>RESOURCE_DISTANCE+unitSize.x
+				  ||v>RESOURCE_DISTANCE+unitSize.y
+				) {
+					continue;
+				}
+
+				exclude.push(coord);
 			}
 		}
 	}
