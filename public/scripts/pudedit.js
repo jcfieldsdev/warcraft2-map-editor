@@ -30,12 +30,14 @@ const PLACE_UNIT  =2;
 const EDIT_TERRAIN=3;
 
 // game mechanics
-const PLAYERS    =8;
-const TILE_SIZE  =32;
-const MAX_WIDTH  =128;
-const MAX_HEIGHT =128;
-const LAST_ICON  =195;
-const UNIT_BOUNDARY=58;
+const PLAYERS      =8;
+const TILE_SIZE    =32;
+const MAX_WIDTH    =128;
+const MAX_HEIGHT   =128;
+const DEFAULT_GOLD =6; // x2500
+const DEFAULT_OIL  =2; // x2500
+const RESOURCE_DISTANCE=3; // distance between gold mines/town halls
+const LAST_ICON    =195;
 
 // tilesets
 const FOREST   =0;
@@ -43,7 +45,7 @@ const WINTER   =1;
 const WASTELAND=2;
 const SWAMP    =3;
 
-// start locations
+// units
 const HUMAN_START_LOC=94
 const ORC_START_LOC  =95;
 
@@ -515,39 +517,46 @@ Editor.prototype.drawUnitMap=function() {
 	this.miniUnitBuffer.clearRect(0, 0, width, height);
 
 	let self=this;
-	let bottom=[], top=[], start=[];
+	let bottomPromises=[], topPromises=[], top=[];
 
-	// sorts unit by stacking priority
+	// sorts units by stacking priority
 	for (let [i, unit] of this.pud.unitMap.entries()) {
-		let promise=new Promise(function(resolve) {
-			drawUnit(resolve, i);
-		});
-
-		if (unit.id==HUMAN_START_LOC||unit.id==ORC_START_LOC) {
-			start.push(promise);
-		} else if (this.pud.units.flags[unit.id][AIR_UNIT]) {
-			top.push(promise);
+		if (unit.id==HUMAN_START_LOC||unit.id==ORC_START_LOC
+		  ||this.pud.units.flags[unit.id][AIR_UNIT]
+		) {
+			top.push(i);
 		} else {
-			bottom.push(promise);
+			bottomPromises.push(makePromise(i));
 		}
 	}
 
-	// draws units after all images have loaded
-	Promise.all(start.concat(bottom, top)).then(function() {
-		this.unitMap.clearRect(0, 0, width, height);
-		this.unitMap.drawImage(
-			this.unitBuffer.canvas,
-			0, 0,
-			width, height
-		);
+	Promise.all(bottomPromises).then(function() {
+		// draws flying units and start locations after other units
+		topPromises=top.map(makePromise);
 
-		this.miniUnitMap.clearRect(0, 0, width, height);
-		this.miniUnitMap.drawImage(
-			this.miniUnitBuffer.canvas,
-			0, 0,
-			width, height
-		);
+		// draws units after all images have loaded
+		Promise.all(topPromises).then(function() {
+			this.unitMap.clearRect(0, 0, width, height);
+			this.unitMap.drawImage(
+				this.unitBuffer.canvas,
+				0, 0,
+				width, height
+			);
+
+			this.miniUnitMap.clearRect(0, 0, width, height);
+			this.miniUnitMap.drawImage(
+				this.miniUnitBuffer.canvas,
+				0, 0,
+				width, height
+			);
+		}.bind(this));
 	}.bind(this));
+
+	function makePromise(i) {
+		return new Promise(function(resolve) {
+			drawUnit(resolve, i);
+		});
+	}
 
 	function drawUnit(resolve, i) {
 		let unit=self.pud.unitMap[i], unitSize=1;
@@ -574,9 +583,10 @@ Editor.prototype.drawUnitMap=function() {
 	}
 
 	function drawToUnitMap(x, y, w, h, i, unit, img) {
-		let sx=0, sy=0, id=unit.id, owner=Math.min(unit.owner, 7);
+		let sx=0, sy=0, owner=Math.min(unit.owner, 7);
+		let startLocation=unit.id==HUMAN_START_LOC||unit.id==ORC_START_LOC;
 
-		if (id<UNIT_BOUNDARY) { // units, not buildings
+		if (!self.pud.units.flags[unit.id][BUILDING]&&!startLocation) {
 			// centers unit in tile
 			x-=(img.width-w)/2;
 			y-=(img.width-h)/2;
@@ -757,7 +767,6 @@ Editor.prototype.selectUnits=function(x, y, add=false, multiple=false) {
 		}
 
 		if (boundaries&&(!add||!this.selected.hasOwnProperty(i))) {
-			this.select.beginPath();
 			this.select.strokeRect(
 				gx1*TILE_SIZE, gy1*TILE_SIZE,
 				unitSize.x*TILE_SIZE, unitSize.y*TILE_SIZE
@@ -796,9 +805,9 @@ Editor.prototype.addUnit=function(x, y) {
 
 	// default resources
 	if (flags[GOLD_MINE]) {
-		property=6;
+		property=DEFAULT_GOLD;
 	} else if (flags[OIL_PATCH]||flags[OIL_PLATFORM]) {
-		property=2;
+		property=DEFAULT_OIL;
 	}
 
 	// removes existing start location if new one is placed
@@ -813,11 +822,11 @@ Editor.prototype.addUnit=function(x, y) {
 	}
 
 	let unit={
-		owner: this.player,
-		id:    this.unit,
-		property,
 		x,
-		y
+		y,
+		id:    this.unit,
+		owner: this.player,
+		property
 	};
 	this.pud.unitMap.push(unit);
 	this.drawUnitMap();
@@ -917,14 +926,39 @@ Editor.prototype.findNearestTile=function(x, y, w, h) {
 
 Editor.prototype.validateArea=function(x, y) {
 	let self=this, valid=true;
-	let points=computePoints(x, y, this.pud.units.unitSize[this.unit]);
+	let unitSize=this.pud.units.unitSize[this.unit];
+	let points=computePoints(x, y, unitSize);
 
 	const LAND=1, AIR=2, SEA=3;
 	let flags=this.pud.units.flags[this.unit];
 	let unitType=getUnitType(flags);
 
+	let exclude=[];
+
+	if (flags[GOLD_MINE]||flags[GOLD_DEPOT]
+	  ||flags[OIL_PATCH]||flags[OIL_PLATFORM]
+	) { // enforces exclusion area between resource sources and return points
+		let start=points[0]-RESOURCE_DISTANCE-this.pud.width*RESOURCE_DISTANCE;
+		let row=2*RESOURCE_DISTANCE+unitSize.x;
+		let col=2*RESOURCE_DISTANCE+unitSize.y;
+
+		for (let i=0; i<col; i++) {
+			for (let j=0; j<row; j++) {
+				exclude.push(start+j+i*this.pud.width);
+			}
+		}
+	}
+
 	// checks if area contains other units
 	for (let unit of Array.from(this.pud.unitMap)) {
+		if ((this.unit==HUMAN_START_LOC||this.unit==ORC_START_LOC)
+		   ^(unit.id==HUMAN_START_LOC||unit.id==ORC_START_LOC)
+		) {
+			// start locations ignore collision with everything except
+			// other start locations
+			continue;
+		}
+
 		let compareType=getUnitType(this.pud.units.flags[unit.id]);
 		let compareFlags=this.pud.units.flags[unit.id];
 
@@ -935,20 +969,25 @@ Editor.prototype.validateArea=function(x, y) {
 			continue; // allows air units over ground and sea units/buildings
 		}
 
-		if ((this.unit==HUMAN_START_LOC||this.unit==ORC_START_LOC)
-		   ^(unit.id==HUMAN_START_LOC||unit.id==ORC_START_LOC)
-		) {
-			// start locations ignore collision with everything except
-			// other start locations
-			continue;
-		}
-
 		let compareUnitSize=this.pud.units.unitSize[unit.id];
 
 		for (let point of computePoints(unit.x, unit.y, compareUnitSize)) {
 			if (points.includes(point)) {
 				valid=false;
 				break;
+			}
+
+			if ((flags[GOLD_MINE]&&compareFlags[GOLD_DEPOT])
+			  ||(flags[GOLD_DEPOT]&&compareFlags[GOLD_MINE])
+			  ||((flags[OIL_PATCH]||flags[OIL_PLATFORM])
+			    &&compareFlags[OIL_DEPOT])
+			  ||(flags[OIL_DEPOT]
+			    &&(compareFlags[OIL_PATCH]||compareFlags[OIL_PLATFORM]))
+			) {
+				if (exclude.includes(point)) {
+					valid=false;
+					break;
+				}
 			}
 		}
 	}
@@ -957,7 +996,7 @@ Editor.prototype.validateArea=function(x, y) {
 	let coast=0;
 
 	// checks if unit is allowed on movement tile
-	for (let [i, point] of points.entries()) {
+	for (let point of points) {
 		let special=this.pud.movementMap[point]&0xff00;
 		let tile   =this.pud.movementMap[point]&0x00ff;
 
@@ -1418,6 +1457,7 @@ Overlays.prototype.openProperties=function(key) {
 		for (let i in options) {
 			if (options[i].value==value) {
 				select.selectedIndex=i;
+				break;
 			}
 		}
 	}
@@ -1481,7 +1521,7 @@ Overlays.prototype.fillProperties=function(key) {
 	}
 
 	if (key=="units") {
-		$("#select_rmbAction").disabled=index>=UNIT_BOUNDARY;
+		$("#select_rmbAction").disabled=editor.pud.units.flags[index][BUILDING];
 	} else if (key=="upgrades") {
 		this.changeIcon($("#number_icon"), $("#icon"), $("#select_upgrades"));
 	}
@@ -1622,7 +1662,7 @@ Overlays.prototype.fillProperties=function(key) {
 			self.changeResource();
 		}
 
-		if (unit.id<UNIT_BOUNDARY) { // units, not buildings
+		if (!flags[BUILDING]) { // units, not buildings
 			$("#row_ai").classList.remove("hidden");
 			$("#select_property").disabled=false;
 		} else {

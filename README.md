@@ -4,13 +4,21 @@ A [map editor for *Warcraft II*](https://jcfields.gitlab.io/warcraft2-map-edito
 
 Currently implemented functionality:
 
-- Viewing maps and saving maps as an image.
-- Modifying and saving map and player properties and unit, upgrade, and restriction data.
+- Viewing maps (unit, terrain, and movement layers).
+- Placing units.
+- Modifying and saving map and player properties.
+- Modifying and saving unit, upgrade, and restriction data.
+- Saving maps as an image.
 
-Still unimplemented:
+Not implemented but planned:
 
-- Unit placement.
 - Terrain manipulation.
+
+Not implemented but would be nice some day:
+
+- Undo for units and terrain.
+- Copy/paste for units and terrain.
+- Editing the movement map.
 
 Based on the [pud specification](https://gitlab.com/jcfields/warcraft2-map-editor/blob/master/pudspec.txt) created by Daniel Lemberg and contributors.
 
