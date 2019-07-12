@@ -146,35 +146,10 @@ window.addEventListener("load", function() {
 		event.preventDefault();
 	});
 	// for palettes
-	$("#create").addEventListener("click", function() {
-		overlays.openProperties("create");
-	});
-	$("#open").addEventListener("click", function() {
-		files.browse();
-		overlays.show("browser");
-	});
-	$("#save").addEventListener("click", function() {
-		if (Object.keys(editor.pud)==0) {
-			return;
-		}
-
-		let blob=null;
-
-		try {
-			blob=editor.pud.save();
-		} catch (err) {
-			return overlays.displayError(err);
-		}
-
-		let a=$("#download");
-		a.download=editor.pud.filename;
-		a.href=window.URL.createObjectURL(blob);
-		a.click();
-		window.URL.revokeObjectURL(blob);
-	});
-	$("#saveImage").addEventListener("click", function() {
-		editor.saveImage();
-	});
+	$("#create").addEventListener("click", create);
+	$("#open").addEventListener("click", open);
+	$("#save").addEventListener("click", save);
+	$("#saveImage").addEventListener("click", editor.saveImage.bind(editor));
 	$("#link").addEventListener("click", function() {
 		if (editor.path) {
 			let link=window.location.href.split("?")[0];
@@ -241,6 +216,22 @@ window.addEventListener("load", function() {
 
 		if (key>=48&&key<=56) { // 0-8
 			editor.selectPlayer(key==48?15:key-49);
+		}
+	});
+	window.addEventListener("keydown", function(event) {
+		let key=event.keyCode;
+
+		if (event.ctrlKey^event.metaKey) { // Ctrl or Cmd
+			if (key==78) { // N
+				event.preventDefault();
+				create();
+			} else if (key==79) { // O
+				event.preventDefault();
+				open();
+			} else if (key==83) { // S
+				event.preventDefault();
+				save();
+			}
 		}
 	});
 	window.addEventListener("resize", function() {
@@ -335,6 +326,35 @@ window.addEventListener("load", function() {
 		element.addEventListener("click", function() {
 			overlays.resetProperties(this.value);
 		});
+	}
+
+	function create() {
+		overlays.openProperties("create");
+	}
+
+	function open() {
+		files.browse();
+		overlays.show("browser");
+	}
+
+	function save() {
+		if (Object.keys(editor.pud)==0) {
+			return;
+		}
+
+		let blob=null;
+
+		try {
+			blob=editor.pud.save();
+		} catch (err) {
+			return overlays.displayError(err);
+		}
+
+		let a=$("#download");
+		a.download=editor.pud.filename;
+		a.href=window.URL.createObjectURL(blob);
+		a.click();
+		window.URL.revokeObjectURL(blob);
 	}
 });
 
