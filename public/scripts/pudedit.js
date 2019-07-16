@@ -64,7 +64,6 @@ const OIL_PLATFORM  =11;
 const OIL_DEPOT     =24;
 
 // terrain
-const LIGHT=0x00, DARK=0x10;
 const PLAIN=0, FILLER=1, RANDOM=2;
 const INSPECT=0x0000, WATER=0x0010, DIRT=0x0050, GRASS=0x0030;
 const TREES=0x0070, ROCKS=0x0080;
@@ -478,7 +477,7 @@ function Editor() {
 	this.positions=[];
 
 	// terrain
-	this.brightness=LIGHT;
+	this.brightness=0;
 	this.pattern=PLAIN;
 	this.size=1;
 	this.tile=GRASS;
@@ -2040,12 +2039,12 @@ Overlays.prototype.resetProperties=function(key) {
 		this.working[index]={};
 	}
 
-	for (let property of Object.keys(data.defaults[key])) {
+	for (let property of Object.keys(defaults[key])) {
 		if (property=="useDefaults") {
 			continue;
 		}
 
-		let keys=Object.keys(data.defaults[key][property][index]);
+		let keys=Object.keys(defaults[key][property][index]);
 
 		if (keys.length>0) {
 			for (let sub of keys) {
@@ -2053,11 +2052,11 @@ Overlays.prototype.resetProperties=function(key) {
 					this.working[index][property]={};
 				}
 
-				let value=data.defaults[key][property][index][sub];
+				let value=defaults[key][property][index][sub];
 				this.working[index][property][sub]=value;
 			}
 		} else {
-			this.working[index][property]=data.defaults[key][property][index];
+			this.working[index][property]=defaults[key][property][index];
 		}
 	}
 
@@ -2222,15 +2221,15 @@ Pud.prototype.load=function(filename, buffer) {
 	if (!this.useAlow) { // copies default restriction data if no ALOW section
 		this.restrictions={};
 
-		for (let key of Object.keys(data.defaults.restrictions)) {
+		for (let key of Object.keys(defaults.restrictions)) {
 			this.restrictions[key]=[];
 
-			for (let i of Object.keys(data.defaults.restrictions[key])) {
-				let keys=Object.keys(data.defaults.restrictions[key][i]);
+			for (let i of Object.keys(defaults.restrictions[key])) {
+				let keys=Object.keys(defaults.restrictions[key][i]);
 				this.restrictions[key][i]=[];
 
 				for (let j of keys) {
-					let value=data.defaults.restrictions[key][i][j];
+					let value=defaults.restrictions[key][i][j];
 					this.restrictions[key][i][j]=value;
 				}
 			}
