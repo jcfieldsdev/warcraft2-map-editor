@@ -129,26 +129,12 @@ canvas#frame {
 	padding: 25px;
 }
 
-canvas#frame, canvas#grid, canvas#movementMap {
+canvas#frame, canvas#movementMap {
 	z-index: 3;
 }
 
 canvas#frame, canvas#miniUnitMap {
 	left: 0;
-	position: absolute;
-	top: 0;
-}
-
-canvas#grid {
-	background: url(grid.svg);
-	border-color: #808080;
-	border-style: solid;
-	border-width: 1px 0 0 1px;
-	color: inherit;
-}
-
-canvas#grid, canvas#movementMap, canvas#select, canvas#tileMap, canvas#unitMap {
-	left: 270px;
 	position: absolute;
 	top: 0;
 }
@@ -167,6 +153,12 @@ canvas#miniTileMap, canvas#miniUnitMap {
 
 canvas#miniUnitMap, canvas#unitMap {
 	z-index: 2;
+}
+
+canvas#movementMap, canvas#select, canvas#tileMap, canvas#unitMap {
+	left: 270px;
+	position: absolute;
+	top: 0;
 }
 
 canvas#select {

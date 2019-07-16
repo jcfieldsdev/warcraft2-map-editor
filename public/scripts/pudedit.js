@@ -511,7 +511,6 @@ Editor.prototype.open=function(filename, path, buffer) {
 	setSize("tileMap",     width,        height);
 	setSize("unitMap",     width,        height);
 	setSize("movementMap", width,        height);
-	setSize("grid",        width,        height);
 	setSize("select",      width,        height);
 	setSize("miniUnitMap", MINIMAP_SIZE, MINIMAP_SIZE);
 	setSize("miniTileMap", MINIMAP_SIZE, MINIMAP_SIZE);
@@ -1148,7 +1147,7 @@ Editor.prototype.validateArea=function(x, y) {
 		  &&((unitType==LAND||unitType==SEA||flags[BUILDING])
 		    ^(compareType==LAND||compareType==SEA||compareFlags[BUILDING]))
 		) {
-			continue; // allows air units over ground and sea units/buildings
+			continue; // allows air units over ground/sea units and buildings
 		}
 
 		let compareUnitSize=this.pud.units.unitSize[unit.id];
@@ -1412,9 +1411,9 @@ Editor.prototype.saveImage=function() {
 
 	let context=canvas.getContext("2d");
 	// composites all layers into a single image
-	context.drawImage($("#tileMap"), 0, 0, canvas.width, canvas.height);
-	context.drawImage($("#unitMap"), 0, 0, canvas.width, canvas.height);
-	context.drawImage($("#grid"),    0, 0, canvas.width, canvas.height);
+	context.drawImage($("#tileMap"),     0, 0, canvas.width, canvas.height);
+	context.drawImage($("#unitMap"),     0, 0, canvas.width, canvas.height);
+	context.drawImage($("#movementMap"), 0, 0, canvas.width, canvas.height);
 
 	let filename=this.pud.filename.replace(/\.pud$/, ".png");
 
