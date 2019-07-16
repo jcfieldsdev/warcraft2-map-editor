@@ -15,29 +15,31 @@ const MAPS_DIR="maps/";
 
 // editor
 const DEFAULT_TILESET="forest";
-const DEFAULT_SIZE=128;
-const MINIMAP_SIZE=200;
-const LEFT_MARGIN =270;
-const FRAME_COLOR ="#fff";
+const DEFAULT_SIZE   =128;
+const MINIMAP_SIZE   =200;
+const LEFT_MARGIN    =270;
+const FRAME_COLOR    ="#fff";
 const PLACE_VALID_COLOR="#fff";
 const PLACE_ERROR_COLOR="#f00";
-const SELECT_COLOR="#0f0";
+const SELECT_COLOR   ="#0f0";
 
 // mouse modes
-const SELECT_UNITS=0;
-const DRAG_SELECT =1;
-const PLACE_UNIT  =2;
-const EDIT_TERRAIN=3;
+const SELECT_UNITS =0;
+const DRAG_SELECT  =1;
+const PLACE_UNIT   =2;
+const PAINT_TERRAIN=3;
+const DRAG_TERRAIN =4;
 
 // game mechanics
-const PLAYERS      =8;
-const TILE_SIZE    =32;
-const MAX_WIDTH    =128;
-const MAX_HEIGHT   =128;
-const DEFAULT_GOLD =6; // x2500
-const DEFAULT_OIL  =2; // x2500
+const PLAYERS       =8;
+const TILE_SIZE     =32;
+const MINI_TILE_SIZE=8;
+const MAX_WIDTH     =128;
+const MAX_HEIGHT    =128;
+const DEFAULT_GOLD  =6; // x2500
+const DEFAULT_OIL   =2; // x2500
 const RESOURCE_DISTANCE=3; // distance between gold mines/town halls
-const LAST_ICON    =195;
+const LAST_ICON     =195;
 
 // tilesets
 const FOREST   =0;
@@ -60,6 +62,13 @@ const GOLD_DEPOT    =12; // town halls
 const OIL_PATCH     =21;
 const OIL_PLATFORM  =11;
 const OIL_DEPOT     =24;
+
+// terrain
+const LIGHT=0x00, DARK=0x10;
+const PLAIN=0, FILLER=1, RANDOM=2;
+const INSPECT=0x0000, WATER=0x0010, DIRT=0x0050, GRASS=0x0030;
+const TREES=0x0070, ROCKS=0x0080;
+const HUMAN_WALL=0x0090, ORC_WALL=0x00a0;
 
 // objects
 const editor  =new Editor();
@@ -112,6 +121,8 @@ window.addEventListener("load", function() {
 				editor.startSelect(event.clientX, event.clientY);
 			} else if (editor.mode==PLACE_UNIT) {
 				editor.addUnit(event.clientX, event.clientY);
+			} else if (editor.mode==PAINT_TERRAIN) {
+				editor.startTerrain(event.clientX, event.clientY);
 			}
 		}
 	});
@@ -123,6 +134,8 @@ window.addEventListener("load", function() {
 					event.shiftKey,
 					editor.selectMultiple
 				);
+			} else if (editor.mode==DRAG_TERRAIN) {
+				editor.mode=PAINT_TERRAIN;
 			}
 		} else if (event.button==RIGHT) {
 			if (editor.mode==SELECT_UNITS) {
@@ -139,7 +152,11 @@ window.addEventListener("load", function() {
 		if (editor.mode==DRAG_SELECT) {
 			editor.drawSelect(event.clientX, event.clientY);
 		} else if (editor.mode==PLACE_UNIT) {
-			editor.placeUnit(event.clientX, event.clientY);
+			editor.drawUnitBrush(event.clientX, event.clientY);
+		} else if (editor.mode==PAINT_TERRAIN) {
+			editor.drawTerrainBrush(event.clientX, event.clientY);
+		} else if (editor.mode==DRAG_TERRAIN) {
+			editor.paintTerrain(event.clientX, event.clientY);
 		}
 	});
 	$("#select").addEventListener("contextmenu", function(event) {
@@ -328,6 +345,35 @@ window.addEventListener("load", function() {
 		});
 	}
 
+	// terrain brightness buttons
+	for (let element of $$(".brightness")) {
+		element.addEventListener("click", function() {
+			editor.brightness=toggleButtons(this);
+		});
+	}
+
+	// terrain pattern buttons
+	for (let element of $$(".pattern")) {
+		element.addEventListener("click", function() {
+			editor.pattern=toggleButtons(this);
+		});
+	}
+
+	// terrain brush size buttons
+	for (let element of $$(".size")) {
+		element.addEventListener("click", function() {
+			editor.size=toggleButtons(this);
+		});
+	}
+
+	// terrain tile buttons
+	for (let element of $$(".terrain")) {
+		element.addEventListener("click", function() {
+			editor.tile=toggleButtons(this);
+			editor.mode=editor.tile?PAINT_TERRAIN:SELECT_UNITS;
+		});
+	}
+
 	function create() {
 		overlays.openProperties("create");
 	}
@@ -355,6 +401,16 @@ window.addEventListener("load", function() {
 		a.href=window.URL.createObjectURL(blob);
 		a.click();
 		window.URL.revokeObjectURL(blob);
+	}
+
+	function toggleButtons(button) {
+		let value=button.value;
+
+		for (let element of $$("."+button.className)) {
+			element.classList.toggle("active", value==element.value);
+		}
+
+		return Number.parseInt(value);
 	}
 });
 
@@ -420,6 +476,14 @@ function Editor() {
 	this.unit=0;
 	this.player=0;
 	this.positions=[];
+
+	// terrain
+	this.brightness=LIGHT;
+	this.pattern=PLAIN;
+	this.size=1;
+	this.tile=GRASS;
+	this.terrainX=0;
+	this.terrainY=0;
 }
 
 Editor.prototype.open=function(filename, path, buffer) {
@@ -517,7 +581,7 @@ Editor.prototype.drawTileMap=function() {
 			this.miniTileMap.drawImage(
 				this.tiles,
 				tiles[tile].x, tiles[tile].y,
-				TILE_SIZE, TILE_SIZE,
+				MINI_TILE_SIZE, MINI_TILE_SIZE,
 				cx, cy,
 				TILE_SIZE, TILE_SIZE
 			);
@@ -611,7 +675,7 @@ Editor.prototype.drawUnitMap=function() {
 		let sx=0, sy=0, owner=Math.min(unit.owner, 7);
 		let startLocation=unit.id==HUMAN_START_LOC||unit.id==ORC_START_LOC;
 
-		if (!self.pud.units.flags[unit.id][BUILDING]&&!startLocation) {
+		if (!startLocation&&!self.pud.units.flags[unit.id][BUILDING]) {
 			// centers unit in tile
 			x-=(img.width-w)/2;
 			y-=(img.width-h)/2;
@@ -729,6 +793,14 @@ Editor.prototype.startSelect=function(x, y) {
 	this.selectY=window.scrollY+y;
 };
 
+Editor.prototype.startTerrain=function(x, y) {
+	[x, y]=this.findNearestTile(x, y, this.size, this.size);
+
+	this.mode=DRAG_TERRAIN;
+	this.terrainX=x;
+	this.terrainY=y;
+};
+
 Editor.prototype.drawSelect=function(x, y) {
 	this.selectMultiple=true;
 	let w=window.scrollX+x-this.selectX-LEFT_MARGIN;
@@ -802,7 +874,7 @@ Editor.prototype.selectUnits=function(x, y, add=false, multiple=false) {
 	}
 };
 
-Editor.prototype.placeUnit=function(x, y) {
+Editor.prototype.drawUnitBrush=function(x, y) {
 	let unitSize=this.pud.units.unitSize[this.unit];
 	[x, y]=this.findNearestTile(x, y, unitSize.x, unitSize.y);
 
@@ -814,6 +886,18 @@ Editor.prototype.placeUnit=function(x, y) {
 	this.select.strokeRect(
 		x*TILE_SIZE, y*TILE_SIZE,
 		TILE_SIZE*unitSize.x, TILE_SIZE*unitSize.y
+	);
+};
+
+Editor.prototype.drawTerrainBrush=function(x, y) {
+	[x, y]=this.findNearestTile(x, y, this.size, this.size);
+
+	this.clearSelect();
+	this.select.lineWidth=1;
+	this.select.strokeStyle=PLACE_VALID_COLOR;
+	this.select.strokeRect(
+		x*TILE_SIZE, y*TILE_SIZE,
+		TILE_SIZE*this.size, TILE_SIZE*this.size
 	);
 };
 
@@ -908,6 +992,57 @@ Editor.prototype.convertUnit=function(id, race, otherRace) {
 	return id;
 };
 
+Editor.prototype.paintTerrain=function(x, y) {
+	let self=this;
+
+	this.drawTerrainBrush(x, y);
+
+	[x, y]=this.findNearestTile(x, y, this.size, this.size);
+	let points=computePoints(x, y);
+
+	let tile=this.tile;
+
+	if (tile>=WATER&&tile<TREES) {
+		tile+=this.brightness;
+	}
+
+	let tiles=data.tilesets[this.pud.tileset];
+
+	for (let point of points) {
+		this.pud.tileMap[point]=tile;
+
+		let cx=point%this.pud.width*TILE_SIZE;
+		let cy=Math.floor(point/this.pud.height)*TILE_SIZE;
+
+		this.tileMap.drawImage(
+			this.tiles,
+			tiles[tile].x, tiles[tile].y,
+			TILE_SIZE, TILE_SIZE,
+			cx, cy,
+			TILE_SIZE, TILE_SIZE
+		);
+		this.miniTileMap.drawImage(
+			this.tiles,
+			tiles[tile].x, tiles[tile].y,
+			MINI_TILE_SIZE, MINI_TILE_SIZE,
+			cx, cy,
+			TILE_SIZE, TILE_SIZE
+		);
+	}
+
+	function computePoints(x, y) {
+		let points=[];
+
+		for (let i=0; i<self.size; i++) {
+			for (let j=0; j<self.size; j++) {
+				points.push(x+j+self.pud.width*(y+i));
+			}
+		}
+
+		return points;
+	}
+};
+
 Editor.prototype.findNearestTile=function(x, y, w, h) {
 	x+=window.scrollX;
 	y+=window.scrollY;
@@ -915,16 +1050,18 @@ Editor.prototype.findNearestTile=function(x, y, w, h) {
 	x=Math.max(Math.floor((x-LEFT_MARGIN)/TILE_SIZE), 0);
 	y=Math.max(Math.floor(y/TILE_SIZE), 0);
 
-	let flags=this.pud.units.flags[this.unit];
+	if (this.mode==PLACE_UNIT) {
+		let flags=this.pud.units.flags[this.unit];
 
-	// oil patches are only allowed on odd dimensions
-	if (flags[OIL_PATCH]||flags[OIL_PLATFORM]) {
-		if (x%2==0) {
-			x++;
-		}
+		// oil patches are only allowed on odd dimensions
+		if (flags[OIL_PATCH]||flags[OIL_PLATFORM]) {
+			if (x%2==0) {
+				x++;
+			}
 
-		if (y%2==0) {
-			y++;
+			if (y%2==0) {
+				y++;
+			}
 		}
 	}
 
@@ -936,14 +1073,16 @@ Editor.prototype.findNearestTile=function(x, y, w, h) {
 		y=this.pud.height-h; // prevents placing past map height
 	}
 
-	// air and sea units are only allowed on even dimensions
-	if (flags[AIR_UNIT]||flags[SEA_UNIT]) {
-		if (x%2!=0) {
-			x++;
-		}
+	if (this.mode==PLACE_UNIT) {
+		// air and sea units are only allowed on even dimensions
+		if (flags[AIR_UNIT]||flags[SEA_UNIT]) {
+			if (x%2!=0) {
+				x++;
+			}
 
-		if (y%2!=0) {
-			y++;
+			if (y%2!=0) {
+				y++;
+			}
 		}
 	}
 
@@ -962,7 +1101,7 @@ Editor.prototype.validateArea=function(x, y) {
 	let resourceArea=[];
 
 	if (flags[GOLD_MINE]||flags[GOLD_DEPOT]
-	  ||flags[OIL_PATCH]||flags[OIL_PLATFORM]
+	  ||flags[OIL_PATCH]||flags[OIL_PLATFORM]||flags[OIL_DEPOT]
 	) { // enforces exclusion area between resource sources and return points
 		let start=points[0]-RESOURCE_DISTANCE-this.pud.width*RESOURCE_DISTANCE;
 		let row=2*RESOURCE_DISTANCE+unitSize.x;
@@ -1162,8 +1301,10 @@ Editor.prototype.selectPalette=function(palette) {
 Editor.prototype.changeTileset=function(tileset) {
 	this.pud.tileset=tileset;
 
+	let tilename=this.getTileset(tileset);
+
 	this.tiles=new Image();
-	this.tiles.src="tilesets/"+this.getTileset(tileset)+".png";
+	this.tiles.src="tilesets/"+tilename+".png";
 	this.tiles.addEventListener("load", this.drawTileMap.bind(this));
 
 	if (tileset==SWAMP) {
@@ -1182,6 +1323,13 @@ Editor.prototype.changeTileset=function(tileset) {
 					return tile;
 			}
 		});
+	}
+
+	// changes terrain buttons to match tileset
+	for (let element of $$(".tile")) {
+		let path=element.getAttribute("src").split("/");
+		path[2]=tilename;
+		element.setAttribute("src", path.join("/"));
 	}
 
 	this.drawUnitMap();
@@ -1697,7 +1845,9 @@ Overlays.prototype.fillProperties=function(key) {
 			$("#"+element.id).value=value;
 		}
 
-		if (unit.id==HUMAN_START_LOC||unit.id==ORC_START_LOC) {
+		let startLocation=unit.id==HUMAN_START_LOC||unit.id==ORC_START_LOC;
+
+		if (startLocation) {
 			$("#row_owner").classList.add("hidden");
 			$("#select_owner").disabled=true;
 		} else {
@@ -1716,7 +1866,7 @@ Overlays.prototype.fillProperties=function(key) {
 			self.changeResource();
 		}
 
-		if (!flags[BUILDING]) { // units, not buildings
+		if (!startLocation&&!flags[BUILDING]) { // units, not buildings
 			$("#row_ai").classList.remove("hidden");
 			$("#select_property").disabled=false;
 		} else {

@@ -254,6 +254,7 @@ div#terrain button img {
 
 div#terrain button.active img {
 	background: #606060;
+	border-color: #c0c0c0;
 	color: inherit;
 }
 

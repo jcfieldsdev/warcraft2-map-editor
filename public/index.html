@@ -12,9 +12,9 @@
 <body><header><h1>Warcraft II Map Editor</h1></header>
 <nav>
 <ul id="basic">
-	<li><button title="Create a new scenario" value="create" class="basic"><img src="layout/icon-create.svg" alt="[Create]"></button></li>
-	<li><button title="Open an existing scenario" value="open" class="basic"><img src="layout/icon-open.svg" alt="[Open]"></button></li>
-	<li><button title="Save this scenario" value="save" class="basic"><img src="layout/icon-save.svg" alt="[Save Map]"></button></li>
+	<li><button value="create" class="basic"><img src="layout/icon-create.svg" alt="[Create]" title="Create a new scenario"></button></li>
+	<li><button value="open" class="basic"><img src="layout/icon-open.svg" alt="[Open]" title="Open an existing scenario"></button></li>
+	<li><button value="save" class="basic"><img src="layout/icon-save.svg" alt="[Save Map]" title="Save this scenario"></button></li>
 </ul>
 <div id="filename"></div>
 <div id="miniMap"><canvas id="miniTileMap"></canvas>
@@ -52,30 +52,31 @@
 <div id="terrain" class="palette">
 <div>Brightness:</div>
 <ul>
-	<li><button value="brightness-light" id="btn_mapBrushLight" class="active"><img src="icons/terrain/brightness-light.svg" alt="[Light]"></button></li>
-	<li><button value="brightness-dark" id="btn_mapBrushDark"><img src="icons/terrain/brightness-dark.svg" alt="[Dark]"></button></li>
+	<li><button value="0" class="brightness active"><img src="icons/terrain/brightness-light.svg" alt="[Light]" title="Light"></button></li>
+	<li><button value="16" class="brightness"><img src="icons/terrain/brightness-dark.svg" alt="[Dark]" title="Dark"></button></li>
 </ul>
 <div>Fill Pattern:</div>
 <ul>
-	<li><button value="pattern-plain" id="btn_mapBrushPlain" class="active"><img src="icons/terrain/pattern-plain.svg" alt="[Plain]"></button></li>
-	<li><button value="pattern-filler" id="btn_mapBrushFiller"><img src="icons/terrain/pattern-filler.svg" alt="[Filler]"></button></li>
-	<li><button value="pattern-random" id="btn_mapBrushRandom"><img src="icons/terrain/pattern-random.svg" alt="[Random]"></button></li>
+	<li><button value="0" class="pattern active"><img src="icons/terrain/pattern-plain.svg" alt="[Plain]" title="Plain"></button></li>
+	<li><button value="1" class="pattern"><img src="icons/terrain/pattern-filler.svg" alt="[Filler]" title="Filler"></button></li>
+	<li><button value="2" class="pattern"><img src="icons/terrain/pattern-random.svg" alt="[Random]" title="Random"></button></li>
 </ul>
 <div>Brush Size:</div>
 <ul>
-	<li><button value="size-1x1" id="btn_mapBrush1x1" class="active"><img src="icons/terrain/size-1x1.svg" alt="[1×1]"></button></li>
-	<li><button value="size-3x3" id="btn_mapBrush3x3"><img src="icons/terrain/size-3x3.svg" alt="[3×3]"></button></li>
-	<li><button value="size-5x5" id="btn_mapBrush5x5"><img src="icons/terrain/size-5x5.svg" alt="[5×5]"></button></li>
+	<li><button value="1" class="size active"><img src="icons/terrain/size-1x1.svg" alt="[1×1]" title="1×1"></button></li>
+	<li><button value="3" class="size"><img src="icons/terrain/size-3x3.svg" alt="[3×3]" title="3×3"></button></li>
+	<li><button value="5" class="size"><img src="icons/terrain/size-5x5.svg" alt="[5×5]" title="5×5"></button></li>
 </ul>
 <div>Terrain Type:</div>
 <ul>
-	<li><button value="terrain-water" id="btn_mapBrushWater" class="terrain"><img src="icons/terrain/forest/terrain-water.png" alt="[Water]"></button></li>
-	<li><button value="terrain-dirt" id="btn_mapBrushDirt" class="terrain"><img src="icons/terrain/forest/terrain-dirt.png" alt="[Dirt]"></button></li>
-	<li><button value="terrain-grass" id="btn_mapBrushGrass" class="terrain"><img src="icons/terrain/forest/terrain-grass.png" alt="[Grass]"></button></li>
-	<li><button value="terrain-trees" id="btn_mapBrushTree" class="terrain"><img src="icons/terrain/forest/terrain-trees.png" alt="[Trees]"></button></li>
-	<li><button value="terrain-rocks" id="btn_mapBrushRocks" class="terrain"><img src="icons/terrain/forest/terrain-rocks.png" alt="[Rocks]"></button></li>
-	<li><button value="terrain-humanwall" id="btn_mapBrushHumanWall"><img src="icons/terrain/terrain-humanwall.png" alt="[Human Wall]"></button></li>
-	<li><button value="terrain-orcwall" id="btn_mapBrushOrcWall"><img src="icons/terrain/terrain-orcwall.png" alt="[Orc Wall]"></button></li>
+	<li><button value="0" class="terrain active"><img src="layout/icon-inspect.svg" alt="[Select Units]" title="Select Units"></button></li>
+	<li><button value="16" class="terrain"><img src="icons/terrain/forest/terrain-water.png" alt="[Water]" title="Water" class="tile"></button></li>
+	<li><button value="48" class="terrain"><img src="icons/terrain/forest/terrain-dirt.png" alt="[Dirt]" title="Dirt" class="tile"></button></li>
+	<li><button value="80" class="terrain"><img src="icons/terrain/forest/terrain-grass.png" alt="[Grass]" title="Grass" class="tile"></button></li>
+	<li><button value="112" class="terrain"><img src="icons/terrain/forest/terrain-trees.png" alt="[Trees]" title="Trees" class="tile"></button></li>
+	<li><button value="128" class="terrain"><img src="icons/terrain/forest/terrain-rocks.png" alt="[Rocks]" title="Rocks" class="tile"></button></li>
+	<li><button value="144" class="terrain"><img src="icons/terrain/terrain-humanwall.png" alt="[Human Wall]" title="Human Wall"></button></li>
+	<li><button value="160" class="terrain"><img src="icons/terrain/terrain-orcwall.png" alt="[Orc Wall]" title="Orc Wall"></button></li>
 </ul></div>
 <div id="units" class="palette">
 <select id="select_unitsPalette">
