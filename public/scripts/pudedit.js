@@ -1063,17 +1063,7 @@ Editor.prototype.findNearestTile=function(x, y, w, h) {
 				y++;
 			}
 		}
-	}
 
-	if (x+w>this.pud.width) {
-		x=this.pud.width-w; // prevents placing past map width
-	}
-
-	if (y+h>this.pud.width) {
-		y=this.pud.height-h; // prevents placing past map height
-	}
-
-	if (this.mode==PLACE_UNIT) {
 		// air and sea units are only allowed on even dimensions
 		if (flags[AIR_UNIT]||flags[SEA_UNIT]) {
 			if (x%2!=0) {
@@ -1084,6 +1074,14 @@ Editor.prototype.findNearestTile=function(x, y, w, h) {
 				y++;
 			}
 		}
+	}
+
+	if (x+w>this.pud.width) {
+		x=this.pud.width-w; // prevents placing past map width
+	}
+
+	if (y+h>this.pud.width) {
+		y=this.pud.height-h; // prevents placing past map height
 	}
 
 	return [x, y];
@@ -2526,7 +2524,7 @@ Pud.prototype.save=function() {
 		}
 
 		const NEUTRAL=15;
-		const NOBODY=3, HUMAN=5;
+		const PASSIVE_COMPUTER=2, NOBODY=3, HUMAN=5;
 
 		for (let player of players) {
 			if (player!=NEUTRAL&&start[player]==undefined) {
@@ -2535,13 +2533,20 @@ Pud.prototype.save=function() {
 		}
 
 		self.controller=self.controller.map(function(controller, i) {
-			if (players.has(i)) {
-				if (controller==NOBODY) {
-					return HUMAN; // sets nobody to human if player has units
+			if (i==NEUTRAL) { // neutral player is always passive computer
+				controller=PASSIVE_COMPUTER;
+			} else {
+				if (players.has(i)) {
+					if (controller==NOBODY) {
+						// sets nobody to human if player has units
+						controller=HUMAN;
+					}
+				} else { // sets inactive players to nobody
+					controller=NOBODY;
 				}
-			} else { // sets inactive players to nobody
-				return NOBODY;
 			}
+
+			return controller;
 		});
 
 		return true;
