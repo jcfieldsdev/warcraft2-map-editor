@@ -56,9 +56,9 @@ const AIR_UNIT      =1;
 const SEA_UNIT      =3;
 const BUILDING      =5;
 const SHORE_BUILDING=16;
-const GOLD_MINE     =22;
+const GOLD_SOURCE   =22;
 const GOLD_DEPOT    =12; // town halls
-const OIL_PATCH     =21;
+const OIL_SOURCE    =21;
 const OIL_PLATFORM  =11;
 const OIL_DEPOT     =24;
 
@@ -907,19 +907,28 @@ Editor.prototype.addUnit=function(x, y) {
 		return;
 	}
 
-	let property=0;
-
+	let id=this.unit, owner=this.player, property=0;
 	let flags=this.pud.units.flags[this.unit];
 
 	// default resources
-	if (flags[GOLD_MINE]) {
+	if (flags[GOLD_SOURCE]) {
 		property=DEFAULT_GOLD;
-	} else if (flags[OIL_PATCH]||flags[OIL_PLATFORM]) {
+	} else if (flags[OIL_SOURCE]||flags[OIL_PLATFORM]) {
 		property=DEFAULT_OIL;
 	}
 
+	const CRITTER=57, GOLD_MINE=92, OIL_PATCH=93;
+	const CIRCLE_OF_POWER=100, DARK_PORTAL=101, RUNESTONE=102;
+
+	// places certain units and buildings as neutral player regardless of
+	// selected player (but can reassign ownership in selection properties)
+	if (id==CRITTER||id==GOLD_MINE||id==OIL_PATCH
+	  ||id==CIRCLE_OF_POWER||id==DARK_PORTAL||id==RUNESTONE) {
+		owner=NEUTRAL;
+	}
+
 	// removes existing start location if new one is placed
-	if (this.unit==HUMAN_START_LOC||this.unit==ORC_START_LOC) {
+	if (id==HUMAN_START_LOC||id==ORC_START_LOC) {
 		for (let [i, unit] of this.pud.unitMap.entries()) {
 			let startLocation=unit.id==HUMAN_START_LOC||unit.id==ORC_START_LOC;
 
@@ -929,13 +938,7 @@ Editor.prototype.addUnit=function(x, y) {
 		}
 	}
 
-	let unit={
-		x,
-		y,
-		id:    this.unit,
-		owner: this.player,
-		property
-	};
+	let unit={x, y, id, owner, property};
 	this.pud.unitMap.push(unit);
 	this.drawUnitMap();
 };
@@ -1052,7 +1055,7 @@ Editor.prototype.findNearestTile=function(x, y, w, h) {
 		let flags=this.pud.units.flags[this.unit];
 
 		// oil patches are only allowed on odd dimensions
-		if (flags[OIL_PATCH]||flags[OIL_PLATFORM]) {
+		if (flags[OIL_SOURCE]||flags[OIL_PLATFORM]) {
 			if (x%2==0) {
 				x++;
 			}
@@ -1096,8 +1099,8 @@ Editor.prototype.validateArea=function(x, y) {
 
 	let resourceArea=[];
 
-	if (flags[GOLD_MINE]||flags[GOLD_DEPOT]
-	  ||flags[OIL_PATCH]||flags[OIL_PLATFORM]||flags[OIL_DEPOT]
+	if (flags[GOLD_SOURCE]||flags[GOLD_DEPOT]
+	  ||flags[OIL_SOURCE]||flags[OIL_PLATFORM]||flags[OIL_DEPOT]
 	) { // enforces exclusion area between resource sources and return points
 		let start=points[0]-RESOURCE_DISTANCE-this.pud.width*RESOURCE_DISTANCE;
 		let row=2*RESOURCE_DISTANCE+unitSize.x;
@@ -1158,12 +1161,12 @@ Editor.prototype.validateArea=function(x, y) {
 				break;
 			}
 
-			if ((flags[GOLD_MINE]&&compareFlags[GOLD_DEPOT])
-			  ||(flags[GOLD_DEPOT]&&compareFlags[GOLD_MINE])
-			  ||((flags[OIL_PATCH]||flags[OIL_PLATFORM])
+			if ((flags[GOLD_SOURCE]&&compareFlags[GOLD_DEPOT])
+			  ||(flags[GOLD_DEPOT]&&compareFlags[GOLD_SOURCE])
+			  ||((flags[OIL_SOURCE]||flags[OIL_PLATFORM])
 			    &&compareFlags[OIL_DEPOT])
 			  ||(flags[OIL_DEPOT]
-			    &&(compareFlags[OIL_PATCH]||compareFlags[OIL_PLATFORM]))
+			    &&(compareFlags[OIL_SOURCE]||compareFlags[OIL_PLATFORM]))
 			) {
 				if (resourceArea.includes(point)) {
 					valid=false;
@@ -1186,7 +1189,7 @@ Editor.prototype.validateArea=function(x, y) {
 				valid&=tile==0x00||tile==0x01||tile==0x11;
 			} else if (unitType==AIR) {
 				valid&=true;
-			} else if (unitType==SEA||flags[OIL_PATCH]||flags[OIL_PLATFORM]) {
+			} else if (unitType==SEA||flags[OIL_SOURCE]||flags[OIL_PLATFORM]) {
 				valid&=tile==0x00||tile==0x40;
 			} else if (flags[BUILDING]) {
 				if (flags[SHORE_BUILDING]) {
@@ -1836,7 +1839,7 @@ Overlays.prototype.fillProperties=function(key) {
 
 		let flags=editor.pud.units.flags[unit.id];
 
-		if (flags[GOLD_MINE]||flags[OIL_PATCH]||flags[OIL_PLATFORM]) {
+		if (flags[GOLD_SOURCE]||flags[OIL_SOURCE]||flags[OIL_PLATFORM]) {
 			$("#row_resource").classList.remove("hidden");
 			$("#range_property").disabled=false;
 		} else {
