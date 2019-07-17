@@ -193,7 +193,7 @@ data.colors=[
 	]
 ];
 
-data.tilesets=[
+data.tiles=[
 	{ // forest
 		0x0010: {x: 165, y: 561},
 		0x0011: {x: 198, y: 561},
@@ -1761,6 +1761,9 @@ data.tilesets=[
 		0x09d4: {x: 627, y: 132}
 	}
 ];
+
+data.races=["human", "orc"];
+data.tilesets=["forest", "winter", "wasteland", "swamp"];
 
 data.movement={
 	0x0000: "#fff",    // bridge (all units)

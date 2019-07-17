@@ -10,10 +10,8 @@ const STANDARD =0x11;
 const EXPANSION=0x13;
 const MIME_TYPE="application/x-warcraft2-scenario";
 
-// file names and locations
-const MAPS_DIR="maps/";
-
 // editor
+const MAPS_DIR       ="maps/";
 const DEFAULT_TILESET="forest";
 const DEFAULT_SIZE   =128;
 const MINIMAP_SIZE   =200;
@@ -32,6 +30,7 @@ const DRAG_TERRAIN =4;
 
 // game mechanics
 const PLAYERS       =8;
+const NEUTRAL       =15;
 const TILE_SIZE     =32;
 const MINI_TILE_SIZE=8;
 const MAX_WIDTH     =128;
@@ -92,8 +91,7 @@ window.addEventListener("load", function() {
 	}
 
 	// mouse buttons
-	const LEFT =0;
-	const RIGHT=2;
+	const LEFT=0, RIGHT=2;
 
 	// event listeners
 	// for minimap
@@ -165,7 +163,9 @@ window.addEventListener("load", function() {
 	$("#create").addEventListener("click", create);
 	$("#open").addEventListener("click", open);
 	$("#save").addEventListener("click", save);
-	$("#saveImage").addEventListener("click", editor.saveImage.bind(editor));
+	$("#saveImage").addEventListener("click", function() {
+		editor.saveImage();
+	});
 	$("#link").addEventListener("click", function() {
 		if (editor.path) {
 			let link=window.location.href.split("?")[0];
@@ -231,7 +231,7 @@ window.addEventListener("load", function() {
 		}
 
 		if (key>=48&&key<=56) { // 0-8
-			editor.selectPlayer(key==48?15:key-49);
+			editor.selectPlayer(key==48?NEUTRAL:key-49);
 		}
 	});
 	window.addEventListener("keydown", function(event) {
@@ -562,7 +562,7 @@ Editor.prototype.open=function(filename, path, buffer) {
 };
 
 Editor.prototype.drawTileMap=function() {
-	let tiles=data.tilesets[this.pud.tileset];
+	let tiles=data.tiles[this.pud.tileset];
 	let x=0, y=0;
 
 	for (let [i, tile] of this.pud.tileMap.entries()) {
@@ -652,7 +652,7 @@ Editor.prototype.drawUnitMap=function() {
 			unitSize=self.pud.units.unitSize[unit.id];
 		}
 
-		let path="units/"+self.getTileset(self.pud.tileset)+"/";
+		let path="units/"+data.tilesets[self.pud.tileset]+"/";
 
 		let img=new Image();
 		img.src=path+unit.id.toString().padStart(4, "0")+".png";
@@ -958,31 +958,31 @@ Editor.prototype.removeSelected=function() {
 	this.drawUnitMap();
 };
 
-Editor.prototype.convertUnit=function(id, race, otherRace) {
-	if (race==otherRace) {
+Editor.prototype.convertUnit=function(id, oldPlayer, newPlayer) {
+	let oldRace=data.races[this.pud.races[oldPlayer]];
+	let newRace=data.races[this.pud.races[newPlayer]];
+
+	if (oldRace==newRace||newPlayer==NEUTRAL) {
 		return id;
 	}
 
-	let races=["orc", "human"];
-	race=races[race];
-	otherRace=races[otherRace];
-
 	for (let group of Object.keys(data.units)) {
 		for (let type of Object.keys(data.units[group])) {
-			for (let race of Object.keys(data.units[group][type])) {
-				if (!data.units[group][type].hasOwnProperty(race)) {
+			for (let oldRace of Object.keys(data.units[group][type])) {
+				if (!data.units[group][type].hasOwnProperty(oldRace)) {
 					continue;
 				}
 
-				if (data.units[group][type][race].id!=id) {
+				if (data.units[group][type][oldRace].id!=id) {
 					continue;
 				}
 
-				if (!data.units[group][type].hasOwnProperty(otherRace)) {
+				if (!data.units[group][type].hasOwnProperty(newRace)) {
 					continue;
 				}
 
-				return data.units[group][type][otherRace].id;
+				id=data.units[group][type][newRace].id;
+				break;
 			}
 		}
 	}
@@ -1004,7 +1004,7 @@ Editor.prototype.paintTerrain=function(x, y) {
 		tile+=this.brightness;
 	}
 
-	let tiles=data.tilesets[this.pud.tileset];
+	let tiles=data.tiles[this.pud.tileset];
 
 	for (let point of points) {
 		this.pud.tileMap[point]=tile;
@@ -1253,11 +1253,7 @@ Editor.prototype.selectPlayer=function(player) {
 		}
 
 		// changes race of unit when owner is changed if necessary
-		unit.id=this.convertUnit(
-			unit.id,
-			this.pud.races[player],
-			this.pud.races[unit.owner]
-		);
+		unit.id=this.convertUnit(unit.id, unit.owner, player);
 		unit.owner=player;
 		ownerChanged++;
 	}
@@ -1269,11 +1265,7 @@ Editor.prototype.selectPlayer=function(player) {
 		this.drawUnitMap();
 
 		if (this.mode==PLACE_UNIT) {
-			this.unit=this.convertUnit(
-				this.unit,
-				editor.pud.races[player],
-				editor.pud.races[this.player]
-			);
+			this.unit=this.convertUnit(this.unit, this.player, player);
 		}
 	}
 
@@ -1297,10 +1289,8 @@ Editor.prototype.selectPalette=function(palette) {
 Editor.prototype.changeTileset=function(tileset) {
 	this.pud.tileset=tileset;
 
-	let tilename=this.getTileset(tileset);
-
 	this.tiles=new Image();
-	this.tiles.src="tilesets/"+tilename+".png";
+	this.tiles.src="tilesets/"+data.tilesets[tileset]+".png";
 	this.tiles.addEventListener("load", this.drawTileMap.bind(this));
 
 	if (tileset==SWAMP) {
@@ -1324,7 +1314,7 @@ Editor.prototype.changeTileset=function(tileset) {
 	// changes terrain buttons to match tileset
 	for (let element of $$(".tile")) {
 		let path=element.getAttribute("src").split("/");
-		path[2]=tilename;
+		path[2]=data.tilesets[tileset];
 		element.setAttribute("src", path.join("/"));
 	}
 
@@ -1338,7 +1328,7 @@ Editor.prototype.changeTerrainPalette=function() {
 		let icon=element.parentElement.value+".png";
 
 		let img=new Image();
-		img.src="icons/terrain/"+this.getTileset(this.pud.tileset)+"/"+icon;
+		img.src="icons/terrain/"+data.tilesets[this.pud.tileset]+"/"+icon;
 		img.addEventListener("load", function() {
 			element.src=this.src;
 		});
@@ -1358,7 +1348,7 @@ Editor.prototype.changeUnitPalette=function() {
 	ul.id="unitsPalette";
 
 	for (let type of Object.values(data.units[group])) {
-		let race=this.pud.races[this.player]?"orc":"human";
+		let race=data.races[this.pud.races[this.player]];
 
 		if (!type.hasOwnProperty(race)) {
 			race="neutral";
@@ -1379,7 +1369,7 @@ Editor.prototype.changeUnitPalette=function() {
 			this.unit=unit.id;
 		}.bind(this));
 
-		img.src="icons/"+this.getTileset(this.pud.tileset)+"/"+icon;
+		img.src="icons/"+data.tilesets[this.pud.tileset]+"/"+icon;
 		img.setAttribute("alt", "["+unit.name+"]");
 		img.setAttribute("title", unit.name);
 
@@ -1391,19 +1381,6 @@ Editor.prototype.changeUnitPalette=function() {
 	$("#unitsPalette").replaceWith(ul);
 };
 
-Editor.prototype.getTileset=function(num) {
-	switch (num) {
-		case 1:
-			return "winter";
-		case 2:
-			return "wasteland";
-		case 3:
-			return "swamp";
-		default:
-			return "forest";
-	}
-};
-
 Editor.prototype.saveImage=function() {
 	let canvas=document.createElement("canvas");
 	canvas.width =$("#tileMap").width;
@@ -1411,9 +1388,9 @@ Editor.prototype.saveImage=function() {
 
 	let context=canvas.getContext("2d");
 	// composites all layers into a single image
-	context.drawImage($("#tileMap"),     0, 0, canvas.width, canvas.height);
-	context.drawImage($("#unitMap"),     0, 0, canvas.width, canvas.height);
-	context.drawImage($("#movementMap"), 0, 0, canvas.width, canvas.height);
+	drawLayer($("#tileMap"));
+	drawLayer($("#unitMap"));
+	drawLayer($("#movementMap"));
 
 	let filename=this.pud.filename.replace(/\.pud$/, ".png");
 
@@ -1424,6 +1401,12 @@ Editor.prototype.saveImage=function() {
 		a.click();
 		window.URL.revokeObjectURL(blob);
 	}, "image/png");
+
+	function drawLayer(element) {
+		if (!element.classList.contains("hidden")) {
+			context.drawImage(element, 0, 0, canvas.width, canvas.height);
+		}
+	}
 };
 
 /*
@@ -1903,7 +1886,7 @@ Overlays.prototype.saveProperties=function(key) {
 		let tileset=readRadio("terrain");
 		let size   =readRadio("size");
 
-		files.loadTemplate(editor.getTileset(tileset), size);
+		files.loadTemplate(data.tilesets[tileset], size);
 	}
 
 	function saveMap() {
@@ -1971,11 +1954,7 @@ Overlays.prototype.saveProperties=function(key) {
 					let unit=editor.pud.unitMap[index];
 
 					// changes race of unit when owner is changed if necessary
-					unit.id=editor.convertUnit(
-						unit.id,
-						editor.pud.races[value],
-						editor.pud.races[unit.owner]
-					);
+					unit.id=editor.convertUnit(unit.id, unit.owner, value);
 					ownerChanged++;
 				}
 
@@ -2097,7 +2076,7 @@ Overlays.prototype.changeIcon=function(input, img, select) {
 	input.value=Math.min(Math.max(input.value, 0), LAST_ICON);
 
 	let icon=input.value.padStart(4, "0");
-	img.src="icons/"+editor.getTileset(editor.pud.tileset)+"/"+icon+".png";
+	img.src="icons/"+data.tilesets[editor.pud.tileset]+"/"+icon+".png";
 };
 
 Overlays.prototype.changeResource=function() {
@@ -2182,12 +2161,12 @@ Pud.prototype.load=function(filename, buffer) {
 	this.signature     =readSection("SIGN", NOT_REQUIRED)||0;
 	this.unitMap       =readUnit();
 
-	this.valid=this.version==STANDARD||this.version==EXPANSION;
-	this.valid=this.tileset<=0xff;
+	this.valid&=this.version==STANDARD||this.version==EXPANSION;
+	this.valid&=this.tileset<=0xff;
 
 	let dimensions=this.width*this.height;
-	this.valid=this.tileMap.length==dimensions;
-	this.valid=this.movementMap.length==dimensions;
+	this.valid&=this.tileMap.length==dimensions;
+	this.valid&=this.movementMap.length==dimensions;
 
 	this.tileset=this.tileset>SWAMP?FOREST:this.tileset;
 
@@ -2521,7 +2500,6 @@ Pud.prototype.save=function() {
 			}
 		}
 
-		const NEUTRAL=15;
 		const PASSIVE_COMPUTER=2, NOBODY=3, HUMAN=5;
 
 		for (let player of players) {
