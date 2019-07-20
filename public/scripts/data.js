@@ -2558,7 +2558,7 @@ data.upgrades={
 		[29, "Berserker: Lighter Axes"],
 		[30, "Berserker: Scouting"],
 		[31, "Berserker: Regeneration"],
-		[32, "Upgrade Ogres to Ogre-Mages"],
+		[32, "Upgrade Ogres to Ogre-Magi"],
 		[43, "Ogre-Magi: Eye of Kilrogg"],
 		[44, "Ogre-Magi: Bloodlust"],
 		[50, "Ogre-Magi: Runes"],
