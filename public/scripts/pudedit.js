@@ -474,7 +474,6 @@ function Editor() {
 	// unit placement
 	this.unit=0;
 	this.player=0;
-	this.positions=[];
 
 	// terrain
 	this.brightness=0;
@@ -539,8 +538,14 @@ Editor.prototype.open=function(filename, path, buffer) {
 	this.selectPlayer(this.player);
 	this.selectPalette("units");
 
-	// keeps track of unit positions so they persist when units are redrawn
-	this.positions=Array(this.pud.unitMap.length).fill();
+	this.pud.unitMap.forEach(function(unit) {
+		// tracks unit positions so they persist when units are redrawn
+		unit.position=undefined;
+
+		// tracks points occupied by unit for collision detection
+		let unitSize=this.pud.units.unitSize[unit.id];
+		unit.points=this.computePoints(unit.x, unit.y, unitSize.x, unitSize.y);
+	}, this);
 
 	// draws tile map and unit map, changes unit icons to match tileset
 	this.changeTileset(this.pud.tileset);
@@ -681,12 +686,12 @@ Editor.prototype.drawUnitMap=function() {
 			w=img.width;
 			h=w;
 
-			if (self.positions[i]==undefined) {
+			if (self.pud.unitMap[i].position==undefined) {
 				// picks random idle frame
 				sy=h*Math.floor(Math.random()*5);
-				self.positions[i]=sy;
+				self.pud.unitMap[i].position=sy;
 			} else {
-				sy=self.positions[i];
+				sy=self.pud.unitMap[i].position;
 			}
 		}
 
@@ -822,15 +827,19 @@ Editor.prototype.selectUnits=function(x, y, add=false, multiple=false) {
 		this.select.strokeStyle=SELECT_COLOR;
 	}
 
-	let x1=0, y1=0, x2=0, y2=0;
+	let points=[];
+
+	[x, y]=this.findNearestTile(x, y);
 
 	if (multiple) {
-		x1=Math.floor(this.selectX/TILE_SIZE);
-		y1=Math.floor(this.selectY/TILE_SIZE);
-	}
+		let mx=Math.floor(this.selectX/TILE_SIZE);
+		let my=Math.floor(this.selectY/TILE_SIZE);
 
-	x2=Math.floor((window.scrollX+x-LEFT_MARGIN)/TILE_SIZE);
-	y2=Math.floor((window.scrollY+y)/TILE_SIZE);
+		let w=Math.abs(mx-x);
+		let h=Math.abs(my-y);
+
+		points=this.computePoints(Math.min(mx, x), Math.min(my, y), w, h);
+	}
 
 	for (let [i, unit] of this.pud.unitMap.entries()) {
 		if (!this.pud.units.unitSize.hasOwnProperty(unit.id)) {
@@ -838,32 +847,22 @@ Editor.prototype.selectUnits=function(x, y, add=false, multiple=false) {
 		}
 
 		let unitSize=this.pud.units.unitSize[unit.id];
-		let gx1=unit.x, gy1=unit.y; // top left
-		let gx2=unit.x+unitSize.x-1, gy2=unit.y+unitSize.y-1; // bottom right
-
-		let boundaries=false;
+		let intersect=false;
 
 		if (multiple) {
-			if (x2>x1&&y2>y1) {
-				// top left to bottom right
-				boundaries=(x1<=gx1&&y1<=gy1)&&(x2>=gx1&&y2>=gy1);
-			} else if (x1>x2&&y1>y2) {
-				// bottom right to top left
-				boundaries=(x2<=gx2&&y2<=gy2)&&(x1>=gx2&&y1>=gy2);
-			} else if (x2>x1&&y2<y1) {
-				// bottom left to top right
-				boundaries=(x1<=gx1&&y1>=gy2)&&(x2>=gx1&&y2<=gy2);
-			} else {
-				// top right to bottom left
-				boundaries=(x2<=gx2&&y2>=gy1)&&(x1>=gx2&&y1<=gy1);
+			for (let point of points) {
+				if (this.pud.unitMap[i].points.includes(point)) {
+					intersect=true;
+					break;
+				}
 			}
-		} else { // single unit
-			boundaries=(x2>=gx1&&x2<=gx2)&&(y2>=gy1&&y2<=gy2);
+		} else {
+			intersect=this.pud.unitMap[i].points.includes(x+this.pud.width*y);
 		}
 
-		if (boundaries&&(!add||!this.selected.hasOwnProperty(i))) {
+		if (intersect&&(!add||!this.selected.hasOwnProperty(i))) {
 			this.select.strokeRect(
-				gx1*TILE_SIZE, gy1*TILE_SIZE,
+				unit.x*TILE_SIZE, unit.y*TILE_SIZE,
 				unitSize.x*TILE_SIZE, unitSize.y*TILE_SIZE
 			);
 
@@ -938,16 +937,21 @@ Editor.prototype.addUnit=function(x, y) {
 		}
 	}
 
-	let unit={x, y, id, owner, property};
+	let unit={
+		x,
+		y,
+		id,
+		owner,
+		property,
+		position: undefined,
+		points: this.computePoints(x, y, unitSize.x, unitSize.y)
+	};
 	this.pud.unitMap.push(unit);
 	this.drawUnitMap();
 };
 
 Editor.prototype.removeUnit=function(id) {
 	this.pud.unitMap=this.pud.unitMap.filter(function(undefined, i) {
-		return id!=i;
-	});
-	this.positions=this.positions.filter(function(undefined, i) {
 		return id!=i;
 	});
 	this.drawUnitMap();
@@ -999,7 +1003,7 @@ Editor.prototype.paintTerrain=function(x, y) {
 	this.drawTerrainBrush(x, y);
 
 	[x, y]=this.findNearestTile(x, y, this.size, this.size);
-	let points=computePoints(x, y);
+	let points=this.computePoints(x, y, this.size, this.size);
 
 	let tile=this.tile;
 
@@ -1030,21 +1034,21 @@ Editor.prototype.paintTerrain=function(x, y) {
 			TILE_SIZE, TILE_SIZE
 		);
 	}
-
-	function computePoints(x, y) {
-		let points=[];
-
-		for (let i=0; i<self.size; i++) {
-			for (let j=0; j<self.size; j++) {
-				points.push(x+j+self.pud.width*(y+i));
-			}
-		}
-
-		return points;
-	}
 };
 
-Editor.prototype.findNearestTile=function(x, y, w, h) {
+Editor.prototype.computePoints=function(x, y, ux, uy) {
+	let points=[];
+
+	for (let i=0; i<uy; i++) {
+		for (let j=0; j<ux; j++) {
+			points.push(x+j+this.pud.width*(y+i));
+		}
+	}
+
+	return points;
+};
+
+Editor.prototype.findNearestTile=function(x, y, w=0, h=0) {
 	x+=window.scrollX;
 	y+=window.scrollY;
 
@@ -1091,7 +1095,7 @@ Editor.prototype.findNearestTile=function(x, y, w, h) {
 Editor.prototype.validateArea=function(x, y) {
 	let self=this, valid=true;
 	let unitSize=this.pud.units.unitSize[this.unit];
-	let points=computePoints(x, y, unitSize);
+	let points=this.computePoints(x, y, unitSize.x, unitSize.y);
 
 	const LAND=1, AIR=2, SEA=3;
 	let flags=this.pud.units.flags[this.unit];
@@ -1134,7 +1138,7 @@ Editor.prototype.validateArea=function(x, y) {
 	}
 
 	// checks if area contains other units
-	for (let unit of Array.from(this.pud.unitMap)) {
+	for (let [i, unit] of this.pud.unitMap.entries()) {
 		if ((this.unit==HUMAN_START_LOC||this.unit==ORC_START_LOC)
 		   ^(unit.id==HUMAN_START_LOC||unit.id==ORC_START_LOC)
 		) {
@@ -1153,9 +1157,7 @@ Editor.prototype.validateArea=function(x, y) {
 			continue; // allows air units over ground/sea units and buildings
 		}
 
-		let compareUnitSize=this.pud.units.unitSize[unit.id];
-
-		for (let point of computePoints(unit.x, unit.y, compareUnitSize)) {
+		for (let point of this.pud.unitMap[i].points) {
 			if (points.includes(point)) {
 				valid=false;
 				break;
@@ -1218,18 +1220,6 @@ Editor.prototype.validateArea=function(x, y) {
 	}
 
 	return valid;
-
-	function computePoints(x, y, unitSize) {
-		let points=[];
-
-		for (let i=0; i<unitSize.y; i++) {
-			for (let j=0; j<unitSize.x; j++) {
-				points.push(x+j+self.pud.width*(y+i));
-			}
-		}
-
-		return points;
-	}
 
 	function getUnitType(flags) {
 		return LAND*flags[0]+AIR*flags[1]+SEA*flags[3];
