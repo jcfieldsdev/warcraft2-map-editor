@@ -1762,7 +1762,7 @@ data.tiles=[
 	}
 ];
 
-data.races=["human", "orc"];
+data.races=["human", "orc", "human"]; // neutral (0x02) is treated as human
 data.tilesets=["forest", "winter", "wasteland", "swamp"];
 
 data.movement={

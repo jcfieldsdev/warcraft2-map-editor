@@ -128,8 +128,7 @@ window.addEventListener("load", function() {
 			if (editor.mode==DRAG_SELECT) {
 				editor.selectUnits(
 					event.clientX, event.clientY,
-					event.shiftKey,
-					editor.selectMultiple
+					event.shiftKey
 				);
 			} else if (editor.mode==DRAG_TERRAIN) {
 				editor.mode=PAINT_TERRAIN;
@@ -139,9 +138,8 @@ window.addEventListener("load", function() {
 				if (Object.keys(editor.selected).length>0) {
 					overlays.openProperties("unitMap");
 				}
-			} else if (editor.mode==PLACE_UNIT) {
-				editor.mode=SELECT_UNITS;
-				editor.clearSelect();
+			} else if (editor.mode==PLACE_UNIT||editor.mode==PAINT_TERRAIN) {
+				$("#inspect").click();
 			}
 		}
 	});
@@ -180,6 +178,9 @@ window.addEventListener("load", function() {
 	});
 	$("#filename").addEventListener("click", function() {
 		overlays.openProperties("map");
+	});
+	$("#inspect").addEventListener("click", function() {
+		editor.clearSelect();
 	});
 	$("#select_unitsPalette").addEventListener("input", function() {
 		editor.changeUnitPalette();
@@ -221,8 +222,7 @@ window.addEventListener("load", function() {
 			if (overlays.active) {
 				overlays.closeAll();
 			} else {
-				editor.mode=SELECT_UNITS;
-				editor.clearSelect();
+				$("#inspect").click();
 			}
 		}
 
@@ -538,14 +538,14 @@ Editor.prototype.open=function(filename, path, buffer) {
 	this.selectPlayer(this.player);
 	this.selectPalette("units");
 
-	this.pud.unitMap.forEach(function(unit) {
+	for (let unit of this.pud.unitMap) {
 		// tracks unit positions so they persist when units are redrawn
 		unit.position=undefined;
 
 		// tracks points occupied by unit for collision detection
 		let unitSize=this.pud.units.unitSize[unit.id];
 		unit.points=this.computePoints(unit.x, unit.y, unitSize.x, unitSize.y);
-	}, this);
+	}
 
 	// draws tile map and unit map, changes unit icons to match tileset
 	this.changeTileset(this.pud.tileset);
@@ -588,6 +588,9 @@ Editor.prototype.drawTileMap=function() {
 				cx, cy,
 				TILE_SIZE, TILE_SIZE
 			);
+		} else {
+			let hex=tile.toString(16).padStart(4, "0");
+			console.error(`Missing terrain tile: 0x${hex} at (${x}, ${y})`);
 		}
 
 		if ((i+1)%this.pud.width==0) { // new row
@@ -597,8 +600,6 @@ Editor.prototype.drawTileMap=function() {
 			x++;
 		}
 	}
-
-	this.drawFrame();
 };
 
 Editor.prototype.drawUnitMap=function() {
@@ -655,6 +656,8 @@ Editor.prototype.drawUnitMap=function() {
 
 		if (unit.id in self.pud.units.unitSize) {
 			unitSize=self.pud.units.unitSize[unit.id];
+		} else {
+			console.error("Missing unit size for unit:", unit.id);
 		}
 
 		let path="units/"+data.tilesets[self.pud.tileset]+"/";
@@ -749,6 +752,9 @@ Editor.prototype.drawMovementMap=function() {
 		if (tile in data.movement) {
 			this.movementMap.strokeStyle=data.movement[tile];
 			this.movementMap.strokeRect(x*TILE_SIZE+2, y*TILE_SIZE+2, w, h);
+		} else {
+			let hex=tile.toString(16).padStart(4, "0");
+			console.error(`Missing movement tile: 0x${hex} at (${x}, ${y})`);
 		}
 
 		if ((i+1)%this.pud.width==0) { // new row
@@ -815,9 +821,8 @@ Editor.prototype.drawSelect=function(x, y) {
 	this.select.strokeRect(this.selectX, this.selectY, w, h);
 };
 
-Editor.prototype.selectUnits=function(x, y, add=false, multiple=false) {
+Editor.prototype.selectUnits=function(x, y, add=false) {
 	this.mode=SELECT_UNITS;
-	this.selectMultiple=false;
 
 	if (!add) {
 		this.selected={};
@@ -831,14 +836,19 @@ Editor.prototype.selectUnits=function(x, y, add=false, multiple=false) {
 
 	[x, y]=this.findNearestTile(x, y);
 
-	if (multiple) {
+	if (this.selectMultiple) {
 		let mx=Math.floor(this.selectX/TILE_SIZE);
 		let my=Math.floor(this.selectY/TILE_SIZE);
 
 		let w=Math.abs(mx-x);
 		let h=Math.abs(my-y);
 
-		points=this.computePoints(Math.min(mx, x), Math.min(my, y), w, h);
+		if (w&&h) {
+			points=this.computePoints(Math.min(mx, x), Math.min(my, y), w, h);
+		} else {
+			// treats box select as single-unit click if smaller than tile size
+			this.selectMultiple=false;
+		}
 	}
 
 	for (let [i, unit] of this.pud.unitMap.entries()) {
@@ -849,9 +859,9 @@ Editor.prototype.selectUnits=function(x, y, add=false, multiple=false) {
 		let unitSize=this.pud.units.unitSize[unit.id];
 		let intersect=false;
 
-		if (multiple) {
-			for (let point of points) {
-				if (this.pud.unitMap[i].points.includes(point)) {
+		if (this.selectMultiple) {
+			for (let point of this.pud.unitMap[i].points) {
+				if (points.includes(point)) {
 					intersect=true;
 					break;
 				}
@@ -869,6 +879,8 @@ Editor.prototype.selectUnits=function(x, y, add=false, multiple=false) {
 			this.selected[i]=unit;
 		}
 	}
+
+	this.selectMultiple=false;
 };
 
 Editor.prototype.drawUnitBrush=function(x, y) {
@@ -969,7 +981,7 @@ Editor.prototype.convertUnit=function(id, oldPlayer, newPlayer) {
 	let oldRace=data.races[this.pud.races[oldPlayer]];
 	let newRace=data.races[this.pud.races[newPlayer]];
 
-	if (oldRace==newRace||newPlayer==NEUTRAL) {
+	if (oldRace==newRace) {
 		return id;
 	}
 
@@ -1289,7 +1301,7 @@ Editor.prototype.changeTileset=function(tileset) {
 	if (tileset==SWAMP) {
 		// remaps tiles that are unspecified for swamp tileset
 		this.pud.tileMap=this.pud.tileMap.map(function(tile) {
-			let rand=Math.floor(Math.random()*3)-1;
+			let rand=Math.floor(Math.random()*3);
 
 			switch (tile) {
 				case 0x003a:
@@ -1311,6 +1323,7 @@ Editor.prototype.changeTileset=function(tileset) {
 		element.setAttribute("src", path.join("/"));
 	}
 
+	this.drawFrame();
 	this.drawUnitMap();
 	this.changeTerrainPalette();
 	this.changeUnitPalette();
@@ -1898,8 +1911,8 @@ Overlays.prototype.saveProperties=function(key) {
 	function savePlayers() {
 		for (let i=0; i<PLAYERS; i++) {
 			editor.pud.races[i]     =readRadio("race"+i);
-			editor.pud.controller[i]=$("#controller"+i).value;
-			editor.pud.ai[i]        =$("#ai"+i).value;
+			editor.pud.controller[i]=$("#select_controller"+i).value;
+			editor.pud.ai[i]        =$("#select_ai"+i).value;
 		}
 
 		editor.changeUnitPalette();
@@ -2231,6 +2244,7 @@ Pud.prototype.load=function(filename, buffer) {
 		if (!self.struct.hasOwnProperty(key)) {
 			if (required) {
 				self.valid=false;
+				console.error("Missing required section:", key);
 			}
 
 			return;
@@ -2362,14 +2376,14 @@ Pud.prototype.load=function(filename, buffer) {
 	function readDim() {
 		if (!self.struct.hasOwnProperty("DIM ")) {
 			self.valid=false;
-			return;
+			return [0, 0];
 		}
 
 		let dim=self.struct["DIM "];
 
 		if (dim.length!=4) {
 			self.valid=false;
-			return;
+			return [0, 0];
 		}
 
 		let x=dim[0];
