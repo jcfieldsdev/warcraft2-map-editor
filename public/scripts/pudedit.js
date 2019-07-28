@@ -12,6 +12,7 @@ const MIME_TYPE="application/x-warcraft2-scenario";
 
 // editor
 const MAPS_DIR       ="maps/";
+const DEFAULT_PALETTE="units";
 const DEFAULT_TILESET="forest";
 const DEFAULT_SIZE   =128;
 const MINIMAP_SIZE   =200;
@@ -445,6 +446,7 @@ function Editor() {
 	this.path="";
 
 	this.mode=SELECT_UNITS;
+	this.palette="";
 
 	// canvas drawing contexts
 	this.tileMap=null;
@@ -536,7 +538,10 @@ Editor.prototype.open=function(filename, path, buffer) {
 	this.miniUnitBuffer.scale(this.scaleX, this.scaleY);
 
 	this.selectPlayer(this.player);
-	this.selectPalette("units");
+
+	if (this.palette=="") {
+		this.selectPalette(DEFAULT_PALETTE);
+	}
 
 	for (let unit of this.pud.unitMap) {
 		// tracks unit positions so they persist when units are redrawn
@@ -1289,6 +1294,8 @@ Editor.prototype.selectPalette=function(palette) {
 	for (let element of $$(".tab")) {
 		element.classList.toggle("current", element.value==palette);
 	}
+
+	this.palette=palette;
 };
 
 Editor.prototype.changeTileset=function(tileset) {
