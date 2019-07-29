@@ -29,5 +29,5 @@ except OSError:
 dirs.sort()
 files.sort()
 
-print "Content-Type: application/json; charset=utf-8\n"
-print json.dumps({"dirs": dirs, "files": files})
+print("Content-Type: application/json; charset=utf-8\n")
+print(json.dumps({"dirs": dirs, "files": files}))
