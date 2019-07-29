@@ -1332,20 +1332,7 @@ Editor.prototype.changeTileset=function(tileset) {
 
 	this.drawFrame();
 	this.drawUnitMap();
-	this.changeTerrainPalette();
 	this.changeUnitPalette();
-};
-
-Editor.prototype.changeTerrainPalette=function() {
-	for (let element of $$(".terrain img")) {
-		let icon=element.parentElement.value+".png";
-
-		let img=new Image();
-		img.src="icons/terrain/"+data.tilesets[this.pud.tileset]+"/"+icon;
-		img.addEventListener("load", function() {
-			element.src=this.src;
-		});
-	}
 };
 
 Editor.prototype.changeUnitPalette=function() {
