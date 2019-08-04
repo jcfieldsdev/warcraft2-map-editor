@@ -554,7 +554,7 @@ Editor.prototype.open=function(filename, path, buffer) {
 
 	// draws tile map and unit map, changes unit icons to match tileset
 	this.changeTileset(this.pud.tileset);
-	// draws movement map
+
 	this.drawMovementMap();
 
 	function setSize(id, w, h) {
@@ -615,7 +615,7 @@ Editor.prototype.drawUnitMap=function() {
 	this.miniUnitBuffer.clearRect(0, 0, width, height);
 
 	let self=this;
-	let bottomPromises=[], topPromises=[], top=[];
+	let bottomPromises=[], top=[];
 
 	// sorts units by stacking priority
 	for (let [i, unit] of this.pud.unitMap.entries()) {
@@ -630,7 +630,7 @@ Editor.prototype.drawUnitMap=function() {
 
 	Promise.all(bottomPromises).then(function() {
 		// draws flying units and start locations after other units
-		topPromises=top.map(makePromise);
+		let topPromises=top.map(makePromise);
 
 		// draws units after all images have loaded
 		Promise.all(topPromises).then(function() {
@@ -1156,22 +1156,23 @@ Editor.prototype.validateArea=function(x, y) {
 
 	// checks if area contains other units
 	for (let [i, unit] of this.pud.unitMap.entries()) {
+		// start locations ignore collision with everything except
+		// other start locations
 		if ((this.unit==HUMAN_START_LOC||this.unit==ORC_START_LOC)
 		   ^(unit.id==HUMAN_START_LOC||unit.id==ORC_START_LOC)
 		) {
-			// start locations ignore collision with everything except
-			// other start locations
 			continue;
 		}
 
 		let compareType=getUnitType(this.pud.units.flags[unit.id]);
 		let compareFlags=this.pud.units.flags[unit.id];
 
+		// allows air units over ground/sea units and buildings
 		if ((flags[AIR_UNIT]^compareFlags[AIR_UNIT])
 		  &&((unitType==LAND||unitType==SEA||flags[BUILDING])
 		    ^(compareType==LAND||compareType==SEA||compareFlags[BUILDING]))
 		) {
-			continue; // allows air units over ground/sea units and buildings
+			continue;
 		}
 
 		for (let point of this.pud.unitMap[i].points) {
@@ -2164,9 +2165,9 @@ Pud.prototype.load=function(filename, buffer) {
 	this.valid&=this.version==STANDARD||this.version==EXPANSION;
 	this.valid&=this.tileset<=0xff;
 
-	let dimensions=this.width*this.height;
-	this.valid&=this.tileMap.length==dimensions;
-	this.valid&=this.movementMap.length==dimensions;
+	let area=this.width*this.height;
+	this.valid&=this.tileMap.length==area;
+	this.valid&=this.movementMap.length==area;
 
 	this.tileset=this.tileset>SWAMP?FOREST:this.tileset;
 
@@ -2443,16 +2444,15 @@ Pud.prototype.save=function() {
 		["UNIT", saveUnit()]
 	]);
 
+	// only writes restriction data if not using default values
+	if (!this.useAlow) {
+		sections.delete("ALOW");
+	}
+
 	let length=0;
 
 	for (let [key, contents] of sections) {
 		if (contents==undefined) {
-			continue;
-		}
-
-		// only writes restriction data if not using default values
-		if (key=="ALOW"&&!this.useAlow) {
-			sections.delete(key);
 			continue;
 		}
 
@@ -2696,9 +2696,18 @@ Files.prototype.browse=function() {
 	let self=this;
 	let xhr=new XMLHttpRequest();
 
+	// opens at root directory if a template file is currently loaded
 	if (this.dirs.includes("templates")) {
 		this.dirs=[];
 	}
+
+	let path=this.dirs.join("/");
+
+	if (this.dirs.length>0) {
+		path+="/";
+	}
+
+	const DIRECTORY="dir", FILE="pud";
 
 	xhr.addEventListener("readystatechange", function() {
 		if (this.readyState==4&&this.status==200) {
@@ -2708,8 +2717,9 @@ Files.prototype.browse=function() {
 			ul.id=self.id;
 
 			if (self.dirs.length>0) { // except root directory
-				ul.appendChild(createItem("dir", "[..]",
-					function() {
+				ul.appendChild(createItem(DIRECTORY, "..",
+					function(event) {
+						event.preventDefault();
 						self.dirs.pop();
 						self.browse();
 					})
@@ -2717,8 +2727,9 @@ Files.prototype.browse=function() {
 			}
 
 			for (let dir of dirs) {
-				ul.appendChild(createItem("dir", "["+dir+"]",
-					function() {
+				ul.appendChild(createItem(DIRECTORY, dir,
+					function(event) {
+						event.preventDefault();
 						self.dirs.push(dir);
 						self.browse();
 					})
@@ -2726,8 +2737,9 @@ Files.prototype.browse=function() {
 			}
 
 			for (let file of files) {
-				ul.appendChild(createItem("pud", file,
-					function() {
+				ul.appendChild(createItem(FILE, file,
+					function(event) {
+						event.preventDefault();
 						overlays.hide("browser");
 						self.load(file, editor.open.bind(editor));
 					})
@@ -2737,7 +2749,7 @@ Files.prototype.browse=function() {
 			$("#"+self.id).replaceWith(ul);
 		}
 	});
-	xhr.open("GET", MAPS_DIR+this.dirs.join("/")+"/index.json", true);
+	xhr.open("GET", MAPS_DIR+path+"index.json", true);
 	xhr.responseType="json";
 	xhr.send();
 
@@ -2745,8 +2757,9 @@ Files.prototype.browse=function() {
 		let li=document.createElement("li");
 
 		let a=document.createElement("a");
+		a.href=MAPS_DIR+path+file;
 		a.className=className;
-		a.textContent=file;
+		a.textContent=className==DIRECTORY?"["+file+"]":file;
 		a.addEventListener("click", callback);
 		li.appendChild(a);
 
@@ -2758,7 +2771,8 @@ Files.prototype.load=function(filename, callback) {
 	let xhr=new XMLHttpRequest();
 	let path=this.dirs.join("/")+"/"+filename;
 
-	// remove initial slash from file path if present
+	// removes initial slash from file path if present
+	// (for files in root directory)
 	if (path.slice(0, 1)=="/") {
 		path=path.slice(1);
 	}
