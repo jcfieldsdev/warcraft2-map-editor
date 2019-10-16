@@ -65,9 +65,12 @@ const OIL_DEPOT     =24;
 
 // terrain
 const PLAIN=0, FILLER=1, RANDOM=2;
-const INSPECT=0x0000, WATER=0x0010, DIRT=0x0050, GRASS=0x0030;
-const TREES=0x0070, ROCKS=0x0080;
-const HUMAN_WALL=0x0090, ORC_WALL=0x00a0;
+const INSPECT    =0x0000;
+const LIGHT_WATER=0x0010, DARK_WATER =0x0020;
+const LIGHT_DIRT =0x0030, DARK_DIRT  =0x0040;
+const LIGHT_GRASS=0x0050, DARK_GRASS =0x0060;
+const TREES      =0x0070, ROCKS      =0x0080;
+const HUMAN_WALL =0x0090, ORC_WALL   =0x00a0;
 
 // objects
 const editor  =new Editor();
@@ -187,7 +190,7 @@ window.addEventListener("load", function() {
 		editor.changeUnitPalette();
 	});
 	// for overlay widgets
-	$("#file").addEventListener("input", function(event) {
+	$("#file").addEventListener("change", function(event) {
 		let file=event.target.files[0];
 
 		if (file) {
@@ -481,7 +484,7 @@ function Editor() {
 	this.brightness=0;
 	this.pattern=PLAIN;
 	this.size=1;
-	this.tile=GRASS;
+	this.tile=LIGHT_GRASS;
 	this.terrainX=0;
 	this.terrainY=0;
 }
@@ -851,7 +854,8 @@ Editor.prototype.selectUnits=function(x, y, add=false) {
 		if (w&&h) {
 			points=this.computePoints(Math.min(mx, x), Math.min(my, y), w, h);
 		} else {
-			// treats box select as single-unit click if smaller than tile size
+			// treats box select as single-unit click if smaller than tile size;
+			// prevents annoying misclicks
 			this.selectMultiple=false;
 		}
 	}
@@ -1479,7 +1483,7 @@ Overlays.prototype.openProperties=function(key) {
 
 	function openCreate() {
 		setRadio("size",    editor.pud.width||DEFAULT_SIZE);
-		setRadio("terrain", editor.pud.tileset||DEFAULT_TILESET);
+		setRadio("terrain", editor.pud.tileset||0);
 	}
 
 	function openMap() {
@@ -2285,7 +2289,7 @@ Pud.prototype.load=function(filename, buffer) {
 				obj[key]=Boolean(obj[key]);
 			} else if (type==DIMENSIONS) {
 				obj[key]=parseDim(obj[key]);
-			} else if (type==BIT_FIELD) {
+			} else if (type==BIT_VECTOR) {
 				obj[key]=parseBits(makeArray(obj[key], size));
 			} else if (type==OCTAL) {
 				obj[key]=parseOctal(obj[key]);
@@ -2311,7 +2315,7 @@ Pud.prototype.load=function(filename, buffer) {
 		return dim;
 	}
 
-	// breaks bit fields into arrays of booleans
+	// breaks bit vectors into arrays of booleans
 	function parseBits(arr) {
 		return arr.map(function(value) {
 			const SIZE=32;
@@ -2505,7 +2509,7 @@ Pud.prototype.save=function() {
 
 		for (let player of players) {
 			if (player!=NEUTRAL&&start[player]==undefined) {
-				throw "Must place a start location for player "+(player+1)+".";
+				throw `Must place a start location for player ${player+1}.`;
 			}
 		}
 
@@ -2577,7 +2581,7 @@ Pud.prototype.save=function() {
 				contents=convertNum(Number(data[key]), size);
 			} else if (type==DIMENSIONS) {
 				contents=convertDim(data[key]);
-			} else if (type==BIT_FIELD) {
+			} else if (type==BIT_VECTOR) {
 				contents=convertBits(data[key]);
 			} else if (type==OCTAL) {
 				contents=convertOctal(data[key]);

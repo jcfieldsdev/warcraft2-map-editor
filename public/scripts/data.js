@@ -11,7 +11,7 @@ const ARRAY      =0;
 const MAP        =1;
 const BOOLEAN    =2;
 const NUMBER     =3;
-const BIT_FIELD  =4;
+const BIT_VECTOR =4;
 const OCTAL      =5;
 const DIMENSIONS =6;
 
@@ -62,7 +62,7 @@ data.schema={
 			["rmbAction",         [58,  BYTE,  ARRAY]],
 			["points",            [110, WORD,  ARRAY]],
 			["canTarget",         [110, BYTE,  OCTAL]],
-			["flags",             [110, DWORD, BIT_FIELD]]
+			["flags",             [110, DWORD, BIT_VECTOR]]
 		])
 	},
 	"UGRD": {
@@ -81,12 +81,12 @@ data.schema={
 	"ALOW": {
 		type: MAP,
 		map:  new Map([
-			["units",               [16, DWORD, BIT_FIELD]],
-			["spellsResearched",    [16, DWORD, BIT_FIELD]],
-			["spells",              [16, DWORD, BIT_FIELD]],
-			["spellsResearching",   [16, DWORD, BIT_FIELD]],
-			["upgrades",            [16, DWORD, BIT_FIELD]],
-			["upgradesResearching", [16, DWORD, BIT_FIELD]]
+			["units",               [16, DWORD, BIT_VECTOR]],
+			["spellsResearched",    [16, DWORD, BIT_VECTOR]],
+			["spells",              [16, DWORD, BIT_VECTOR]],
+			["spellsResearching",   [16, DWORD, BIT_VECTOR]],
+			["upgrades",            [16, DWORD, BIT_VECTOR]],
+			["upgradesResearching", [16, DWORD, BIT_VECTOR]]
 		])
 	},
 	"SIDE": {

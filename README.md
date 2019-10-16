@@ -20,11 +20,21 @@ Not implemented but would be nice some day:
 - Copy/paste for units and terrain.
 - Editing the movement map.
 
+Works well in Firefox and Chrome. Also works in Safari, but performance is very poor.
+
+## Acknowledgments
+
 Based on the [pud specification](https://gitlab.com/jcfields/warcraft2-map-editor/blob/master/pudspec.txt) created by Daniel Lemberg and contributors.
+
+Used Alexander Cech's Wardraft for extracting tilesets and tile information.
+
+Used [ShadowFlare's GRP converter](https://sfsrealm.hopto.org/downloads/SFGrpConv.html) for converting sprites.
 
 ## Authors
 
 - J.C. Fields <jcfields+gitlab@gmail.com>
+- Uses [Feather icons](https://github.com/feathericons/feather) by [Cole Bemis](https://colebemis.com/) and contributors
+- Uses [scroll icon](https://www.flaticon.com/free-icon/scroll_1009994) by [https://www.freepik.com/](Freepik)
 
 ## License
 
