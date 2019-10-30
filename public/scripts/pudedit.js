@@ -157,6 +157,8 @@ window.addEventListener("load", function() {
 		} else if (editor.mode==DRAG_TERRAIN) {
 			editor.paintTerrain(event.clientX, event.clientY);
 		}
+
+		editor.updateTileInfo(event.clientX, event.clientY);
 	});
 	$("#select").addEventListener("contextmenu", function(event) {
 		event.preventDefault();
@@ -373,7 +375,7 @@ window.addEventListener("load", function() {
 	for (let element of $$(".terrain")) {
 		element.addEventListener("click", function() {
 			editor.tile=toggleButtons(this);
-			editor.mode=editor.tile?PAINT_TERRAIN:SELECT_UNITS;
+			editor.mode=editor.tile==INSPECT?SELECT_UNITS:PAINT_TERRAIN;
 		});
 	}
 
@@ -597,8 +599,8 @@ Editor.prototype.drawTileMap=function() {
 				TILE_SIZE, TILE_SIZE
 			);
 		} else {
-			let hex=tile.toString(16).padStart(4, "0");
-			console.error(`Missing terrain tile: 0x${hex} at (${x}, ${y})`);
+			let hex=this.formatHex(tile);
+			console.error(`Missing terrain tile: ${hex} at (${x}, ${y})`);
 		}
 
 		if ((i+1)%this.pud.width==0) { // new row
@@ -761,8 +763,8 @@ Editor.prototype.drawMovementMap=function() {
 			this.movementMap.strokeStyle=data.movement[tile];
 			this.movementMap.strokeRect(x*TILE_SIZE+2, y*TILE_SIZE+2, w, h);
 		} else {
-			let hex=tile.toString(16).padStart(4, "0");
-			console.error(`Missing movement tile: 0x${hex} at (${x}, ${y})`);
+			let hex=this.formatHex(tile);
+			console.error(`Missing movement tile: ${hex} at (${x}, ${y})`);
 		}
 
 		if ((i+1)%this.pud.width==0) { // new row
@@ -1029,31 +1031,106 @@ Editor.prototype.paintTerrain=function(x, y) {
 	let tile=this.tile;
 
 	if (tile>=WATER&&tile<TREES) {
-		tile+=this.brightness;
+		tile+=this.brightness; // 0x0010 if true
 	}
 
-	let tiles=data.tiles[this.pud.tileset];
+	let boundary=computeBoundary(x, y, this.size);
 
 	for (let point of points) {
-		this.pud.tileMap[point]=tile;
+		setTile(point, tile);
+	}
 
-		let cx=point%this.pud.width*TILE_SIZE;
-		let cy=Math.floor(point/this.pud.height)*TILE_SIZE;
+	for (let point of boundary) {
+		let oldTile=this.pud.tileMap[point]&0x00f0;
+		let newTile=tile&0x00f0;
+		let tiles=[oldTile, newTile];
 
-		this.tileMap.drawImage(
-			this.tiles,
-			tiles[tile].x, tiles[tile].y,
-			TILE_SIZE, TILE_SIZE,
-			cx, cy,
-			TILE_SIZE, TILE_SIZE
-		);
-		this.miniTileMap.drawImage(
-			this.tiles,
-			tiles[tile].x, tiles[tile].y,
-			MINI_TILE_SIZE, MINI_TILE_SIZE,
-			cx, cy,
-			TILE_SIZE, TILE_SIZE
-		);
+		let boundaryTile=0;
+
+		if (tiles.includes(LIGHT_WATER)&&tiles.includes(DARK_WATER)) {
+			boundaryTile=0x0100;
+		} else if (tiles.includes(LIGHT_GRASS)&&tiles.includes(LIGHT_WATER)) {
+			boundaryTile=0x0200;
+		} else if (tiles.includes(LIGHT_DIRT)&&tiles.includes(DARK_DIRT)) {
+			boundaryTile=0x0300;
+		} else if (tiles.includes(LIGHT_DIRT)&&tiles.includes(ROCKS)) {
+			boundaryTile=0x0400;
+		} else if (tiles.includes(LIGHT_GRASS)&&tiles.includes(LIGHT_DIRT)) {
+			boundaryTile=0x0500;
+		} else if (tiles.includes(LIGHT_GRASS)&&tiles.includes(DARK_GRASS)) {
+			boundaryTile=0x0600;
+		} else if (tiles.includes(LIGHT_GRASS)&&tiles.includes(TREES)) {
+			boundaryTile=0x0700;
+		} else {
+			continue;
+		}
+
+		let corners=[
+			point-this.pud.width-1,
+			point-this.pud.width+1,
+			point+this.pud.width-1,
+			point+this.pud.width+1
+		];
+		let mask=0;
+
+		for (let [i, corner] of corners.entries()) {
+			if ((this.pud.tileMap[corner]&0x00ff)<=newTile) {
+				mask|=1<<i;
+			}
+		}
+
+		if (newTile>oldTile) {
+			mask=~mask;
+		}
+
+		boundaryTile|=mask-1<<4;
+
+		setTile(point, boundaryTile);
+	}
+
+	function computeBoundary(x, y, size) {
+		let points=[];
+		let limit=size+2; // for top/bottom or left/right edges
+
+		for (let i=0; i<limit; i++) {
+			for (let j=0; j<limit; j++) {
+				points.push(x+(y-1)*self.pud.width+j-1);
+				points.push(x+(y+size)*self.pud.width+j-1);
+			}
+
+			points.push(x+(y+i-1)*self.pud.width-1);
+			points.push(x+(y+i-1)*self.pud.width+size);
+		}
+
+		return points;
+	}
+
+	function setTile(point, index) {
+		if (index in data.tiles[self.pud.tileset]) {
+			let tile=data.tiles[self.pud.tileset][index];
+			self.pud.tileMap[point]=index;
+
+			let cx=point%self.pud.width*TILE_SIZE;
+			let cy=Math.floor(point/self.pud.height)*TILE_SIZE;
+
+			self.tileMap.drawImage(
+				self.tiles,
+				tile.x, tile.y,
+				TILE_SIZE, TILE_SIZE,
+				cx, cy,
+				TILE_SIZE, TILE_SIZE
+			);
+			self.miniTileMap.drawImage(
+				self.tiles,
+				tile.x, tile.y,
+				MINI_TILE_SIZE, MINI_TILE_SIZE,
+				cx, cy,
+				TILE_SIZE, TILE_SIZE
+			);
+		} else {
+			let hex=self.formatHex(index);
+			console.error(`Missing terrain tile: ${hex} at (${x}, ${y})`);
+		}
 	}
 };
 
@@ -1114,7 +1191,7 @@ Editor.prototype.findNearestTile=function(x, y, w=0, h=0) {
 };
 
 Editor.prototype.validateArea=function(x, y) {
-	let self=this, valid=true;
+	let valid=true;
 	let unitSize=this.pud.units.unitSize[this.unit];
 	let points=this.computePoints(x, y, unitSize.x, unitSize.y);
 
@@ -1245,6 +1322,27 @@ Editor.prototype.validateArea=function(x, y) {
 
 	function getUnitType(flags) {
 		return LAND*flags[0]+AIR*flags[1]+SEA*flags[3];
+	}
+};
+
+Editor.prototype.updateTileInfo=function(x, y) {
+	[x, y]=this.findNearestTile(x, y);
+
+	$("#text_posX").value=x;
+	$("#text_posY").value=y;
+
+	let index=x+this.pud.width*y;
+
+	if (index<=this.pud.tileMap.length) {
+		$("#text_terrainTile").value=this.formatHex(this.pud.tileMap[index]);
+	}
+
+	if (index<=this.pud.movementMap.length) {
+		$("#text_moveTile").value=this.formatHex(this.pud.movementMap[index]);
+	}
+
+	if (index<=this.pud.actionMap.length) {
+		$("#text_actionTile").value=this.formatHex(this.pud.actionMap[index]);
 	}
 };
 
@@ -1412,6 +1510,10 @@ Editor.prototype.saveImage=function() {
 			context.drawImage(element, 0, 0, canvas.width, canvas.height);
 		}
 	}
+};
+
+Editor.prototype.formatHex=function(num) {
+	return "0x"+num.toString(16).toUpperCase().padStart(4, "0");
 };
 
 /*

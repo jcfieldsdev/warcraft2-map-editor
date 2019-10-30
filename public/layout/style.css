@@ -170,7 +170,7 @@ div#control {
 	justify-content: space-between;
 }
 
-div#editor div, div#filename, div#map, div#terrain, div#restrictions table th {
+div#editor div, div#filename, div#map, div#restrictions table th, summary {
 	text-align: center;
 }
 
@@ -201,8 +201,12 @@ div#filename, h2 {
 	text-shadow: 2px 2px #000;
 }
 
-div#layers, div#terrain, div#restrictions table td {
-	font-size: 0.75rem;
+div#info, div#restrictions table td {
+	font-size: 0.8rem;
+}
+
+div#layers, div#terrain {
+	font-size: 0.7rem;
 }
 
 div#overlay_create fieldset {
@@ -232,11 +236,6 @@ div#restrictions table {
 	width: 100%;
 }
 
-div#terrain>div {
-	line-height: 100%;
-	margin: 0.5em 0;
-}
-
 div#terrain button img {
 	background: #404040;
 	color: inherit;
@@ -250,21 +249,20 @@ div#terrain button.active img {
 	color: inherit;
 }
 
+div#terrain details {
+	border-bottom: 2px solid #202020;
+}
+
 div#terrain img, ul#basic img {
 	height: 32px;
 	width: 32px;
 }
 
 div#terrain ul {
-	border-bottom: 2px solid #202020;
 	display: flex;
 	flex-wrap: wrap;
 	margin: 0 auto;
 	width: 220px;
-}
-
-div#terrain ul:last-child {
-	border-bottom: 0;
 }
 
 div#units select {
@@ -306,7 +304,7 @@ div.palette {
 	padding: 1em 0;
 }
 
-div.palette, ul#basic button, ul#players button, ul#tab button {
+div.palette, ul#basic button, ul#players button, ul#tabs button {
 	border-color: #404040;
 	border-style: solid;
 }
@@ -400,6 +398,15 @@ input, select {
 	line-height: 150%;
 }
 
+input.dim {
+	width: 3em;
+}
+
+input.dim, input.hex {
+	border: 0;
+	text-align: center;
+}
+
 input.gold {
 	background-image: url(../icons/resources/gold.png);
 }
@@ -409,6 +416,11 @@ input.gold, input.lumber, input.oil {
 	background-repeat: no-repeat;
 	background-size: 1em 1em;
 	padding-left: 1em;
+}
+
+input.hex {
+	font-family: Menlo, Consolas, monospace;
+	width: 6em;
 }
 
 input.lumber {
@@ -427,11 +439,6 @@ input[type="number"] {
 
 input[type="range"] {
 	width: 18em;
-}
-
-input[type="text"]:disabled {
-	border: 0;
-	text-align: center;
 }
 
 input:invalid {
@@ -501,7 +508,7 @@ ul#basic, ul#players {
 	justify-content: space-evenly;
 }
 
-ul#basic, ul#players, ul#tab {
+ul#basic, ul#players, ul#tabs {
 	display: flex;
 }
 
@@ -512,11 +519,11 @@ ul#basic button {
 	padding: 0.5em;
 }
 
-ul#basic button:hover, ul#players button:hover, ul#tab button:hover {
+ul#basic button:hover, ul#players button:hover, ul#tabs button:hover {
 	border-color: #c0c0c0;
 }
 
-ul#basic button:hover, ul#players button.current, ul#tab button.current {
+ul#basic button:hover, ul#players button.current, ul#tabs button.current {
 	background: #606060;
 	color: inherit;
 }
@@ -539,16 +546,16 @@ ul#players button {
 	width: 1.25em;
 }
 
-ul#players button.current, ul#tab button.current {
+ul#players button.current, ul#tabs button.current {
 	border-color: #fff;
 }
 
-ul#tab {
+ul#tabs {
 	line-height: 150%;
 	margin: 1em 0.5em 0;
 }
 
-ul#tab button {
+ul#tabs button {
 	border-radius: 0.5em 0.5em 0 0;
 	border-width: 2px 2px 0 2px;
 	margin-right: 0.1em;

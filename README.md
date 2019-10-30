@@ -34,7 +34,7 @@ Used [ShadowFlare's GRP converter](https://sfsrealm.hopto.org/downloads/SFGrpCon
 
 - J.C. Fields <jcfields+gitlab@gmail.com>
 - Uses [Feather icons](https://github.com/feathericons/feather) by [Cole Bemis](https://colebemis.com/) and contributors
-- Uses [scroll icon](https://www.flaticon.com/free-icon/scroll_1009994) by [https://www.freepik.com/](Freepik)
+- Uses [scroll icon](https://www.flaticon.com/free-icon/scroll_1009994) by [Freepik](https://www.freepik.com/)
 
 ## License
 
