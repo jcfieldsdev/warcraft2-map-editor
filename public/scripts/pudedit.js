@@ -71,6 +71,7 @@ const LIGHT_DIRT =0x0030, DARK_DIRT  =0x0040;
 const LIGHT_GRASS=0x0050, DARK_GRASS =0x0060;
 const TREES      =0x0070, ROCKS      =0x0080;
 const HUMAN_WALL =0x0090, ORC_WALL   =0x00a0;
+const HUMAN_IWALL=0x00b0, ORC_IWALL  =0x00c0;
 
 // objects
 const editor  =new Editor();
@@ -158,7 +159,9 @@ window.addEventListener("load", function() {
 			editor.paintTerrain(event.clientX, event.clientY);
 		}
 
-		editor.updateTileInfo(event.clientX, event.clientY);
+		if ($("#info").open) {
+			editor.updateTileInfo(event.clientX, event.clientY);
+		}
 	});
 	$("#select").addEventListener("contextmenu", function(event) {
 		event.preventDefault();
@@ -171,7 +174,7 @@ window.addEventListener("load", function() {
 		editor.saveImage();
 	});
 	$("#link").addEventListener("click", function() {
-		if (editor.path) {
+		if (editor.path!="") {
 			let link=window.location.href.split("?")[0];
 			link+="?map="+editor.path;
 
@@ -195,7 +198,7 @@ window.addEventListener("load", function() {
 	$("#file").addEventListener("change", function(event) {
 		let file=event.target.files[0];
 
-		if (file) {
+		if (file!=null) {
 			let reader=new FileReader();
 			reader.addEventListener("load", function(event) {
 				editor.open(file.name, "", event.target.result);
@@ -619,7 +622,7 @@ Editor.prototype.drawUnitMap=function() {
 	this.unitBuffer.clearRect(0, 0, width, height);
 	this.miniUnitBuffer.clearRect(0, 0, width, height);
 
-	let self=this;
+	const self=this;
 	let bottomPromises=[], top=[];
 
 	// sorts units by stacking priority
@@ -853,7 +856,7 @@ Editor.prototype.selectUnits=function(x, y, add=false) {
 		let w=Math.abs(mx-x);
 		let h=Math.abs(my-y);
 
-		if (w&&h) {
+		if (w>0&&h>0) {
 			points=this.computePoints(Math.min(mx, x), Math.min(my, y), w, h);
 		} else {
 			// treats box select as single-unit click if smaller than tile size;
@@ -1021,19 +1024,23 @@ Editor.prototype.convertUnit=function(id, oldPlayer, newPlayer) {
 };
 
 Editor.prototype.paintTerrain=function(x, y) {
-	let self=this;
+	const self=this;
 
 	this.drawTerrainBrush(x, y);
 
 	[x, y]=this.findNearestTile(x, y, this.size, this.size);
-	let points=this.computePoints(x, y, this.size, this.size);
+
+	if (this.terrainX==x&&this.terrainY==y) {
+		return;
+	}
 
 	let tile=this.tile;
 
-	if (tile>=WATER&&tile<TREES) {
-		tile+=this.brightness; // 0x0010 if true
+	if (tile>=LIGHT_WATER&&tile<TREES) {
+		tile+=this.brightness; // adds 0x0010 for dark version of tile
 	}
 
+	let points=this.computePoints(x, y, this.size, this.size);
 	let boundary=computeBoundary(x, y, this.size);
 
 	for (let point of points) {
@@ -1043,66 +1050,113 @@ Editor.prototype.paintTerrain=function(x, y) {
 	for (let point of boundary) {
 		let oldTile=this.pud.tileMap[point]&0x00f0;
 		let newTile=tile&0x00f0;
-		let tiles=[oldTile, newTile];
-
 		let boundaryTile=0;
 
-		if (tiles.includes(LIGHT_WATER)&&tiles.includes(DARK_WATER)) {
-			boundaryTile=0x0100;
-		} else if (tiles.includes(LIGHT_GRASS)&&tiles.includes(LIGHT_WATER)) {
-			boundaryTile=0x0200;
-		} else if (tiles.includes(LIGHT_DIRT)&&tiles.includes(DARK_DIRT)) {
-			boundaryTile=0x0300;
-		} else if (tiles.includes(LIGHT_DIRT)&&tiles.includes(ROCKS)) {
-			boundaryTile=0x0400;
-		} else if (tiles.includes(LIGHT_GRASS)&&tiles.includes(LIGHT_DIRT)) {
-			boundaryTile=0x0500;
-		} else if (tiles.includes(LIGHT_GRASS)&&tiles.includes(DARK_GRASS)) {
-			boundaryTile=0x0600;
-		} else if (tiles.includes(LIGHT_GRASS)&&tiles.includes(TREES)) {
-			boundaryTile=0x0700;
-		} else {
-			continue;
+		switch (newTile) {
+			case LIGHT_WATER:
+				if (oldTile==DARK_WATER) {
+					boundaryTile=0x0100;
+				} else if (oldTile==LIGHT_DIRT) {
+					boundaryTile=0x0200;
+				}
+
+				break;
+			case DARK_WATER:
+				if (oldTile==LIGHT_WATER) {
+					boundaryTile=0x0100;
+				}
+
+				break;
+			case LIGHT_DIRT:
+				if (oldTile==DARK_DIRT) {
+					boundaryTile=0x0300;
+				} else if (oldTile==LIGHT_WATER) {
+					boundaryTile=0x0200;
+				} else if (oldTile==ROCKS) {
+					boundaryTile=0x0400;
+				} else if (oldTile==LIGHT_GRASS) {
+					boundaryTile=0x0500;
+				}
+
+				break;
+			case DARK_DIRT:
+				if (oldTile==LIGHT_DIRT) {
+					boundaryTile=0x0300;
+				}
+
+				break;
+			case LIGHT_GRASS:
+				if (oldTile==DARK_GRASS) {
+					boundaryTile=0x0600;
+				} else if (oldTile==TREES) {
+					boundaryTile=0x0700;
+				}
+
+				break;
+			case DARK_GRASS:
+				if (oldTile==LIGHT_GRASS) {
+					boundaryTile=0x0600;
+				}
+
+				break;
+			case TREES:
+				if (oldTile==LIGHT_GRASS) {
+					boundaryTile=0x0700;
+				}
+
+				break;
+			case ROCKS:
+				if (oldTile==LIGHT_DIRT) {
+					boundaryTile=0x0400;
+				}
+
+				break;
+			case HUMAN_WALL:
+				if (oldTile==LIGHT_GRASS) {
+					boundaryTile=0x0800;
+				}
+
+				break;
+			case ORC_WALL:
+				if (oldTile==LIGHT_GRASS) {
+					boundaryTile=0x0900;
+				}
+
+				break;
+			case HUMAN_IWALL:
+			case ORC_IWALL:
+			default:
 		}
 
-		let corners=[
-			point-this.pud.width-1,
-			point-this.pud.width+1,
-			point+this.pud.width-1,
-			point+this.pud.width+1
-		];
-		let mask=0;
-
-		for (let [i, corner] of corners.entries()) {
-			if ((this.pud.tileMap[corner]&0x00ff)<=newTile) {
-				mask|=1<<i;
-			}
+		if (boundaryTile) {
+			setTile(point, boundaryTile);
 		}
-
-		if (newTile>oldTile) {
-			mask=~mask;
-		}
-
-		boundaryTile|=mask-1<<4;
-
-		setTile(point, boundaryTile);
 	}
 
 	function computeBoundary(x, y, size) {
 		let points=[];
-		let limit=size+2; // for top/bottom or left/right edges
 
-		for (let i=0; i<limit; i++) {
-			for (let j=0; j<limit; j++) {
-				points.push(x+(y-1)*self.pud.width+j-1);
-				points.push(x+(y+size)*self.pud.width+j-1);
-			}
+		// corners
+		points.push({x: x-1,    y: y-1});    // top-left
+		points.push({x: x+size, y: y-1});    // top-right
+		points.push({x: x-1,    y: y+size}); // bottom-left
+		points.push({x: x+size, y: y+size}); // bottom-right
 
-			points.push(x+(y+i-1)*self.pud.width-1);
-			points.push(x+(y+i-1)*self.pud.width+size);
+		for (let i=0; i<size; i++) {
+			points.push({x: x+i,    y: y-1});    // top
+			points.push({x: x+i,    y: y+size}); // bottom
+			points.push({x: x-1,    y: y+i});    // left
+			points.push({x: x+size, y: y+i});    // right
 		}
 
-		return points;
+		return points.filter(function(point) {
+			return point.x>=0&&point.x<self.pud.width
+			     &&point.y>=0&&point.y<self.pud.height;
+		}).map(function(point) {
+			return point.x+point.y*self.pud.width;
+		}).sort(function(a, b) {
+			return a-b;
+		});
 	}
 
 	function setTile(point, index) {
@@ -1192,6 +1246,12 @@ Editor.prototype.findNearestTile=function(x, y, w=0, h=0) {
 
 Editor.prototype.validateArea=function(x, y) {
 	let valid=true;
+	let startLocation=this.unit==HUMAN_START_LOC||this.unit==ORC_START_LOC;
+
+	if (startLocation&&this.player==NEUTRAL) {
+		return; // cannot place start location for neutral player
+	}
+
 	let unitSize=this.pud.units.unitSize[this.unit];
 	let points=this.computePoints(x, y, unitSize.x, unitSize.y);
 
@@ -1237,11 +1297,11 @@ Editor.prototype.validateArea=function(x, y) {
 
 	// checks if area contains other units
 	for (let [i, unit] of this.pud.unitMap.entries()) {
+		let unitStartLocation=unit.id==HUMAN_START_LOC||unit.id==ORC_START_LOC;
+
 		// start locations ignore collision with everything except
-		// other start locations
-		if ((this.unit==HUMAN_START_LOC||this.unit==ORC_START_LOC)
-		   ^(unit.id==HUMAN_START_LOC||unit.id==ORC_START_LOC)
-		) {
+		// other start locations and neutral units
+		if (startLocation^(unitStartLocation||unit.owner==NEUTRAL)) {
 			continue;
 		}
 
@@ -1277,7 +1337,6 @@ Editor.prototype.validateArea=function(x, y) {
 		}
 	}
 
-	let startLocation=this.unit==HUMAN_START_LOC||this.unit==ORC_START_LOC;
 	let coastTiles=0;
 
 	// checks if unit is allowed on movement tile
@@ -1332,6 +1391,7 @@ Editor.prototype.updateTileInfo=function(x, y) {
 	$("#text_posY").value=y;
 
 	let index=x+this.pud.width*y;
+	$("#text_index").value=index;
 
 	if (index<=this.pud.tileMap.length) {
 		$("#text_terrainTile").value=this.formatHex(this.pud.tileMap[index]);
@@ -1561,7 +1621,7 @@ Overlays.prototype.displayError=function(message) {
 };
 
 Overlays.prototype.openProperties=function(key) {
-	let self=this;
+	const self=this;
 
 	if (key=="create") {
 		openCreate();
@@ -1756,7 +1816,7 @@ Overlays.prototype.fillProperties=function(key) {
 		return;
 	}
 
-	let self=this;
+	const self=this;
 
 	if (key=="restrictions") {
 		return fillRestrictionProperties();
@@ -1965,7 +2025,7 @@ Overlays.prototype.fillProperties=function(key) {
 };
 
 Overlays.prototype.saveProperties=function(key) {
-	let self=this;
+	const self=this;
 
 	this.saveWorking(key);
 
@@ -2245,7 +2305,7 @@ Pud.prototype.load=function(filename, buffer) {
 	this.filename=filename;
 
 	const REQUIRED=true, NOT_REQUIRED=false;
-	let self=this;
+	const self=this;
 
 	this.id            =readType();
 	this.version       =readSection("VER ");
@@ -2344,8 +2404,7 @@ Pud.prototype.load=function(filename, buffer) {
 	function readSection(key, required=REQUIRED) {
 		if (!self.struct.hasOwnProperty(key)) {
 			if (required) {
-				self.valid=false;
-				console.error("Missing required section:", key);
+				setInvalid("Missing required section:", key);
 			}
 
 			return;
@@ -2445,25 +2504,26 @@ Pud.prototype.load=function(filename, buffer) {
 	// identifies as PUD file and gets unique map ID
 	function readType() {
 		if (!self.struct.hasOwnProperty("TYPE")) {
-			self.valid=false;
+			setInvalid("Missing required section: TYPE");
 			return;
 		}
 
 		let type=self.struct["TYPE"];
 
 		// checks for file format magic number
-		if (!hexToStr(type).startsWith(FILE_SIGNATURE)) {
-			self.valid=false;
+		// last two bytes can be any value
+		if (!hexToStr(type).startsWith(FILE_SIGNATURE.slice(0, -2))) {
+			setInvalid("Invalid file signature.");
 			return;
 		}
 
-		return type.slice(FILE_SIGNATURE.length);
+		return type.slice(FILE_SIGNATURE.length); // returns ID
 	}
 
 	// reads scenario description
 	function readDesc() {
 		if (!self.struct.hasOwnProperty("DESC")) {
-			self.valid=false;
+			setInvalid("Missing required section: DESC");
 			return;
 		}
 
@@ -2476,14 +2536,14 @@ Pud.prototype.load=function(filename, buffer) {
 	// gets map dimensions
 	function readDim() {
 		if (!self.struct.hasOwnProperty("DIM ")) {
-			self.valid=false;
+			setInvalid("Missing required section: DIM ");
 			return [0, 0];
 		}
 
 		let dim=self.struct["DIM "];
 
 		if (dim.length!=4) {
-			self.valid=false;
+			setInvalid("Invalid map dimensions.");
 			return [0, 0];
 		}
 
@@ -2491,7 +2551,7 @@ Pud.prototype.load=function(filename, buffer) {
 		let y=dim[2];
 
 		if (x>MAX_WIDTH&&y>MAX_HEIGHT) {
-			self.valid=false;
+			setInvalid("Missing required section: TYPE");
 		}
 
 		return [x, y];
@@ -2500,7 +2560,7 @@ Pud.prototype.load=function(filename, buffer) {
 	// gets unit map
 	function readUnit() {
 		if (!self.struct.hasOwnProperty("UNIT")) {
-			self.valid=false;
+			setInvalid("Missing required section: UNIT");
 			return;
 		}
 
@@ -2518,10 +2578,15 @@ Pud.prototype.load=function(filename, buffer) {
 
 		return unitMap;
 	}
+
+	function setInvalid(message) {
+		self.valid=false;
+		console.error(message);
+	}
 };
 
 Pud.prototype.save=function() {
-	let self=this;
+	const self=this;
 
 	if (!validateMap()) {
 		return;
@@ -2799,7 +2864,7 @@ function Files(id) {
 }
 
 Files.prototype.browse=function() {
-	let self=this;
+	const self=this;
 	let xhr=new XMLHttpRequest();
 
 	// opens at root directory if a template file is currently loaded

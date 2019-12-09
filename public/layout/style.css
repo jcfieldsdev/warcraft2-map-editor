@@ -165,6 +165,10 @@ canvas#select {
 	z-index: 4;
 }
 
+details#info table {
+	margin: auto;
+}
+
 div#control {
 	display: flex;
 	justify-content: space-between;
@@ -253,6 +257,10 @@ div#terrain details {
 	border-bottom: 2px solid #202020;
 }
 
+div#terrain details:last-child {
+	border-bottom: 0;
+}
+
 div#terrain img, ul#basic img {
 	height: 32px;
 	width: 32px;
@@ -288,7 +296,7 @@ div.overlay, nav {
 
 div.overlay.open {
 	opacity: 1;
-	transition: opacity 0.3s;
+	transition: 0.3s opacity;
 	visibility: visible;
 }
 
