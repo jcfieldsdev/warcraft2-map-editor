@@ -7,13 +7,13 @@ const DWORD=4;
 const QWORD=8;
 
 // schema types
-const ARRAY      =0;
-const MAP        =1;
-const BOOLEAN    =2;
-const NUMBER     =3;
-const BIT_VECTOR =4;
-const OCTAL      =5;
-const DIMENSIONS =6;
+const ARRAY     =0;
+const MAP       =1;
+const BOOLEAN   =2;
+const NUMBER    =3;
+const BIT_VECTOR=4;
+const OCTAL     =5;
+const DIMENSIONS=6;
 
 const data={};
 

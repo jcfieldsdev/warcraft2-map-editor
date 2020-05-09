@@ -11,7 +11,7 @@ const EXPANSION=0x13;
 const MIME_TYPE="application/x-warcraft2-scenario";
 
 // editor
-const MAPS_DIR       ="maps/";
+const MAPS_DIR       ="maps";
 const DEFAULT_PALETTE="units";
 const DEFAULT_TILESET="forest";
 const DEFAULT_SIZE   =128;
@@ -137,6 +137,7 @@ window.addEventListener("load", function() {
 				);
 			} else if (editor.mode==DRAG_TERRAIN) {
 				editor.mode=PAINT_TERRAIN;
+				editor.paintTerrain(event.clientX, event.clientY);
 			}
 		} else if (event.button==RIGHT) {
 			if (editor.mode==SELECT_UNITS) {
@@ -1800,14 +1801,11 @@ Overlays.prototype.openProperties=function(key) {
 	}
 
 	function setSelect(id, value) {
-		let select=$("#select_"+id), options=select.options;
+		let select=$("#select_"+id), options=Array.from(select.options);
 
-		for (let i in options) {
-			if (options[i].value==value) {
-				select.selectedIndex=i;
-				break;
-			}
-		}
+		select.selectedIndex=options.findIndex(function(option) {
+			return option.value==value;
+		});
 	}
 };
 
@@ -2404,7 +2402,7 @@ Pud.prototype.load=function(filename, buffer) {
 	function readSection(key, required=REQUIRED) {
 		if (!self.struct.hasOwnProperty(key)) {
 			if (required) {
-				setInvalid("Missing required section:", key);
+				setInvalid(`Missing required section: ${key}`);
 			}
 
 			return;
@@ -2550,8 +2548,8 @@ Pud.prototype.load=function(filename, buffer) {
 		let x=dim[0];
 		let y=dim[2];
 
-		if (x>MAX_WIDTH&&y>MAX_HEIGHT) {
-			setInvalid("Missing required section: TYPE");
+		if (x>MAX_WIDTH||y>MAX_HEIGHT) {
+			setInvalid("Map dimensions are too large.");
 		}
 
 		return [x, y];
@@ -2920,7 +2918,7 @@ Files.prototype.browse=function() {
 			$("#"+self.id).replaceWith(ul);
 		}
 	});
-	xhr.open("GET", MAPS_DIR+path+"index.json", true);
+	xhr.open("GET", MAPS_DIR+"/"+path+"index.json", true);
 	xhr.responseType="json";
 	xhr.send();
 
@@ -2928,7 +2926,7 @@ Files.prototype.browse=function() {
 		let li=document.createElement("li");
 
 		let a=document.createElement("a");
-		a.href=MAPS_DIR+path+file;
+		a.href=MAPS_DIR+"/"+path+file;
 		a.className=className;
 		a.textContent=className==DIRECTORY?"["+file+"]":file;
 		a.addEventListener("click", callback);
@@ -2953,7 +2951,7 @@ Files.prototype.load=function(filename, callback) {
 			callback(filename, path, this.status==200?this.response:null);
 		}
 	});
-	xhr.open("GET", MAPS_DIR+path, true);
+	xhr.open("GET", MAPS_DIR+"/"+path, true);
 	xhr.responseType="arraybuffer";
 	xhr.send();
 };
