@@ -189,10 +189,11 @@ div#filename {
 	margin-top: 1em;
 	overflow: hidden;
 	text-overflow: ellipsis;
+	text-shadow: 2px 2px #000;
 	white-space: nowrap;
 }
 
-div#filename, div.overlay, fieldset, select {
+div#filename, div.overlay, fieldset, noscript, select {
 	background: rgba(64, 64, 64, 0.8);
 	color: inherit;
 }
@@ -201,11 +202,7 @@ div#filename, div.palette {
 	line-height: 200%;
 }
 
-div#filename, h2 {
-	text-shadow: 2px 2px #000;
-}
-
-div#info, div#restrictions table td {
+div#info, div#overlay_create legend, div#overlay_map legend, div#restrictions table td {
 	font-size: 0.8rem;
 }
 
@@ -278,16 +275,19 @@ div#units select {
 }
 
 div.overlay {
-	left: 50%;
 	opacity: 0;
+	visibility: hidden;
+}
+
+div.overlay, noscript {
+	left: 50%;
 	padding: 1em;
 	top: 50%;
 	transform: translate(-50%, -50%);
-	visibility: hidden;
 	z-index: 6;
 }
 
-div.overlay, nav {
+div.overlay, nav, noscript {
 	border: 4px solid #808080;
 	border-radius: 1em;
 	box-shadow: 4px 4px 8px 0 #000;
@@ -373,6 +373,7 @@ h2 {
 	font-size: 1.25rem;
 	font-weight: bold;
 	margin: 0 0 1em;
+	text-shadow: 2px 2px #606060;
 }
 
 html {
@@ -393,6 +394,20 @@ input {
 	background: none;
 	border-width: 1px;
 	color: inherit;
+}
+
+input#text_filename.blizzard {
+	background-image: url(../icons/maps/blizzard.png);
+}
+
+input#text_filename.blizzard, input#text_filename.ladder {
+	background-position: 4px 50%;
+	background-repeat: no-repeat;
+	padding-left: 40px;
+}
+
+input#text_filename.ladder {
+	background-image: url(../icons/maps/ladder.png);
 }
 
 input#text_link {

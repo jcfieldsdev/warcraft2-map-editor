@@ -73,6 +73,9 @@ const TREES      =0x0070, ROCKS      =0x0080;
 const HUMAN_WALL =0x0090, ORC_WALL   =0x00a0;
 const HUMAN_IWALL=0x00b0, ORC_IWALL  =0x00c0;
 
+// map certificates
+const BLIZZARD=1, LADDER=2;
+
 // objects
 const editor  =new Editor();
 const overlays=new Overlays();
@@ -516,6 +519,17 @@ Editor.prototype.open=function(filename, path, buffer) {
 
 	$("#filename").textContent=this.pud.filename;
 
+	switch (this.pud.certificate) {
+		case BLIZZARD:
+			$("#text_filename").className="blizzard";
+			break;
+		case LADDER:
+			$("#text_filename").className="ladder";
+			break;
+		default:
+			$("#text_filename").className="";
+	}
+
 	let width=this.pud.width*TILE_SIZE, height=this.pud.height*TILE_SIZE;
 
 	setSize("tileMap",     width,        height);
@@ -867,7 +881,7 @@ Editor.prototype.selectUnits=function(x, y, add=false) {
 	}
 
 	for (let [i, unit] of this.pud.unitMap.entries()) {
-		if (!this.pud.units.unitSize.hasOwnProperty(unit.id)) {
+		if (this.pud.units.unitSize[unit.id]==undefined) {
 			continue;
 		}
 
@@ -885,7 +899,7 @@ Editor.prototype.selectUnits=function(x, y, add=false) {
 			intersect=this.pud.unitMap[i].points.includes(x+this.pud.width*y);
 		}
 
-		if (intersect&&(!add||!this.selected.hasOwnProperty(i))) {
+		if (intersect&&(!add||this.selected[i]==undefined)) {
 			this.select.strokeRect(
 				unit.x*TILE_SIZE, unit.y*TILE_SIZE,
 				unitSize.x*TILE_SIZE, unitSize.y*TILE_SIZE
@@ -1003,7 +1017,7 @@ Editor.prototype.convertUnit=function(id, oldPlayer, newPlayer) {
 	for (let group of Object.keys(data.units)) {
 		for (let type of Object.keys(data.units[group])) {
 			for (let oldRace of Object.keys(data.units[group][type])) {
-				if (!data.units[group][type].hasOwnProperty(oldRace)) {
+				if (data.units[group][type][oldRace]==undefined) {
 					continue;
 				}
 
@@ -1011,7 +1025,7 @@ Editor.prototype.convertUnit=function(id, oldPlayer, newPlayer) {
 					continue;
 				}
 
-				if (!data.units[group][type].hasOwnProperty(newRace)) {
+				if (data.units[group][type][newRace]==undefined) {
 					continue;
 				}
 
@@ -1026,31 +1040,150 @@ Editor.prototype.convertUnit=function(id, oldPlayer, newPlayer) {
 
 Editor.prototype.paintTerrain=function(x, y) {
 	const self=this;
+	let tile=this.tile;
 
 	this.drawTerrainBrush(x, y);
-
 	[x, y]=this.findNearestTile(x, y, this.size, this.size);
-
-	if (this.terrainX==x&&this.terrainY==y) {
-		return;
-	}
-
-	let tile=this.tile;
 
 	if (tile>=LIGHT_WATER&&tile<TREES) {
 		tile+=this.brightness; // adds 0x0010 for dark version of tile
 	}
 
+	let changes=[];
+
+	// boundary tiles
+	let tl=getTileType(x-1,         y-1);
+	let tr=getTileType(x+this.size, y-1);
+	let bl=getTileType(x-1,         y+this.size);
+	let br=getTileType(x+this.size, y+this.size);
+
+	let index=x+y*this.pud.width;
+	let type=this.tile&0xf0;
+
+	if (type==tl&&type==tr&&type==bl&&type==br) { // solid tile
+		tile=type;
+	} else { // boundary tile
+		type=this.tile&0xf;
+
+		const TILE_NONE         = 0;
+		const TILE_TREES        = 1;
+		const TILE_GRASS_LIGHT  = 2;
+		const TILE_GROUND_LIGHT = 3;
+		const TILE_WATER_LIGHT  = 4;
+		const TILE_WATER_DARK   = 5;
+		const TILE_GRASS_DARK   = 6;
+		const TILE_GROUND_DARK  = 7;
+		const TILE_ROCKS        = 8;
+		const TILE_HUMAN_WALL   = 9;
+		const TILE_ORC_WALL     = 10;
+
+		if (tileHas(TILE_GRASS_LIGHT)) {
+			if (tileHas(TILE_TREES)) {
+				tile=0x0700|getMask(TILE_TREES);
+			} else if (tileHas(TILE_GRASS_DARK)) {
+				tile=0x0600|getMask(TILE_GRASS_DARK);
+			} else if (tileHas(TILE_GROUND_LIGHT)) {
+				tile=0x0500|getMask(TILE_GROUND_LIGHT);
+			} else {
+				let hex=self.formatHex(index);
+				console.error(`Invalid disposition: ${hex} at (${x}, ${y})`);
+			}
+		} else if (tileHas(TILE_GROUND_LIGHT)) {
+			if (tileHas(TILE_GROUND_DARK)) {
+				tile=0x0300|getMask(TILE_GROUND_DARK);
+			} else if (tileHas(TILE_ROCKS)) {
+				tile=0x0400|getMask(TILE_ROCKS);
+			} else if (tileHas(TILE_WATER_LIGHT)) {
+				tile=0x0200|getMask(TILE_WATER_LIGHT);
+			} else {
+				let hex=self.formatHex(index);
+				console.error(`Invalid disposition: ${hex} at (${x}, ${y})`);
+			}
+		} else if (tileHas(TILE_WATER_LIGHT)) {
+			if (tileHas(TILE_WATER_DARK)) {
+				tile=0x0100|getMask(TILE_WATER_DARK);
+			}
+		} else if (tileHas(TILE_ORC_WALL)) {
+			tile=0x0900|getWallMask();
+		} else if (tileHas(HUMAN_WALL)) {
+			tile=0x0800|getWallMask();
+		} else {
+			let hex=self.formatHex(index);
+			console.error(`Invalid disposition: ${hex} at (${x}, ${y})`);
+		}
+	}
+
+	tile+=Math.floor(Math.random()*3);
+	changeTile(index, tile);
+
+	for (let change of changes) {
+		drawTile(change.point, change.index);
+	}
+
+	function getTileType(x, y) {
+		if (x>=0&&x<self.pud.width&&y>=0&&y<self.pud.height) {
+			return self.pud.tileMap[x+y*self.pud.width]&0xf0;
+		}
+	}
+
+	function tileHas(type) {
+		return tl==type||tr==type
+		     ||bl==type||br==type;
+	}
+
+	function getMask(type) {
+		let mask=0;
+		let ref=tl;
+
+		if (tl==ref) {
+			mask|=0x0001;
+		}
+
+		if (tr==ref) {
+			mask|=0x0002;
+		}
+
+		if (bl==ref) {
+			mask|=0x0004;
+		}
+
+		if (br==ref) {
+			mask|=0x008;
+		}
+
+		if (ref!=type) {
+			mask=~mask&0x000f;
+		}
+
+		return (mask-0x0001)<<4;
+	}
+
+	function getWallMask() {
+		let mask=0xffff;
+	}
+/*
 	let points=this.computePoints(x, y, this.size, this.size);
 	let boundary=computeBoundary(x, y, this.size);
+	let changes=[];
 
 	for (let point of points) {
-		setTile(point, tile);
+		changeTile(point, tile);
 	}
 
 	for (let point of boundary) {
 		let oldTile=this.pud.tileMap[point]&0x00f0;
 		let newTile=tile&0x00f0;
+
+		let oldBoundary=computeBoundary(
+			oldTile%self.pud.width*TILE_SIZE,
+			Math.floor(oldTile/self.pud.height)*TILE_SIZE,
+			1
+		);
+
+		for (let oldPoint of oldBoundary) {
+
+		}
+
 		let boundaryTile=0;
 
 		switch (newTile) {
@@ -1130,10 +1263,14 @@ Editor.prototype.paintTerrain=function(x, y) {
 		}
 
 		if (boundaryTile) {
-			setTile(point, boundaryTile);
+			changeTile(point, boundaryTile);
 		}
 	}
 
+	for (let change of changes) {
+		drawTile(change.point, change.index);
+	}
+*/
 	function computeBoundary(x, y, size) {
 		let points=[];
 
@@ -1160,11 +1297,14 @@ Editor.prototype.paintTerrain=function(x, y) {
 		});
 	}
 
-	function setTile(point, index) {
+	function changeTile(point, index) {
+		changes.push({point, index});
+		self.pud.tileMap[point]=index;
+	}
+
+	function drawTile(point, index) {
 		if (index in data.tiles[self.pud.tileset]) {
 			let tile=data.tiles[self.pud.tileset][index];
-			self.pud.tileMap[point]=index;
-
 			let cx=point%self.pud.width*TILE_SIZE;
 			let cy=Math.floor(point/self.pud.height)*TILE_SIZE;
 
@@ -1469,18 +1609,32 @@ Editor.prototype.changeTileset=function(tileset) {
 	this.tiles.src="tilesets/"+data.tilesets[tileset]+".png";
 	this.tiles.addEventListener("load", this.drawTileMap.bind(this));
 
+	if (tileset==FOREST||tileset==SWAMP) {
+		// remaps tiles that are unspecified for forest and swamp tilesets
+		this.pud.tileMap=this.pud.tileMap.map(function(tile) {
+			switch (tile) {
+				case 0x0015:
+				case 0x0016:
+				case 0x0017:
+				case 0x0025:
+				case 0x0026:
+				case 0x0027:
+					return tile-0x0004;
+				default:
+					return tile;
+			}
+		});
+	}
+
 	if (tileset==SWAMP) {
 		// remaps tiles that are unspecified for swamp tileset
 		this.pud.tileMap=this.pud.tileMap.map(function(tile) {
-			let rand=Math.floor(Math.random()*3);
-
 			switch (tile) {
 				case 0x003a:
 				case 0x003b:
-					return 0x0030+rand;
 				case 0x004a:
 				case 0x004b:
-					return 0x0040+rand;
+					return tile-0x0005;
 				default:
 					return tile;
 			}
@@ -1502,7 +1656,7 @@ Editor.prototype.changeTileset=function(tileset) {
 Editor.prototype.changeUnitPalette=function() {
 	let group=$("#select_unitsPalette").value;
 
-	if (!data.units.hasOwnProperty(group)) {
+	if (data.units[group]==undefined) {
 		return;
 	}
 
@@ -1514,7 +1668,7 @@ Editor.prototype.changeUnitPalette=function() {
 	for (let type of Object.values(data.units[group])) {
 		let race=data.races[this.pud.races[this.player]];
 
-		if (!type.hasOwnProperty(race)) {
+		if (type[race]==undefined) {
 			race="neutral";
 		}
 
@@ -1689,7 +1843,7 @@ Overlays.prototype.openProperties=function(key) {
 		for (let group of Object.keys(data.units)) {
 			for (let type of Object.keys(data.units[group])) {
 				for (let race of Object.keys(data.units[group][type])) {
-					if (!units.hasOwnProperty(race)) {
+					if (units[race]==undefined) {
 						units[race]=[];
 					}
 
@@ -1810,7 +1964,7 @@ Overlays.prototype.openProperties=function(key) {
 };
 
 Overlays.prototype.fillProperties=function(key) {
-	if (!editor.pud.hasOwnProperty(key)) {
+	if (editor.pud[key]==undefined) {
 		return;
 	}
 
@@ -1827,9 +1981,9 @@ Overlays.prototype.fillProperties=function(key) {
 	for (let element of $$("."+key)) {
 		let [type, id, sub]=element.id.split("_");
 
-		if (editor.pud[key].hasOwnProperty(id)) {
-			if (editor.pud[key][id].hasOwnProperty(index)) {
-				if (sub&&editor.pud[key][id][index].hasOwnProperty(sub)) {
+		if (editor.pud[key][id]!=undefined) {
+			if (editor.pud[key][id][index]!=undefined) {
+				if (sub&&editor.pud[key][id][index][sub]!=undefined) {
 					value=editor.pud[key][id][index][sub];
 				}
 
@@ -1837,9 +1991,9 @@ Overlays.prototype.fillProperties=function(key) {
 			}
 		}
 
-		if (this.working.hasOwnProperty(index)) {
-			if (this.working[index].hasOwnProperty(id)) {
-				if (sub&&this.working[index][id].hasOwnProperty(sub)) {
+		if (this.working[index]!=undefined) {
+			if (this.working[index][id]!=undefined) {
+				if (sub&&this.working[index][id][sub]!=undefined) {
 					value=this.working[index][id][sub];
 				}
 
@@ -1927,12 +2081,12 @@ Overlays.prototype.fillProperties=function(key) {
 			for (let j=0; j<PLAYERS; j++) {
 				let value=false;
 
-				if (self.working.hasOwnProperty(index)) {
-					if (self.working[index].hasOwnProperty(i)) {
+				if (self.working[index]!=undefined) {
+					if (self.working[index][i]!=undefined) {
 						value=self.working[index][i][j];
 					}
 				} else {
-					if (editor.pud.restrictions[index].hasOwnProperty(j)) {
+					if (editor.pud.restrictions[index][j]!=undefined) {
 						value=editor.pud.restrictions[index][j][i];
 					}
 				}
@@ -1974,14 +2128,14 @@ Overlays.prototype.fillProperties=function(key) {
 		for (let element of $$(".unitMap")) {
 			let [type, id]=element.id.split("_");
 
-			if (editor.selected.hasOwnProperty(index)) {
-				if (editor.selected[index].hasOwnProperty(id)) {
+			if (editor.selected[index]!=undefined) {
+				if (editor.selected[index][id]!=undefined) {
 					value=editor.selected[index][id];
 				}
 			}
 
-			if (self.working.hasOwnProperty(index)) {
-				if (self.working[index].hasOwnProperty(id)) {
+			if (self.working[index]!=undefined) {
+				if (self.working[index][id]!=undefined) {
 					value=self.working[index][id];
 				}
 			}
@@ -2007,8 +2161,9 @@ Overlays.prototype.fillProperties=function(key) {
 		} else {
 			$("#row_resource").classList.add("hidden");
 			$("#range_property").disabled=true;
-			self.changeResource();
 		}
+
+		self.changeResource();
 
 		if (!startLocation&&!flags[BUILDING]) { // units, not buildings
 			$("#row_ai").classList.remove("hidden");
@@ -2089,7 +2244,7 @@ Overlays.prototype.saveProperties=function(key) {
 		for (let index of Object.keys(self.working)) {
 			for (let i of Object.keys(self.working[index])) {
 				for (let j of Object.keys(self.working[index][i])) {
-					if (!editor.pud.restrictions[index].hasOwnProperty(j)) {
+					if (editor.pud.restrictions[index][j]==undefined) {
 						continue;
 					}
 
@@ -2105,11 +2260,11 @@ Overlays.prototype.saveProperties=function(key) {
 
 		for (let index of Object.keys(self.working)) {
 			for (let property of Object.keys(self.working[index])) {
-				if (!editor.pud.unitMap.hasOwnProperty(index)) {
+				if (editor.pud.unitMap[index]==undefined) {
 					continue;
 				}
 
-				if (!editor.pud.unitMap[index].hasOwnProperty(property)) {
+				if (editor.pud.unitMap[index][property]==undefined) {
 					continue;
 				}
 
@@ -2149,17 +2304,17 @@ Overlays.prototype.saveProperties=function(key) {
 	}
 
 	function mergeWorking(key) {
-		if (!editor.pud.hasOwnProperty(key)) {
+		if (editor.pud[key]==undefined) {
 			return;
 		}
 
 		for (let index of Object.keys(self.working)) {
 			for (let property of Object.keys(self.working[index])) {
-				if (!editor.pud[key].hasOwnProperty(property)) {
+				if (editor.pud[key][property]==undefined) {
 					continue;
 				}
 
-				if (!editor.pud[key][property].hasOwnProperty(index)) {
+				if (editor.pud[key][property][index]==undefined) {
 					continue;
 				}
 
@@ -2178,7 +2333,7 @@ Overlays.prototype.revertProperties=function(key) {
 Overlays.prototype.resetProperties=function(key) {
 	let index=$("#select_"+key).value;
 
-	if (!this.working.hasOwnProperty(index)) {
+	if (this.working[index]==undefined) {
 		this.working[index]={};
 	}
 
@@ -2191,7 +2346,7 @@ Overlays.prototype.resetProperties=function(key) {
 
 		if (keys.length>0) {
 			for (let sub of keys) {
-				if (!this.working[index].hasOwnProperty(property)) {
+				if (this.working[index][property]==undefined) {
 					this.working[index][property]={};
 				}
 
@@ -2225,7 +2380,7 @@ Overlays.prototype.saveWorking=function(key) {
 			if (sub==undefined) {
 				obj[id]=value;
 			} else {
-				if (!obj.hasOwnProperty(id)) {
+				if (obj[id]==undefined) {
 					obj[id]={};
 				}
 
@@ -2259,7 +2414,7 @@ function Pud(filename="", struct={}) {
 
 	this.id="";
 	this.version=STANDARD;
-	this.signature=0;
+	this.certificate=0;
 	this.description="";
 	this.width=0;
 	this.height=0;
@@ -2323,7 +2478,7 @@ Pud.prototype.load=function(filename, buffer) {
 	this.movementMap   =readSection("SQM ");
 	this.oilMap        =readSection("OILM"); // unused
 	this.actionMap     =readSection("REGM");
-	this.signature     =readSection("SIGN", NOT_REQUIRED)||0;
+	this.certificate   =readSection("SIGN", NOT_REQUIRED)||0;
 	this.unitMap       =readUnit();
 
 	this.valid&=this.version==STANDARD||this.version==EXPANSION;
@@ -2400,7 +2555,7 @@ Pud.prototype.load=function(filename, buffer) {
 	}
 
 	function readSection(key, required=REQUIRED) {
-		if (!self.struct.hasOwnProperty(key)) {
+		if (self.struct[key]==undefined) {
 			if (required) {
 				setInvalid(`Missing required section: ${key}`);
 			}
@@ -2501,7 +2656,7 @@ Pud.prototype.load=function(filename, buffer) {
 
 	// identifies as PUD file and gets unique map ID
 	function readType() {
-		if (!self.struct.hasOwnProperty("TYPE")) {
+		if (self.struct["TYPE"]==undefined) {
 			setInvalid("Missing required section: TYPE");
 			return;
 		}
@@ -2520,7 +2675,7 @@ Pud.prototype.load=function(filename, buffer) {
 
 	// reads scenario description
 	function readDesc() {
-		if (!self.struct.hasOwnProperty("DESC")) {
+		if (self.struct["DESC"]==undefined) {
 			setInvalid("Missing required section: DESC");
 			return;
 		}
@@ -2533,7 +2688,7 @@ Pud.prototype.load=function(filename, buffer) {
 
 	// gets map dimensions
 	function readDim() {
-		if (!self.struct.hasOwnProperty("DIM ")) {
+		if (self.struct["DIM "]==undefined) {
 			setInvalid("Missing required section: DIM ");
 			return [0, 0];
 		}
@@ -2557,7 +2712,7 @@ Pud.prototype.load=function(filename, buffer) {
 
 	// gets unit map
 	function readUnit() {
-		if (!self.struct.hasOwnProperty("UNIT")) {
+		if (self.struct["UNIT"]==undefined) {
 			setInvalid("Missing required section: UNIT");
 			return;
 		}

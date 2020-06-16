@@ -1,27 +1,26 @@
 #!/usr/bin/env python
 # coding=utf-8
 
-import cgi, json, os
+import cgi
+import json
+import os
 
-root="../maps/"
+root='../maps'
 
 args=cgi.FieldStorage()
-dir=args.getvalue("dir") if "dir" in args else ""
+path=args.getvalue('path') if 'path' in args else ''
 
-if dir.startswith("."):
-	dir=""
-
-if not dir.endswith("/"):
-	dir=dir+"/"
+if path.startswith('.'):
+	path=''
 
 dirs=[]
 files=[]
 
 try:
-	for f in os.listdir(root+dir):
-		if os.path.isdir(root+dir+f) and f!="templates":
+	for f in os.listdir(os.path.join(root, path)):
+		if os.path.isdir(os.path.join(root, path, f)) and f!='templates':
 			dirs.append(f)
-		elif f.endswith(".pud"):
+		elif f.endswith('.pud'):
 			files.append(f)
 except OSError:
 	pass
@@ -29,5 +28,5 @@ except OSError:
 dirs.sort()
 files.sort()
 
-print("Content-Type: application/json; charset=utf-8\n")
-print(json.dumps({"dirs": dirs, "files": files}))
+print('Content-Type: application/json; charset=utf-8\n')
+print(json.dumps({'dirs': dirs, 'files': files}))
