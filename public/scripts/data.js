@@ -1,23 +1,23 @@
 "use strict";
 
 // data sizes
-const BYTE =1;
-const WORD =2;
-const DWORD=4;
-const QWORD=8;
+const BYTE  = 1;
+const WORD  = 2;
+const DWORD = 4;
+const QWORD = 8;
 
 // schema types
-const ARRAY     =0;
-const MAP       =1;
-const BOOLEAN   =2;
-const NUMBER    =3;
-const BIT_VECTOR=4;
-const OCTAL     =5;
-const DIMENSIONS=6;
+const ARRAY      = 0;
+const MAP        = 1;
+const BOOLEAN    = 2;
+const NUMBER     = 3;
+const BIT_VECTOR = 4;
+const OCTAL      = 5;
+const DIMENSIONS = 6;
 
-const data={};
+const data = {};
 
-data.schema={
+data.schema = {
 	"VER ": {
 		type: NUMBER
 	},
@@ -130,7 +130,7 @@ data.schema={
 	}
 };
 
-data.colors=[
+data.colors = [
 	[ // player 1 (red)
 		{r: 164, g: 0,   b: 0},
 		{r: 124, g: 0,   b: 0},
@@ -193,7 +193,7 @@ data.colors=[
 	]
 ];
 
-data.tiles=[
+data.tiles = [
 	{ // forest
 		0x0010: {x: 165, y: 561},
 		0x0011: {x: 198, y: 561},
@@ -1762,10 +1762,10 @@ data.tiles=[
 	}
 ];
 
-data.races=["human", "orc", "human"]; // neutral (0x02) is treated as human
-data.tilesets=["forest", "winter", "wasteland", "swamp"];
+data.races = ["human", "orc", "human"]; // neutral (0x02) is treated as human
+data.tilesets = ["forest", "winter", "wasteland", "swamp"];
 
-data.movement={
+data.movement = {
 	0x0000: "#fff",    // bridge (all units)
 	0x0001: "#0f0",    // land
 	0x0002: "#008080", // coast corner
@@ -1777,7 +1777,7 @@ data.movement={
 	0x008d: "#808080"  // human wall
 };
 
-data.ai=new Map([
+data.ai = new Map([
 	[1,  "Passive"],
 	[0,  "Land Attack"],
 	[26, "Air Attack"],
@@ -1863,7 +1863,7 @@ data.ai=new Map([
 	[71, "Expansion Human 12a (Green)"]
 ]);
 
-data.units={
+data.units = {
 	startLocation: {
 		startLocation: {
 			human: {
@@ -2512,7 +2512,7 @@ data.units={
 	}
 };
 
-data.upgrades={
+data.upgrades = {
 	human: new Map([
 		[0,  "Upgrade Sword Strength 1"],
 		[1,  "Upgrade Sword Strength 2"],
@@ -2571,7 +2571,7 @@ data.upgrades={
 	])
 };
 
-data.restrictions={
+data.restrictions = {
 	units: [
 		"Footman / Grunt",
 		"Peasant / Peon",

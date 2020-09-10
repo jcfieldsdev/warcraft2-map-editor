@@ -13,38 +13,38 @@
 <body><header><h1>Warcraft II Map Editor</h1></header>
 <nav>
 <ul id="basic">
-	<li><button value="create" class="basic"><img src="layout/icon-create.svg" alt="[Create]" title="Create a new scenario"></button></li>
-	<li><button value="open" class="basic"><img src="layout/icon-open.svg" alt="[Open]" title="Open an existing scenario"></button></li>
-	<li><button value="save" class="basic"><img src="layout/icon-save.svg" alt="[Save Map]" title="Save this scenario"></button></li>
+	<li><button type="button" value="create" class="basic"><img src="layout/icon-create.svg" alt="[Create]" title="Create a new scenario"></button></li>
+	<li><button type="button" value="open" class="basic"><img src="layout/icon-open.svg" alt="[Open]" title="Open an existing scenario"></button></li>
+	<li><button type="button" value="save" class="basic"><img src="layout/icon-save.svg" alt="[Save Map]" title="Save this scenario"></button></li>
 </ul>
 <div id="filename"></div>
 <div id="miniMap"><canvas id="miniTileMap"></canvas>
 <canvas id="miniUnitMap"></canvas>
 <canvas id="frame"></canvas></div>
 <ul id="players">
-	<li><button value="0" title="Player 1 (Red)" class="player player1">1</button></li>
-	<li><button value="1" title="Player 2 (Blue)" class="player player2">2</button></li>
-	<li><button value="2" title="Player 3 (Green)" class="player player3">3</button></li>
-	<li><button value="3" title="Player 4 (Violet)" class="player player4">4</button></li>
-	<li><button value="4" title="Player 5 (Orange)" class="player player5">5</button></li>
-	<li><button value="5" title="Player 6 (Black)" class="player player6">6</button></li>
-	<li><button value="6" title="Player 7 (White)" class="player player7">7</button></li>
-	<li><button value="7" title="Player 8 (Yellow)" class="player player8">8</button></li>
-	<li><button value="15" title="Neutral" class="player player15">0</button></li>
+	<li><button type="button" value="0" title="Player 1 (Red)" class="player player1">1</button></li>
+	<li><button type="button" value="1" title="Player 2 (Blue)" class="player player2">2</button></li>
+	<li><button type="button" value="2" title="Player 3 (Green)" class="player player3">3</button></li>
+	<li><button type="button" value="3" title="Player 4 (Violet)" class="player player4">4</button></li>
+	<li><button type="button" value="4" title="Player 5 (Orange)" class="player player5">5</button></li>
+	<li><button type="button" value="5" title="Player 6 (Black)" class="player player6">6</button></li>
+	<li><button type="button" value="6" title="Player 7 (White)" class="player player7">7</button></li>
+	<li><button type="button" value="7" title="Player 8 (Yellow)" class="player player8">8</button></li>
+	<li><button type="button" value="15" title="Neutral" class="player player15">0</button></li>
 </ul>
 <ul id="tabs">
-	<li><button value="editor" class="tab">Editor</button></li>
-	<li><button value="terrain" class="tab">Terrain</button></li>
-	<li><button value="units" class="tab">Units</button></li>
-	<li><button value="map" class="tab">Map</button></li>
+	<li><button type="button" value="editor" class="tab">Editor</button></li>
+	<li><button type="button" value="terrain" class="tab">Terrain</button></li>
+	<li><button type="button" value="units" class="tab">Units</button></li>
+	<li><button type="button" value="map" class="tab">Map</button></li>
 </ul>
 <div id="editor" class="palette"><ul>
-	<li><button id="create"><img src="layout/icon-create.svg" alt="[Create]"> Create</button></li>
-	<li><button id="open"><img src="layout/icon-open.svg" alt="[Open]"> Open</button></li>
-	<li><button id="save"><img src="layout/icon-save.svg" alt="[Save Map]"> Save Map</button></li>
-	<li><button id="saveImage"><img src="layout/icon-image.svg" alt="[Save Map as Image]"> Save Map as Image</button></li>
-	<li><button id="link"><img src="layout/icon-link.svg" alt="[Link to Map]"> Link to Map</button></li>
-	<li><button id="about"><img src="layout/icon-about.svg" alt="[About]"> About</button></li>
+	<li><button type="button" id="create"><img src="layout/icon-create.svg" alt="[Create]"> Create</button></li>
+	<li><button type="button" id="open"><img src="layout/icon-open.svg" alt="[Open]"> Open</button></li>
+	<li><button type="button" id="save"><img src="layout/icon-save.svg" alt="[Save Map]"> Save Map</button></li>
+	<li><button type="button" id="saveImage"><img src="layout/icon-image.svg" alt="[Save Map as Image]"> Save Map as Image</button></li>
+	<li><button type="button" id="link"><img src="layout/icon-link.svg" alt="[Link to Map]"> Link to Map</button></li>
+	<li><button type="button" id="about"><img src="layout/icon-about.svg" alt="[About]"> About</button></li>
 </ul>
 <div id="layers"><label><input type="checkbox" value="tileMap" checked="checked" class="layer"> Terrain</label>
 <label><input type="checkbox" value="unitMap" checked="checked" class="layer"> Units</label>
@@ -58,31 +58,31 @@
 <tr><td>Action tile:</td><td><input type="text" disabled="disabled" id="text_actionTile" class="hex"></td></tr></table></details>
 <details open="open"><summary>Brightness:</summary>
 <ul>
-	<li><button value="0" class="brightness active"><img src="icons/terrain/brightness-light.svg" alt="[Light]" title="Light"></button></li>
-	<li><button value="16" class="brightness"><img src="icons/terrain/brightness-dark.svg" alt="[Dark]" title="Dark"></button></li>
+	<li><button type="button" value="0" class="brightness active"><img src="icons/terrain/brightness-light.svg" alt="[Light]" title="Light"></button></li>
+	<li><button type="button" value="16" class="brightness"><img src="icons/terrain/brightness-dark.svg" alt="[Dark]" title="Dark"></button></li>
 </ul></details>
 <details open="open"><summary>Fill Pattern:</summary>
 <ul>
-	<li><button value="0" class="pattern active"><img src="icons/terrain/pattern-plain.svg" alt="[Plain]" title="Plain"></button></li>
-	<li><button value="1" class="pattern"><img src="icons/terrain/pattern-filler.svg" alt="[Filler]" title="Filler"></button></li>
-	<li><button value="2" class="pattern"><img src="icons/terrain/pattern-random.svg" alt="[Random]" title="Random"></button></li>
+	<li><button type="button" value="0" class="pattern active"><img src="icons/terrain/pattern-plain.svg" alt="[Plain]" title="Plain"></button></li>
+	<li><button type="button" value="1" class="pattern"><img src="icons/terrain/pattern-filler.svg" alt="[Filler]" title="Filler"></button></li>
+	<li><button type="button" value="2" class="pattern"><img src="icons/terrain/pattern-random.svg" alt="[Random]" title="Random"></button></li>
 </ul></details>
 <details open="open"><summary>Brush Size:</summary>
 <ul>
-	<li><button value="1" class="size active"><img src="icons/terrain/size-1x1.svg" alt="[1×1]" title="1×1"></button></li>
-	<li><button value="3" class="size"><img src="icons/terrain/size-3x3.svg" alt="[3×3]" title="3×3"></button></li>
-	<li><button value="5" class="size"><img src="icons/terrain/size-5x5.svg" alt="[5×5]" title="5×5"></button></li>
+	<li><button type="button" value="1" class="size active"><img src="icons/terrain/size-1x1.svg" alt="[1×1]" title="1×1"></button></li>
+	<li><button type="button" value="3" class="size"><img src="icons/terrain/size-3x3.svg" alt="[3×3]" title="3×3"></button></li>
+	<li><button type="button" value="5" class="size"><img src="icons/terrain/size-5x5.svg" alt="[5×5]" title="5×5"></button></li>
 </ul></details>
 <details open="open"><summary>Terrain Type:</summary>
 <ul>
-	<li><button value="0" id="inspect" class="terrain active"><img src="layout/icon-inspect.svg" alt="[Select Units]" title="Select Units"></button></li>
-	<li><button value="16" class="terrain"><img src="icons/terrain/forest/terrain-water.png" alt="[Water]" title="Water" class="tile"></button></li>
-	<li><button value="48" class="terrain"><img src="icons/terrain/forest/terrain-dirt.png" alt="[Dirt]" title="Dirt" class="tile"></button></li>
-	<li><button value="80" class="terrain"><img src="icons/terrain/forest/terrain-grass.png" alt="[Grass]" title="Grass" class="tile"></button></li>
-	<li><button value="112" class="terrain"><img src="icons/terrain/forest/terrain-trees.png" alt="[Trees]" title="Trees" class="tile"></button></li>
-	<li><button value="128" class="terrain"><img src="icons/terrain/forest/terrain-rocks.png" alt="[Rocks]" title="Rocks" class="tile"></button></li>
-	<li><button value="144" class="terrain"><img src="icons/terrain/terrain-humanwall.png" alt="[Human Wall]" title="Human Wall"></button></li>
-	<li><button value="160" class="terrain"><img src="icons/terrain/terrain-orcwall.png" alt="[Orc Wall]" title="Orc Wall"></button></li>
+	<li><button type="button" value="0" id="inspect" class="terrain active"><img src="layout/icon-inspect.svg" alt="[Select Units]" title="Select Units"></button></li>
+	<li><button type="button" value="16" class="terrain"><img src="icons/terrain/forest/terrain-water.png" alt="[Water]" title="Water" class="tile"></button></li>
+	<li><button type="button" value="48" class="terrain"><img src="icons/terrain/forest/terrain-dirt.png" alt="[Dirt]" title="Dirt" class="tile"></button></li>
+	<li><button type="button" value="80" class="terrain"><img src="icons/terrain/forest/terrain-grass.png" alt="[Grass]" title="Grass" class="tile"></button></li>
+	<li><button type="button" value="112" class="terrain"><img src="icons/terrain/forest/terrain-trees.png" alt="[Trees]" title="Trees" class="tile"></button></li>
+	<li><button type="button" value="128" class="terrain"><img src="icons/terrain/forest/terrain-rocks.png" alt="[Rocks]" title="Rocks" class="tile"></button></li>
+	<li><button type="button" value="144" class="terrain"><img src="icons/terrain/terrain-humanwall.png" alt="[Human Wall]" title="Human Wall"></button></li>
+	<li><button type="button" value="160" class="terrain"><img src="icons/terrain/terrain-orcwall.png" alt="[Orc Wall]" title="Orc Wall"></button></li>
 </ul></details></div>
 <div id="units" class="palette">
 <select id="select_unitsPalette">
@@ -98,12 +98,12 @@
 </select>
 <ul id="unitsPalette"></ul></div>
 <div id="map" class="palette"><ul>
-	<li><button value="map" class="properties">Map Properties</button></li>
-	<li><button value="players" class="properties">Player Properties</button></li>
-	<li><button value="resources" class="properties">Starting Resources</button></li>
-	<li><button value="units" class="properties">Unit Properties</button></li>
-	<li><button value="upgrades" class="properties">Upgrade Properties</button></li>
-	<li><button value="restrictions" class="properties">Restrictions</button></li>
+	<li><button type="button" value="map" class="properties">Map Properties</button></li>
+	<li><button type="button" value="players" class="properties">Player Properties</button></li>
+	<li><button type="button" value="resources" class="properties">Starting Resources</button></li>
+	<li><button type="button" value="units" class="properties">Unit Properties</button></li>
+	<li><button type="button" value="upgrades" class="properties">Upgrade Properties</button></li>
+	<li><button type="button" value="restrictions" class="properties">Restrictions</button></li>
 </ul></div>
 <div><a id="download">Download</a></div></nav>
 <main><noscript><p>Must have JavaScript enabled.</p></noscript>
@@ -179,14 +179,14 @@
 <button type="button" value="resources" title="Save" class="save"><img src="layout/widget-save.svg" alt="Save"></button>
 <button type="button" value="resources" title="Close" class="close"><img src="layout/widget-close.svg" alt="Close"></button></div>
 <table><tr><th></th><th>Gold:</th><th>Lumber:</th><th>Oil:</th></tr>
-<tr><td class="player1">Player 1</td><td><input type="number" min="0" max="65535" id="number_startingGold0" class="gold"></td><td><input type="number" min="0" max="65535" id="number_startingLumber0" class="lumber"></td><td><input type="number" min="0" max="65535" id="number_startingOil0" class="oil"></td></tr>
-<tr><td class="player2">Player 2</td><td><input type="number" min="0" max="65535" id="number_startingGold1" class="gold"></td><td><input type="number" min="0" max="65535" id="number_startingLumber1" class="lumber"></td><td><input type="number" min="0" max="65535" id="number_startingOil1" class="oil"></td></tr>
-<tr><td class="player3">Player 3</td><td><input type="number" min="0" max="65535" id="number_startingGold2" class="gold"></td><td><input type="number" min="0" max="65535" id="number_startingLumber2" class="lumber"></td><td><input type="number" min="0" max="65535" id="number_startingOil2" class="oil"></td></tr>
-<tr><td class="player4">Player 4</td><td><input type="number" min="0" max="65535" id="number_startingGold3" class="gold"></td><td><input type="number" min="0" max="65535" id="number_startingLumber3" class="lumber"></td><td><input type="number" min="0" max="65535" id="number_startingOil3" class="oil"></td></tr>
-<tr><td class="player5">Player 5</td><td><input type="number" min="0" max="65535" id="number_startingGold4" class="gold"></td><td><input type="number" min="0" max="65535" id="number_startingLumber4" class="lumber"></td><td><input type="number" min="0" max="65535" id="number_startingOil4" class="oil"></td></tr>
-<tr><td class="player6">Player 6</td><td><input type="number" min="0" max="65535" id="number_startingGold5" class="gold"></td><td><input type="number" min="0" max="65535" id="number_startingLumber5" class="lumber"></td><td><input type="number" min="0" max="65535" id="number_startingOil5" class="oil"></td></tr>
-<tr><td class="player7">Player 7</td><td><input type="number" min="0" max="65535" id="number_startingGold6" class="gold"></td><td><input type="number" min="0" max="65535" id="number_startingLumber6" class="lumber"></td><td><input type="number" min="0" max="65535" id="number_startingOil6" class="oil"></td></tr>
-<tr><td class="player8">Player 8</td><td><input type="number" min="0" max="65535" id="number_startingGold7" class="gold"></td><td><input type="number" min="0" max="65535" id="number_startingLumber7" class="lumber"></td><td><input type="number" min="0" max="65535" id="number_startingOil7" class="oil"></td></tr></table></div>
+<tr><td class="player1">Player 1</td><td><input type="number" min="0" max="65535" id="number_startGold0" class="gold"></td><td><input type="number" min="0" max="65535" id="number_startLumber0" class="lumber"></td><td><input type="number" min="0" max="65535" id="number_startOil0" class="oil"></td></tr>
+<tr><td class="player2">Player 2</td><td><input type="number" min="0" max="65535" id="number_startGold1" class="gold"></td><td><input type="number" min="0" max="65535" id="number_startLumber1" class="lumber"></td><td><input type="number" min="0" max="65535" id="number_startOil1" class="oil"></td></tr>
+<tr><td class="player3">Player 3</td><td><input type="number" min="0" max="65535" id="number_startGold2" class="gold"></td><td><input type="number" min="0" max="65535" id="number_startLumber2" class="lumber"></td><td><input type="number" min="0" max="65535" id="number_startOil2" class="oil"></td></tr>
+<tr><td class="player4">Player 4</td><td><input type="number" min="0" max="65535" id="number_startGold3" class="gold"></td><td><input type="number" min="0" max="65535" id="number_startLumber3" class="lumber"></td><td><input type="number" min="0" max="65535" id="number_startOil3" class="oil"></td></tr>
+<tr><td class="player5">Player 5</td><td><input type="number" min="0" max="65535" id="number_startGold4" class="gold"></td><td><input type="number" min="0" max="65535" id="number_startLumber4" class="lumber"></td><td><input type="number" min="0" max="65535" id="number_startOil4" class="oil"></td></tr>
+<tr><td class="player6">Player 6</td><td><input type="number" min="0" max="65535" id="number_startGold5" class="gold"></td><td><input type="number" min="0" max="65535" id="number_startLumber5" class="lumber"></td><td><input type="number" min="0" max="65535" id="number_startOil5" class="oil"></td></tr>
+<tr><td class="player7">Player 7</td><td><input type="number" min="0" max="65535" id="number_startGold6" class="gold"></td><td><input type="number" min="0" max="65535" id="number_startLumber6" class="lumber"></td><td><input type="number" min="0" max="65535" id="number_startOil6" class="oil"></td></tr>
+<tr><td class="player8">Player 8</td><td><input type="number" min="0" max="65535" id="number_startGold7" class="gold"></td><td><input type="number" min="0" max="65535" id="number_startLumber7" class="lumber"></td><td><input type="number" min="0" max="65535" id="number_startOil7" class="oil"></td></tr></table></div>
 <div id="overlay_units" class="overlay"><div class="title"><h2>Unit Properties</h2>
 <button type="button" value="units" title="Save" class="save"><img src="layout/widget-save.svg" alt="Save"></button>
 <button type="button" value="units" title="Close" class="close"><img src="layout/widget-close.svg" alt="Close"></button></div>
@@ -215,8 +215,8 @@
 <tr><td><label for="number_boxSize_x">Box size:</label></td><td><input type="number" min="31" max="127" id="number_boxSize_x" class="units">×<input type="number" min="31" max="127" id="number_boxSize_y" class="units"></td></tr>
 <tr><td><label for="checkbox_selectable">Group selectable:</label></td><td><input type="checkbox" id="checkbox_selectable" class="units"></td></tr>
 <tr><td><label for="checkbox_magic">Magic:</label></td><td><input type="checkbox" id="checkbox_magic" class="units"></td></tr>
-<tr><td><label for="select_rmbAction">Right-click action:</label></td><td>
-<select id="select_rmbAction" class="units">
+<tr><td><label for="select_rmb">Right-click action:</label></td><td>
+<select id="select_rmb" class="units">
 	<option value="2">Move</option>
 	<option value="1">Attack</option>
 	<option value="3">Harvest Gold/Lumber</option>

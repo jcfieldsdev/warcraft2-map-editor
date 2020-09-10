@@ -1,24 +1,23 @@
-#!/usr/bin/env python
-# coding=utf-8
+#!/usr/bin/env python3
 
 import cgi
 import json
 import os
 
-root='../maps'
+root = '../maps'
 
-args=cgi.FieldStorage()
-path=args.getvalue('path') if 'path' in args else ''
+args = cgi.FieldStorage()
+path = args.getvalue('path') if 'path' in args else ''
 
 if path.startswith('.'):
-	path=''
+	path = ''
 
-dirs=[]
-files=[]
+dirs = []
+files = []
 
 try:
 	for f in os.listdir(os.path.join(root, path)):
-		if os.path.isdir(os.path.join(root, path, f)) and f!='templates':
+		if os.path.isdir(os.path.join(root, path, f)) and f != 'templates':
 			dirs.append(f)
 		elif f.endswith('.pud'):
 			files.append(f)
