@@ -147,6 +147,9 @@ window.addEventListener("load", function() {
 		editor.drawFrame();
 	});
 
+	// mouse buttons
+	const LEFT = 0, RIGHT = 2;
+
 	document.addEventListener("click", function(event) {
 		let element = event.target;
 
@@ -292,6 +295,94 @@ window.addEventListener("load", function() {
 			overlays.fillProperties(key);
 		}
 	});
+	document.addEventListener("mousedown", function(event) {
+		let element = event.target;
+
+		if (element.matches("#frame")) {
+			if (event.button == LEFT) {
+				editor.dragFrame = true;
+			}
+		}
+
+		if (element.matches("#select")) {
+			if (event.button == LEFT) {
+				if (editor.mode == SELECT_UNITS) {
+					editor.startSelect(event.clientX, event.clientY);
+				} else if (editor.mode == PLACE_UNIT) {
+					editor.addUnit(event.clientX, event.clientY);
+				} else if (editor.mode == PAINT_TERRAIN) {
+					editor.startTerrain(event.clientX, event.clientY);
+				}
+			}
+		}
+	});
+	document.addEventListener("mouseup", function(event) {
+		let element = event.target;
+
+		if (element.matches("#frame")) {
+			if (event.button == LEFT) {
+				editor.dragFrame = false;
+				editor.moveMap(event.clientX, event.clientY);
+			}
+		}
+
+		if (element.matches("#select")) {
+			if (event.button == LEFT) {
+				if (editor.mode == DRAG_SELECT) {
+					editor.selectUnits(
+						event.clientX, event.clientY,
+						event.shiftKey
+					);
+				} else if (editor.mode == DRAG_TERRAIN) {
+					editor.mode = PAINT_TERRAIN;
+					editor.paintTerrain(event.clientX, event.clientY);
+				}
+			} else if (event.button == RIGHT) {
+				if (editor.mode == SELECT_UNITS) {
+					if (Object.keys(editor.selected).length > 0) {
+						overlays.openProperties("unitMap");
+					}
+				} else if (
+					editor.mode == PLACE_UNIT
+					|| editor.mode == PAINT_TERRAIN
+				) {
+					$("#inspect").click();
+				}
+			}
+		}
+	});
+	document.addEventListener("mousemove", function(event) {
+		let element = event.target;
+
+		if (element.matches("#frame")) {
+			if (editor.dragFrame) {
+				editor.moveMap(event.clientX, event.clientY);
+			}
+		}
+
+		if (element.matches("#select")) {
+			if (editor.mode == DRAG_SELECT) {
+				editor.drawSelect(event.clientX, event.clientY);
+			} else if (editor.mode == PLACE_UNIT) {
+				editor.drawUnitBrush(event.clientX, event.clientY);
+			} else if (editor.mode == PAINT_TERRAIN) {
+				editor.drawTerrainBrush(event.clientX, event.clientY);
+			} else if (editor.mode == DRAG_TERRAIN) {
+				editor.paintTerrain(event.clientX, event.clientY);
+			}
+
+			if ($("#info").open) {
+				editor.updateTileInfo(event.clientX, event.clientY);
+			}
+		}
+	});
+	document.addEventListener("contextmenu", function(event) {
+		let element = event.target;
+
+		if (element.matches("#select")) {
+			event.preventDefault();
+		}
+	});
 
 	// for overlay widgets
 	$("#file").addEventListener("change", function(event) {
@@ -305,82 +396,6 @@ window.addEventListener("load", function() {
 			});
 			reader.readAsArrayBuffer(file);
 		}
-	});
-
-	// mouse buttons
-	const LEFT = 0, RIGHT = 2;
-
-	// event listeners
-	// for minimap
-	$("#frame").addEventListener("mousedown", function(event) {
-		if (event.button == LEFT) {
-			editor.dragFrame = true;
-		}
-	});
-	$("#frame").addEventListener("mouseup", function(event) {
-		if (event.button == LEFT) {
-			editor.dragFrame = false;
-			editor.moveMap(event.clientX, event.clientY);
-		}
-	});
-	$("#frame").addEventListener("mousemove", function(event) {
-		if (editor.dragFrame) {
-			editor.moveMap(event.clientX, event.clientY);
-		}
-	});
-	// for map
-	$("#select").addEventListener("mousedown", function(event) {
-		if (event.button == LEFT) {
-			if (editor.mode == SELECT_UNITS) {
-				editor.startSelect(event.clientX, event.clientY);
-			} else if (editor.mode == PLACE_UNIT) {
-				editor.addUnit(event.clientX, event.clientY);
-			} else if (editor.mode == PAINT_TERRAIN) {
-				editor.startTerrain(event.clientX, event.clientY);
-			}
-		}
-	});
-	$("#select").addEventListener("mouseup", function(event) {
-		if (event.button == LEFT) {
-			if (editor.mode == DRAG_SELECT) {
-				editor.selectUnits(
-					event.clientX, event.clientY,
-					event.shiftKey
-				);
-			} else if (editor.mode == DRAG_TERRAIN) {
-				editor.mode = PAINT_TERRAIN;
-				editor.paintTerrain(event.clientX, event.clientY);
-			}
-		} else if (event.button == RIGHT) {
-			if (editor.mode == SELECT_UNITS) {
-				if (Object.keys(editor.selected).length > 0) {
-					overlays.openProperties("unitMap");
-				}
-			} else if (
-				editor.mode == PLACE_UNIT
-				|| editor.mode == PAINT_TERRAIN
-			) {
-				$("#inspect").click();
-			}
-		}
-	});
-	$("#select").addEventListener("mousemove", function(event) {
-		if (editor.mode == DRAG_SELECT) {
-			editor.drawSelect(event.clientX, event.clientY);
-		} else if (editor.mode == PLACE_UNIT) {
-			editor.drawUnitBrush(event.clientX, event.clientY);
-		} else if (editor.mode == PAINT_TERRAIN) {
-			editor.drawTerrainBrush(event.clientX, event.clientY);
-		} else if (editor.mode == DRAG_TERRAIN) {
-			editor.paintTerrain(event.clientX, event.clientY);
-		}
-
-		if ($("#info").open) {
-			editor.updateTileInfo(event.clientX, event.clientY);
-		}
-	});
-	$("#select").addEventListener("contextmenu", function(event) {
-		event.preventDefault();
 	});
 
 	function create() {
@@ -2311,12 +2326,17 @@ Overlays.prototype.saveWorking = function(key) {
 	}, {});
 };
 
-Overlays.prototype.changeIcon = function(input, img, select) {
+Overlays.prototype.changeIcon = function(input, oldImg, select) {
 	input.value = Math.min(Math.max(input.value, 0), LAST_ICON);
 
 	let tileset = data.tilesets[editor.pud.tileset];
 	let icon = input.value.padStart(4, "0");
-	img.src = "icons/" + tileset + "/" + icon + ".png";
+
+	let newImg = new Image();
+	newImg.src = "icons/" + tileset + "/" + icon + ".png";
+	newImg.addEventListener("load", function() {
+		oldImg.src = this.src;
+	});
 };
 
 Overlays.prototype.changeResource = function() {
