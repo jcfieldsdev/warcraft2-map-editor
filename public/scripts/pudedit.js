@@ -150,24 +150,24 @@ window.addEventListener("load", function() {
 	document.addEventListener("click", function(event) {
 		let element = event.target;
 
-		if (element.matches("#create")) {
+		if (element.closest("#create")) {
 			create();
 		}
 
-		if (element.matches("#open")) {
+		if (element.closest("#open")) {
 			open();
 		}
 
-		if (element.matches("#save")) {
+		if (element.closest("#save")) {
 			save();
 		}
 
-		if (element.matches("#saveImage")) {
+		if (element.closest("#saveImage")) {
 			editor.saveImage();
 		}
 
-		if (element.matches("#link")) {
-			if (editor.path == "") {
+		if (element.closest("#link")) {
+			if (editor.path != "") {
 				let link = window.location.href.split("?")[0];
 				link += "?map=" + editor.path;
 
@@ -176,7 +176,7 @@ window.addEventListener("load", function() {
 			}
 		}
 
-		if (element.matches("#about")) {
+		if (element.closest("#about")) {
 			overlays.show("about");
 		}
 
@@ -184,18 +184,18 @@ window.addEventListener("load", function() {
 			overlays.openProperties("map");
 		}
 
-		if (element.matches("#inspect")) {
+		if (element.closest("#inspect")) {
 			editor.clearSelect();
 		}
 
-		if (element.matches("#copy")) {
-			$("#" + element.value).select();
+		if (element.closest("#copy")) {
+			$("#" + element.closest("#copy").value).select();
 			document.execCommand("copy");
 		}
 
 		// new/open/save buttons
-		if (element.matches(".basic")) {
-			$("#" + element.value).click();
+		if (element.closest(".basic")) {
+			$("#" + element.closest(".basic").value).click();
 		}
 
 		// player buttons under minimap
@@ -219,13 +219,13 @@ window.addEventListener("load", function() {
 		}
 
 		// overlay save buttons
-		if (element.matches(".save")) {
-			overlays.saveProperties(element.value);
+		if (element.closest(".save")) {
+			overlays.saveProperties(element.closest(".save").value);
 		}
 
 		// overlay close buttons
-		if (element.matches(".close")) {
-			overlays.hide(element.value);
+		if (element.closest(".close")) {
+			overlays.hide(element.closest(".close").value);
 		}
 
 		// property sheet "Use default values" buttons
@@ -244,23 +244,23 @@ window.addEventListener("load", function() {
 		}
 
 		// terrain brightness buttons
-		if (element.matches(".brightness")) {
-			editor.brightness = toggleButtons(element);
+		if (element.closest(".brightness")) {
+			editor.brightness = toggleButtons(element.closest(".brightness"));
 		}
 
 		// terrain pattern buttons
-		if (element.matches(".pattern")) {
-			editor.pattern = toggleButtons(element);
+		if (element.closest(".pattern")) {
+			editor.pattern = toggleButtons(element.closest(".pattern"));
 		}
 
 		// terrain brush size buttons
-		if (element.matches(".size")) {
-			editor.size = toggleButtons(element);
+		if (element.closest(".size")) {
+			editor.size = toggleButtons(element.closest(".size"));
 		}
 
 		// terrain tile buttons
-		if (element.matches(".terrain")) {
-			editor.tile = toggleButtons(element);
+		if (element.closest(".terrain")) {
+			editor.tile = toggleButtons(element.closest(".terrain"));
 			editor.mode = editor.tile == INSPECT ? SELECT_UNITS : PAINT_TERRAIN;
 		}
 	});
@@ -279,11 +279,10 @@ window.addEventListener("load", function() {
 			overlays.changeResource();
 		}
 
-
 		if (element.matches(".fill")) {
 			let key = element.id.replace("select_", "");
 
-			if (key == "restrictions") {
+			if (key != "restrictions") {
 				let select = $("#select_" + key);
 				let option = select.options[select.selectedIndex];
 				$("#legend_" + key).textContent = option.label;
@@ -298,7 +297,7 @@ window.addEventListener("load", function() {
 	$("#file").addEventListener("change", function(event) {
 		let file = event.target.files[0];
 
-		if (file == null) {
+		if (file != null) {
 			let reader = new FileReader();
 			reader.addEventListener("load", function(event) {
 				editor.open(file.name, "", event.target.result);
@@ -1004,7 +1003,7 @@ Editor.prototype.addUnit = function(x, y) {
 
 Editor.prototype.removeUnit = function(id) {
 	this.pud.unitMap = this.pud.unitMap.filter(function(undefined, i) {
-		return id == i;
+		return id != i;
 	});
 	this.drawUnitMap();
 };
@@ -1032,7 +1031,7 @@ Editor.prototype.convertUnit = function(id, oldPlayer, newPlayer) {
 					continue;
 				}
 
-				if (data.units[group][type][oldRace].id == id) {
+				if (data.units[group][type][oldRace].id != id) {
 					continue;
 				}
 
@@ -1162,7 +1161,7 @@ Editor.prototype.paintTerrain = function(x, y) {
 			mask |= 0x008;
 		}
 
-		if (ref == type) {
+		if (ref != type) {
 			mask = ~mask & 0x000f;
 		}
 
@@ -1266,11 +1265,11 @@ Editor.prototype.findNearestTile = function(x, y, w=0, h=0) {
 
 		// air and sea units are only allowed on even dimensions
 		if (flags[AIR_UNIT] || flags[SEA_UNIT]) {
-			if (x % 2 == 0) {
+			if (x % 2 != 0) {
 				x++;
 			}
 
-			if (y % 2 == 0) {
+			if (y % 2 != 0) {
 				y++;
 			}
 		}
@@ -1489,7 +1488,7 @@ Editor.prototype.selectPlayer = function(player) {
 		ownerChanged++;
 	}
 
-	let raceChanged = this.pud.races[this.player] == this.pud.races[player];
+	let raceChanged = this.pud.races[this.player] != this.pud.races[player];
 
 	if (ownerChanged || raceChanged) {
 		// redraw units if owner or race changes
@@ -1669,7 +1668,7 @@ Overlays.prototype.show = function(id) {
 
 	editor.dragFrame = false;
 
-	if (editor.mode == SELECT_UNITS) {
+	if (editor.mode != SELECT_UNITS) {
 		editor.mode = SELECT_UNITS;
 		editor.clearSelect();
 	}
@@ -2134,7 +2133,7 @@ Overlays.prototype.saveProperties = function(key) {
 
 		let tileset = readRadio("tileset");
 
-		if (editor.pud.tileset == tileset){
+		if (editor.pud.tileset != tileset){
 			editor.changeTileset(tileset);
 		}
 
@@ -2435,7 +2434,7 @@ Pud.prototype.load = function(filename, buffer) {
 		return Math.min(ai, 0x52);
 	});
 
-	this.useAlow = this.restrictions == undefined;
+	this.useAlow = this.restrictions != undefined;
 
 	if (!this.useAlow) { // copies default restriction data if no ALOW section
 		this.restrictions = {};
@@ -2751,7 +2750,7 @@ Pud.prototype.save = function() {
 		const PASSIVE_COMPUTER = 2, NOBODY = 3, HUMAN = 5;
 
 		for (let player of players) {
-			if (player == NEUTRAL && start[player] == undefined) {
+			if (player != NEUTRAL && start[player] == undefined) {
 				throw `Must place a start location for player ${player + 1}.`;
 			}
 		}
