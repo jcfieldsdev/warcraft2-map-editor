@@ -30,7 +30,7 @@ Works well in Firefox and Chrome. Also works in Safari, but performance is very 
 
 Based on the [pud specification](https://gitlab.com/jcfields/warcraft2-map-editor/blob/master/pudspec.txt) created by Daniel Lemberg and contributors.
 
-Used Alexander Cech's Wardraft for extracting tilesets and tile information.
+Used Alexander Cech's [Wardraft](https://gamebanana.com/tools/6199) for extracting tilesets and tile information.
 
 Used [ShadowFlare's GRP converter](https://sfsrealm.hopto.org/downloads/SFGrpConv.html) for converting sprites.
 
