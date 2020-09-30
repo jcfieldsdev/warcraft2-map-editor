@@ -59,7 +59,7 @@ data.schema = {
 			["type",              [110, BYTE,  ARRAY]],
 			["decayRate",         [110, BYTE,  ARRAY]],
 			["annoyFactor",       [110, BYTE,  ARRAY]],
-			["rmbAction",         [58,  BYTE,  ARRAY]],
+			["rmb",               [58,  BYTE,  ARRAY]],
 			["points",            [110, WORD,  ARRAY]],
 			["canTarget",         [110, BYTE,  OCTAL]],
 			["flags",             [110, DWORD, BIT_VECTOR]]

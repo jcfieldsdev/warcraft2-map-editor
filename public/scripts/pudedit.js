@@ -434,7 +434,7 @@ window.addEventListener("load", function() {
 			element.classList.toggle("active", value == element.value);
 		}
 
-		return Number.parseInt(value);
+		return Number(value);
 	}
 });
 
@@ -1313,7 +1313,7 @@ Editor.prototype.validateArea = function(x, y) {
 	let unitSize = this.pud.units.unitSize[this.unit];
 	let points = this.computePoints(x, y, unitSize.x, unitSize.y);
 
-	const LAND = 1, AIR = 2, SEA = 3;
+	const LAND = 0o1, AIR = 0o2, SEA = 0o4;
 	let flags = this.pud.units.flags[this.unit];
 	let unitType = getUnitType(flags);
 
@@ -1373,7 +1373,7 @@ Editor.prototype.validateArea = function(x, y) {
 		// allows air units over ground/sea units and buildings
 		if (
 			(flags[AIR_UNIT] ^ compareFlags[AIR_UNIT])
-			&& ((unitType == LAND || unitType == SEA || flags[BUILDING])
+			&& ((unitType & (LAND | SEA) || flags[BUILDING])
 				^(compareType == LAND
 				|| compareType == SEA
 				|| compareFlags[BUILDING]))
@@ -1411,12 +1411,12 @@ Editor.prototype.validateArea = function(x, y) {
 		let tile    = this.pud.movementMap[point] & 0x00ff;
 
 		if (special == 0x00) {
-			if (unitType == LAND || startLocation) {
+			if (unitType & LAND || startLocation) {
 				valid &= tile == 0x00 || tile == 0x01 || tile == 0x11;
-			} else if (unitType == AIR) {
+			} else if (unitType & AIR) {
 				valid &= true;
 			} else if (
-				unitType == SEA
+				unitType & SEA
 				|| flags[OIL_SOURCE]
 				|| flags[OIL_PLATFORM]
 			) {
@@ -1432,7 +1432,7 @@ Editor.prototype.validateArea = function(x, y) {
 				}
 			}
 		} else if (special == 0x02) {
-			if (unitType == AIR) {
+			if (unitType & AIR) {
 				valid = false;
 			}
 		} else if (special == 0xff) {
@@ -1452,7 +1452,12 @@ Editor.prototype.validateArea = function(x, y) {
 	return valid;
 
 	function getUnitType(flags) {
-		return LAND * flags[0] + AIR * flags[1] + SEA * flags[3];
+		let type = flags[LAND_UNIT]
+		         | flags[AIR_UNIT] << 1
+		         | flags[SEA_UNIT] << 2;
+
+		// treats as land if no flags set (special case for ballista/catapult)
+		return type || LAND;
 	}
 };
 
@@ -1483,7 +1488,7 @@ Editor.prototype.selectPlayer = function(player) {
 		element.classList.toggle("current", element.value == player);
 	}
 
-	player = Number.parseInt(player);
+	player = Number(player);
 
 	let ownerChanged = 0;
 
@@ -2222,7 +2227,7 @@ Overlays.prototype.saveProperties = function(key) {
 	}
 
 	function readNumber(id, size) {
-		let num = Number.parseInt($("#number_" + id).value);
+		let num = Number($("#number_" + id).value);
 		return Math.max(num, 0);
 	}
 
@@ -2231,7 +2236,7 @@ Overlays.prototype.saveProperties = function(key) {
 
 		for (let element of radios) {
 			if (element.checked) {
-				return Number.parseInt(element.value);
+				return Number(element.value);
 			}
 		}
 	}
@@ -2308,7 +2313,7 @@ Overlays.prototype.saveWorking = function(key) {
 			if (type == "checkbox") {
 				value = element.checked;
 			} else {
-				value = Number.parseInt(element.value);
+				value = Number(element.value);
 			}
 
 			if (sub == undefined) {
@@ -2587,9 +2592,9 @@ Pud.prototype.load = function(filename, buffer) {
 	function parseOctal(arr) {
 		return Array.from(arr).map(function(value) {
 			return [
-				Boolean(value&0b001),
-				Boolean(value&0b010),
-				Boolean(value&0b100)
+				Boolean(value & 0o1),
+				Boolean(value & 0o2),
+				Boolean(value & 0o4)
 			];
 		});
 	}
@@ -2874,7 +2879,7 @@ Pud.prototype.save = function() {
 	}
 
 	function convertBits(data) {
-		let arr = new Uint8Array(data.length*DWORD), pos = 0;
+		let arr = new Uint8Array(data.length * DWORD), pos = 0;
 
 		for (let i = 0; i < data.length; i++) {
 			let value = 0;
@@ -2897,7 +2902,7 @@ Pud.prototype.save = function() {
 		let arr = new Uint8Array(data.length);
 
 		return arr.map(function(undefined, i) {
-			return data[i][0] * 0b001 | data[i][1] * 0b010 | data[i][2] * 0b100;
+			return data[i][0] * 0o1 | data[i][1] * 0o2 | data[i][2] * 0o4;
 		});
 	}
 
