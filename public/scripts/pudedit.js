@@ -1322,7 +1322,7 @@ Editor.prototype.validateArea = function(x, y) {
 	if (
 		flags[GOLD_SOURCE] || flags[GOLD_DEPOT]
 		|| flags[OIL_SOURCE] || flags[OIL_PLATFORM] || flags[OIL_DEPOT]
-	) { // enforces exclusion area between resource sources and return points
+	) { // determines exclusion area around resource sources and return points
 		let start = points[0] - RESOURCE_DISTANCE
 			- this.pud.width * RESOURCE_DISTANCE;
 		let row = 2 * RESOURCE_DISTANCE + unitSize.x;
@@ -1358,23 +1358,23 @@ Editor.prototype.validateArea = function(x, y) {
 
 	// checks if area contains other units
 	for (let [i, unit] of this.pud.unitMap.entries()) {
+		let compareType = getUnitType(this.pud.units.flags[unit.id]);
+		let compareFlags = this.pud.units.flags[unit.id];
+
 		let unitStartLocation = unit.id == HUMAN_START_LOC
 			|| unit.id == ORC_START_LOC;
 
 		// start locations ignore collision with everything except
 		// other start locations and neutral units
-		if (startLocation ^ (unitStartLocation || unit.owner == NEUTRAL)) {
+		if ((startLocation ^ unitStartLocation) && unit.owner != NEUTRAL) {
 			continue;
 		}
-
-		let compareType = getUnitType(this.pud.units.flags[unit.id]);
-		let compareFlags = this.pud.units.flags[unit.id];
 
 		// allows air units over ground/sea units and buildings
 		if (
 			(flags[AIR_UNIT] ^ compareFlags[AIR_UNIT])
 			&& ((unitType & (LAND | SEA) || flags[BUILDING])
-				^(compareType == LAND
+				^ (compareType == LAND
 				|| compareType == SEA
 				|| compareFlags[BUILDING]))
 		) {
@@ -1387,7 +1387,7 @@ Editor.prototype.validateArea = function(x, y) {
 				break;
 			}
 
-			if (
+			if ( // enforces resource exclusion area
 				(flags[GOLD_SOURCE] && compareFlags[GOLD_DEPOT])
 				|| (flags[GOLD_DEPOT] && compareFlags[GOLD_SOURCE])
 				|| ((flags[OIL_SOURCE] || flags[OIL_PLATFORM])
@@ -1411,24 +1411,24 @@ Editor.prototype.validateArea = function(x, y) {
 		let tile    = this.pud.movementMap[point] & 0x00ff;
 
 		if (special == 0x00) {
-			if (unitType & LAND || startLocation) {
-				valid &= tile == 0x00 || tile == 0x01 || tile == 0x11;
-			} else if (unitType & AIR) {
-				valid &= true;
-			} else if (
-				unitType & SEA
-				|| flags[OIL_SOURCE]
-				|| flags[OIL_PLATFORM]
-			) {
-				valid &= tile == 0x00 || tile == 0x40;
-			} else if (flags[BUILDING]) {
+			if (flags[BUILDING]) { // buildings
 				if (flags[SHORE_BUILDING]) {
 					valid &= tile == 0x02 || tile == 0x82 || tile == 0x40;
 
 					// counts coast tiles
 					coastTiles += tile == 0x02 || tile == 0x82;
+				} else if (flags[OIL_SOURCE] || flags[OIL_PLATFORM]) {
+					valid &= tile == 0x00 || tile == 0x40;
 				} else {
 					valid &= tile == 0x00 || tile == 0x01;
+				}
+			} else { // units
+				if (unitType & LAND || startLocation) {
+					valid &= tile == 0x00 || tile == 0x01 || tile == 0x11;
+				} else if (unitType & AIR) {
+					valid &= true;
+				} else if (unitType & SEA) {
+					valid &= tile == 0x00 || tile == 0x40;
 				}
 			}
 		} else if (special == 0x02) {
