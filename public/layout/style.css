@@ -495,7 +495,7 @@ select {
 	border-width: 2px;
 	line-height: 100%;
 	padding-left: 0.25em;
-	padding-right: 1em;
+	padding-right: 1.25em;
 	-moz-appearance: none;
 	-webkit-appearance: none;
 }
@@ -504,6 +504,7 @@ select:not([size]) {
 	background-image: url(select.svg);
 	background-position: 100% 50%;
 	background-repeat: no-repeat;
+	background-size: 1em 1em;
 }
 
 td {

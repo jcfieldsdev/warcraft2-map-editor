@@ -1358,9 +1358,6 @@ Editor.prototype.validateArea = function(x, y) {
 
 	// checks if area contains other units
 	for (let [i, unit] of this.pud.unitMap.entries()) {
-		let compareType = getUnitType(this.pud.units.flags[unit.id]);
-		let compareFlags = this.pud.units.flags[unit.id];
-
 		let unitStartLocation = unit.id == HUMAN_START_LOC
 			|| unit.id == ORC_START_LOC;
 
@@ -1369,6 +1366,9 @@ Editor.prototype.validateArea = function(x, y) {
 		if ((startLocation ^ unitStartLocation) && unit.owner != NEUTRAL) {
 			continue;
 		}
+
+		let compareType = getUnitType(this.pud.units.flags[unit.id]);
+		let compareFlags = this.pud.units.flags[unit.id];
 
 		// allows air units over ground/sea units and buildings
 		if (
@@ -2022,10 +2022,8 @@ Overlays.prototype.fillProperties = function(key) {
 					if (self.working[index][i] != undefined) {
 						value = self.working[index][i][j];
 					}
-				} else {
-					if (editor.pud.restrictions[index][j] != undefined) {
-						value = editor.pud.restrictions[index][j][i];
-					}
+				} else if (editor.pud.restrictions[index][j] != undefined) {
+					value = editor.pud.restrictions[index][j][i];
 				}
 
 				if (value == undefined) {
