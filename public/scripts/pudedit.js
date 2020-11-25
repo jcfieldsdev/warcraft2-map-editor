@@ -20,7 +20,7 @@ const LEFT_MARGIN     = 270;
 const FRAME_COLOR     = "#fff";
 const PLACE_VALID_COLOR = "#fff";
 const PLACE_ERROR_COLOR = "#f00";
-const SELECT_COLOR    = "#0f0";
+const SELECT_COLOR      = "#0f0";
 
 // mouse modes
 const SELECT_UNITS  = 0;
@@ -86,28 +86,30 @@ const files    = new Files("files");
  */
 
 window.addEventListener("load", function() {
-	let query = window.location.search.replace(/\?map=(.*)/, "$1");
+	const query = window.location.search.replace(/\?map=(.*)/, "$1");
 
 	if (query == "") {
 		files.loadTemplate(DEFAULT_TILESET, DEFAULT_SIZE);
 	} else { // loads map specified in optional URL parameter
-		let dirs = query.split("/");
-		let filename = decodeURIComponent(dirs.pop());
+		const dirs = query.split("/");
 
 		files.dirs = dirs;
-		files.load(filename, editor.open.bind(editor));
+		files.load(
+			window.decodeURIComponent(dirs.pop()),
+			editor.open.bind(editor)
+		);
 	}
 
 	window.addEventListener("keyup", function(event) {
-		let key = event.keyCode;
+		const keyCode = event.keyCode;
 
-		if (key == 13) { // Enter
+		if (keyCode == 13) { // Enter
 			if (Object.keys(editor.selected).length > 0) {
 				overlays.openProperties("unitMap");
 			}
 		}
 
-		if (key == 27) { // Esc
+		if (keyCode == 27) { // Esc
 			if (overlays.active) {
 				overlays.closeAll();
 			} else {
@@ -115,25 +117,25 @@ window.addEventListener("load", function() {
 			}
 		}
 
-		if (key == 46) { // Del
+		if (keyCode == 46) { // Del
 			editor.removeSelected();
 		}
 
-		if (key >= 48 && key <= 56) { // 0-8
-			editor.selectPlayer(key == 48 ? NEUTRAL : key - 49);
+		if (keyCode >= 48 && keyCode <= 56) { // 0-8
+			editor.selectPlayer(keyCode == 48 ? NEUTRAL : keyCode - 49);
 		}
 	});
 	window.addEventListener("keydown", function(event) {
-		let key = event.keyCode;
+		const keyCode = event.keyCode;
 
 		if (event.ctrlKey ^ event.metaKey) { // Ctrl or Cmd
-			if (key == 78) { // N
+			if (keyCode == 78) { // N
 				event.preventDefault();
 				create();
-			} else if (key == 79) { // O
+			} else if (keyCode == 79) { // O
 				event.preventDefault();
 				open();
-			} else if (key == 83) { // S
+			} else if (keyCode == 83) { // S
 				event.preventDefault();
 				save();
 			}
@@ -151,7 +153,7 @@ window.addEventListener("load", function() {
 	const LEFT = 0, RIGHT = 2;
 
 	document.addEventListener("click", function(event) {
-		let element = event.target;
+		const element = event.target;
 
 		if (element.closest("#create")) {
 			create();
@@ -171,10 +173,9 @@ window.addEventListener("load", function() {
 
 		if (element.closest("#link")) {
 			if (editor.path != "") {
-				let link = window.location.href.split("?")[0];
-				link += "?map=" + editor.path;
+				const link = window.location.href.split("?")[0];
 
-				$("#text_link").value = link;
+				$("#text_link").value = link + "?map=" + editor.path;
 				overlays.show("link");
 			}
 		}
@@ -266,9 +267,61 @@ window.addEventListener("load", function() {
 			editor.tile = toggleButtons(element.closest(".terrain"));
 			editor.mode = editor.tile == INSPECT ? SELECT_UNITS : PAINT_TERRAIN;
 		}
+
+		// unit palette buttons
+		if (element.closest(".unit")) {
+			editor.mode = PLACE_UNIT;
+			editor.unit = Number(element.closest(".unit").value);
+		}
+
+		// file browser parent directory
+		if (element.matches(".parent")) {
+			event.preventDefault();
+			files.openParent();
+		}
+
+		// file browser directory
+		if (element.matches(".dir")) {
+			event.preventDefault();
+			files.openDir(element.href);
+		}
+
+		// file browser map file
+		if (element.matches(".pud")) {
+			event.preventDefault();
+			overlays.hide("browser");
+			files.openFile(element.href);
+		}
+
+		// restrictions table column
+		if (element.matches(".restcol")) {
+			const value = Number(element.value);
+
+			for (const element of $$(".restrictions")) {
+				const [type, index, player] = element.id.split("_");
+
+				if (player == value) {
+					element.checked = !element.checked;
+				}
+			}
+		}
+
+		// restrictions table row
+		if (element.matches(".restrow")) {
+			const value = Number(element.value);
+
+			for (const element of $$(".restrictions")) {
+				const [type, index, player] = element.id.split("_");
+
+				if (index == value) {
+					element.checked = !element.checked;
+				}
+			}
+		}
+
 	});
 	document.addEventListener("input", function(event) {
-		let element = event.target;
+		const element = event.target;
 
 		if (element.matches("#select_unitsPalette")) {
 			editor.changeUnitPalette();
@@ -283,11 +336,11 @@ window.addEventListener("load", function() {
 		}
 
 		if (element.matches(".fill")) {
-			let key = element.id.replace("select_", "");
+			const key = element.id.replace("select_", "");
 
 			if (key != "restrictions") {
-				let select = $("#select_" + key);
-				let option = select.options[select.selectedIndex];
+				const select = $("#select_" + key);
+				const option = select.options[select.selectedIndex];
 				$("#legend_" + key).textContent = option.label;
 			}
 
@@ -296,7 +349,7 @@ window.addEventListener("load", function() {
 		}
 	});
 	document.addEventListener("mousedown", function(event) {
-		let element = event.target;
+		const element = event.target;
 
 		if (element.matches("#frame")) {
 			if (event.button == LEFT) {
@@ -317,7 +370,7 @@ window.addEventListener("load", function() {
 		}
 	});
 	document.addEventListener("mouseup", function(event) {
-		let element = event.target;
+		const element = event.target;
 
 		if (element.matches("#frame")) {
 			if (event.button == LEFT) {
@@ -352,7 +405,7 @@ window.addEventListener("load", function() {
 		}
 	});
 	document.addEventListener("mousemove", function(event) {
-		let element = event.target;
+		const element = event.target;
 
 		if (element.matches("#frame")) {
 			if (editor.dragFrame) {
@@ -377,7 +430,7 @@ window.addEventListener("load", function() {
 		}
 	});
 	document.addEventListener("contextmenu", function(event) {
-		let element = event.target;
+		const element = event.target;
 
 		if (element.matches("#select")) {
 			event.preventDefault();
@@ -386,10 +439,10 @@ window.addEventListener("load", function() {
 
 	// for overlay widgets
 	$("#file").addEventListener("change", function(event) {
-		let file = event.target.files[0];
+		const file = event.target.files[0];
 
 		if (file != null) {
-			let reader = new FileReader();
+			const reader = new FileReader();
 			reader.addEventListener("load", function(event) {
 				editor.open(file.name, "", event.target.result);
 				overlays.hide("browser");
@@ -412,29 +465,27 @@ window.addEventListener("load", function() {
 			return;
 		}
 
-		let blob = null;
-
 		try {
-			blob = editor.pud.save();
+			const blob = editor.pud.save();
+
+			const a = $("#download");
+			a.download = editor.pud.filename;
+			a.href = window.URL.createObjectURL(blob);
+			a.click();
+			window.URL.revokeObjectURL(blob);
 		} catch (err) {
 			return overlays.displayError(err);
 		}
-
-		let a = $("#download");
-		a.download = editor.pud.filename;
-		a.href = window.URL.createObjectURL(blob);
-		a.click();
-		window.URL.revokeObjectURL(blob);
 	}
 
 	function toggleButtons(button) {
-		let value = button.value;
+		const value = Number(button.value);
 
-		for (let element of $$("." + button.className)) {
-			element.classList.toggle("active", value == element.value);
+		for (const element of $$("." + button.className)) {
+			element.classList.toggle("active", value == Number(element.value));
 		}
 
-		return Number(value);
+		return value;
 	}
 });
 
@@ -444,21 +495,6 @@ function $(selector) {
 
 function $$(selector) {
 	return Array.from(document.querySelectorAll(selector));
-}
-
-function clear(element, removeListeners=true) {
-	if (element == null) {
-		return;
-	}
-
-	while (element.lastChild) { // removes all children
-		element.removeChild(element.lastChild);
-	}
-
-	if (removeListeners) {
-		// clones element to remove all event listeners
-		element.parentNode.replaceChild(element.cloneNode(true), element);
-	}
 }
 
 /*
@@ -531,19 +567,15 @@ Editor.prototype.open = function(filename, path, buffer) {
 
 	$("#filename").textContent = this.pud.filename;
 
-	switch (this.pud.certificate) {
-		case BLIZZARD:
-			$("#text_filename").className = "blizzard";
-			break;
-		case LADDER:
-			$("#text_filename").className = "ladder";
-			break;
-		default:
-			$("#text_filename").className = "";
-	}
+	$("#text_filename").classList.toggle(
+		"blizzard", this.pud.certificate == BLIZZARD
+	);
+	$("#text_filename").classList.toggle(
+		"ladder", this.pud.certificate == LADDER
+	);
 
-	let width = this.pud.width * TILE_SIZE;
-	let height = this.pud.height * TILE_SIZE;
+	const width = this.pud.width * TILE_SIZE;
+	const height = this.pud.height * TILE_SIZE;
 
 	setSize("tileMap",     width,        height);
 	setSize("unitMap",     width,        height);
@@ -579,12 +611,12 @@ Editor.prototype.open = function(filename, path, buffer) {
 		this.selectPalette(DEFAULT_PALETTE);
 	}
 
-	for (let unit of this.pud.unitMap) {
+	for (const unit of this.pud.unitMap) {
 		// tracks unit positions so they persist when units are redrawn
 		unit.position = undefined;
 
 		// tracks points occupied by unit for collision detection
-		let unitSize = this.pud.units.unitSize[unit.id];
+		const unitSize = this.pud.units.unitSize[unit.id];
 		unit.points = this.computePoints(
 			unit.x, unit.y,
 			unitSize.x, unitSize.y
@@ -602,7 +634,7 @@ Editor.prototype.open = function(filename, path, buffer) {
 	}
 
 	function createBuffer(id) {
-		let buffer = document.createElement("canvas");
+		const buffer = document.createElement("canvas");
 		buffer.width  = $("#" + id).width;
 		buffer.height = $("#" + id).height;
 
@@ -611,11 +643,12 @@ Editor.prototype.open = function(filename, path, buffer) {
 };
 
 Editor.prototype.drawTileMap = function() {
-	let tiles = data.tiles[this.pud.tileset];
+	const tiles = data.tiles[this.pud.tileset];
 	let x = 0, y = 0;
 
-	for (let [i, tile] of this.pud.tileMap.entries()) {
-		let cx = x * TILE_SIZE, cy = y * TILE_SIZE;
+	for (const [i, tile] of this.pud.tileMap.entries()) {
+		const cx = x * TILE_SIZE;
+		const cy = y * TILE_SIZE;
 
 		if (tile in tiles) {
 			this.tileMap.drawImage(
@@ -633,7 +666,7 @@ Editor.prototype.drawTileMap = function() {
 				TILE_SIZE, TILE_SIZE
 			);
 		} else {
-			let hex = this.formatHex(tile);
+			const hex = this.formatHex(tile);
 			console.error(`Missing terrain tile: ${hex} at (${x}, ${y})`);
 		}
 
@@ -647,17 +680,18 @@ Editor.prototype.drawTileMap = function() {
 };
 
 Editor.prototype.drawUnitMap = function() {
-	let width = $("#unitMap").width, height = $("#unitMap").height;
+	const width = $("#unitMap").width;
+	const height = $("#unitMap").height;
 
 	// clears canvas every time or units will stack when tileset changed
 	this.unitBuffer.clearRect(0, 0, width, height);
 	this.miniUnitBuffer.clearRect(0, 0, width, height);
 
 	const self = this;
-	let bottomPromises = [], top = [];
+	const bottomPromises = [], top = [];
 
 	// sorts units by stacking priority
-	for (let [i, unit] of this.pud.unitMap.entries()) {
+	for (const [i, unit] of this.pud.unitMap.entries()) {
 		if (
 			unit.id == HUMAN_START_LOC || unit.id == ORC_START_LOC
 			|| this.pud.units.flags[unit.id][AIR_UNIT]
@@ -670,7 +704,7 @@ Editor.prototype.drawUnitMap = function() {
 
 	Promise.all(bottomPromises).then(function() {
 		// draws flying units and start locations after other units
-		let topPromises = top.map(makePromise);
+		const topPromises = top.map(makePromise);
 
 		// draws units after all images have loaded
 		Promise.all(topPromises).then(function() {
@@ -697,7 +731,8 @@ Editor.prototype.drawUnitMap = function() {
 	}
 
 	function drawUnit(resolve, i) {
-		let unit = self.pud.unitMap[i], unitSize = 1;
+		const unit = self.pud.unitMap[i];
+		let unitSize = 1;
 
 		if (unit.id in self.pud.units.unitSize) {
 			unitSize = self.pud.units.unitSize[unit.id];
@@ -705,13 +740,16 @@ Editor.prototype.drawUnitMap = function() {
 			console.error("Missing unit size for unit:", unit.id);
 		}
 
-		let path = "units/" + data.tilesets[self.pud.tileset] + "/";
+		const path = "units/" + data.tilesets[self.pud.tileset] + "/";
 
-		let img = new Image();
+		const img = new Image();
 		img.src = path + unit.id.toString().padStart(4, "0") + ".png";
 		img.addEventListener("load", function() {
-			let x = unit.x * TILE_SIZE, y = unit.y * TILE_SIZE;
-			let w = unitSize.x * TILE_SIZE, h = unitSize.y * TILE_SIZE;
+			const x = unit.x * TILE_SIZE;
+			const y = unit.y * TILE_SIZE;
+
+			const w = unitSize.x * TILE_SIZE;
+			const h = unitSize.y * TILE_SIZE;
 
 			drawToUnitMap(x, y, w, h, i, unit, img);
 			drawToMiniMap(x, y, w, h, unit);
@@ -723,9 +761,10 @@ Editor.prototype.drawUnitMap = function() {
 	}
 
 	function drawToUnitMap(x, y, w, h, i, unit, img) {
-		let sx = 0, sy = 0, owner = Math.min(unit.owner, 7);
-		let startLocation = unit.id == HUMAN_START_LOC
+		const owner = Math.min(unit.owner, 7);
+		const startLocation = unit.id == HUMAN_START_LOC
 			|| unit.id == ORC_START_LOC;
+		let sx = 0, sy = 0;
 
 		if (!startLocation && !self.pud.units.flags[unit.id][BUILDING]) {
 			// centers unit in tile
@@ -750,7 +789,7 @@ Editor.prototype.drawUnitMap = function() {
 			return;
 		}
 
-		let imageData = self.unitBuffer.getImageData(x, y, w, h);
+		const imageData = self.unitBuffer.getImageData(x, y, w, h);
 
 		// changes player colors to match unit owner
 		for (let i = 0; i < imageData.data.length; i += 4) { // 4 for RGBA
@@ -772,12 +811,12 @@ Editor.prototype.drawUnitMap = function() {
 
 	function drawToMiniMap(x, y, w, h, unit) {
 		// neutral players use player 8 colors
-		let owner = Math.min(unit.owner, 7);
+		const owner = Math.min(unit.owner, 7);
 
 		// uses first player color for minimap squares
-		let r  =data.colors[owner][0].r.toString(16).padStart(2, "0");
-		let g = data.colors[owner][0].g.toString(16).padStart(2, "0");
-		let b = data.colors[owner][0].b.toString(16).padStart(2, "0");
+		const r  =data.colors[owner][0].r.toString(16).padStart(2, "0");
+		const g = data.colors[owner][0].g.toString(16).padStart(2, "0");
+		const b = data.colors[owner][0].b.toString(16).padStart(2, "0");
 
 		x = Math.floor(x);
 		y = Math.floor(y);
@@ -791,18 +830,20 @@ Editor.prototype.drawUnitMap = function() {
 
 
 Editor.prototype.drawMovementMap = function() {
-	let x = 0, y = 0, w = TILE_SIZE - 4, h = w;
+	const w = TILE_SIZE - 4;
+	const h = w;
+	let x = 0, y = 0;
 
 	this.movementMap.lineWidth = 1;
 
-	for (let [i, tile] of this.pud.movementMap.entries()) {
+	for (const [i, tile] of this.pud.movementMap.entries()) {
 		if (tile in data.movement) {
 			this.movementMap.strokeStyle = data.movement[tile];
 			this.movementMap.strokeRect(
 				x * TILE_SIZE + 2, y * TILE_SIZE + 2, w, h
 			);
 		} else {
-			let hex = this.formatHex(tile);
+			const hex = this.formatHex(tile);
 			console.error(`Missing movement tile: ${hex} at (${x}, ${y})`);
 		}
 
@@ -861,8 +902,9 @@ Editor.prototype.startTerrain = function(x, y) {
 
 Editor.prototype.drawSelect = function(x, y) {
 	this.selectMultiple = true;
-	let w = window.scrollX + x - this.selectX - LEFT_MARGIN;
-	let h = window.scrollY + y - this.selectY;
+
+	const w = window.scrollX + x - this.selectX - LEFT_MARGIN;
+	const h = window.scrollY + y - this.selectY;
 
 	this.clearSelect();
 	this.select.lineWidth = 1;
@@ -886,11 +928,11 @@ Editor.prototype.selectUnits = function(x, y, add=false) {
 	[x, y] = this.findNearestTile(x, y);
 
 	if (this.selectMultiple) {
-		let mx = Math.floor(this.selectX / TILE_SIZE);
-		let my = Math.floor(this.selectY / TILE_SIZE);
+		const mx = Math.floor(this.selectX / TILE_SIZE);
+		const my = Math.floor(this.selectY / TILE_SIZE);
 
-		let w = Math.abs(mx - x);
-		let h = Math.abs(my - y);
+		const w = Math.abs(mx - x);
+		const h = Math.abs(my - y);
 
 		if (w > 0 && h > 0) {
 			points = this.computePoints(Math.min(mx, x), Math.min(my, y), w, h);
@@ -901,23 +943,23 @@ Editor.prototype.selectUnits = function(x, y, add=false) {
 		}
 	}
 
-	for (let [i, unit] of this.pud.unitMap.entries()) {
+	for (const [i, unit] of this.pud.unitMap.entries()) {
 		if (this.pud.units.unitSize[unit.id] == undefined) {
 			continue;
 		}
 
-		let unitSize = this.pud.units.unitSize[unit.id];
+		const unitSize = this.pud.units.unitSize[unit.id];
 		let intersect = false;
 
 		if (this.selectMultiple) {
-			for (let point of this.pud.unitMap[i].points) {
+			for (const point of this.pud.unitMap[i].points) {
 				if (points.includes(point)) {
 					intersect = true;
 					break;
 				}
 			}
 		} else {
-			let point = x + this.pud.width * y;
+			const point = x + this.pud.width * y;
 			intersect = this.pud.unitMap[i].points.includes(point);
 		}
 
@@ -935,10 +977,10 @@ Editor.prototype.selectUnits = function(x, y, add=false) {
 };
 
 Editor.prototype.drawUnitBrush = function(x, y) {
-	let unitSize = this.pud.units.unitSize[this.unit];
+	const unitSize = this.pud.units.unitSize[this.unit];
 	[x, y] = this.findNearestTile(x, y, unitSize.x, unitSize.y);
 
-	let valid = this.validateArea(x, y);
+	const valid = this.validateArea(x, y);
 
 	this.clearSelect();
 	this.select.lineWidth = 1;
@@ -962,15 +1004,17 @@ Editor.prototype.drawTerrainBrush = function(x, y) {
 };
 
 Editor.prototype.addUnit = function(x, y) {
-	let unitSize = this.pud.units.unitSize[this.unit];
+	const unitSize = this.pud.units.unitSize[this.unit];
 	[x, y] = this.findNearestTile(x, y, unitSize.x, unitSize.y);
 
 	if (!this.validateArea(x, y)) {
 		return;
 	}
 
-	let id = this.unit, owner = this.player, property = 0;
-	let flags = this.pud.units.flags[this.unit];
+	const flags = this.pud.units.flags[this.unit];
+	const id = this.unit;
+	let owner = this.player;
+	let property = 0;
 
 	// default resources
 	if (flags[GOLD_SOURCE]) {
@@ -993,8 +1037,8 @@ Editor.prototype.addUnit = function(x, y) {
 
 	// removes existing start location if new one is placed
 	if (id == HUMAN_START_LOC || id == ORC_START_LOC) {
-		for (let [i, unit] of this.pud.unitMap.entries()) {
-			let startLocation = unit.id == HUMAN_START_LOC
+		for (const [i, unit] of this.pud.unitMap.entries()) {
+			const startLocation = unit.id == HUMAN_START_LOC
 				|| unit.id == ORC_START_LOC;
 
 			if (startLocation && unit.owner == this.player) {
@@ -1003,7 +1047,7 @@ Editor.prototype.addUnit = function(x, y) {
 		}
 	}
 
-	let unit = {
+	this.pud.unitMap.push({
 		x,
 		y,
 		id,
@@ -1011,8 +1055,7 @@ Editor.prototype.addUnit = function(x, y) {
 		property,
 		position: undefined,
 		points: this.computePoints(x, y, unitSize.x, unitSize.y)
-	};
-	this.pud.unitMap.push(unit);
+	});
 	this.drawUnitMap();
 };
 
@@ -1032,16 +1075,16 @@ Editor.prototype.removeSelected = function() {
 };
 
 Editor.prototype.convertUnit = function(id, oldPlayer, newPlayer) {
-	let oldRace = data.races[this.pud.races[oldPlayer]];
-	let newRace = data.races[this.pud.races[newPlayer]];
+	const oldRace = data.races[this.pud.races[oldPlayer]];
+	const newRace = data.races[this.pud.races[newPlayer]];
 
 	if (oldRace == newRace) {
 		return id;
 	}
 
-	for (let group of Object.keys(data.units)) {
-		for (let type of Object.keys(data.units[group])) {
-			for (let oldRace of Object.keys(data.units[group][type])) {
+	for (const group of Object.keys(data.units)) {
+		for (const type of Object.keys(data.units[group])) {
+			for (const oldRace of Object.keys(data.units[group][type])) {
 				if (data.units[group][type][oldRace] == undefined) {
 					continue;
 				}
@@ -1246,7 +1289,7 @@ Editor.prototype.paintTerrain = function(x, y) {
 };
 
 Editor.prototype.computePoints = function(x, y, ux, uy) {
-	let points = [];
+	const points = [];
 
 	for (let i = 0; i < uy; i++) {
 		for (let j = 0; j < ux; j++) {
@@ -1265,7 +1308,7 @@ Editor.prototype.findNearestTile = function(x, y, w=0, h=0) {
 	y = Math.max(Math.floor(y / TILE_SIZE), 0);
 
 	if (this.mode == PLACE_UNIT) {
-		let flags = this.pud.units.flags[this.unit];
+		const flags = this.pud.units.flags[this.unit];
 
 		// oil patches are only allowed on odd dimensions
 		if (flags[OIL_SOURCE] || flags[OIL_PLATFORM]) {
@@ -1302,35 +1345,35 @@ Editor.prototype.findNearestTile = function(x, y, w=0, h=0) {
 };
 
 Editor.prototype.validateArea = function(x, y) {
-	let valid = true;
-	let startLocation = this.unit == HUMAN_START_LOC
+	const startLocation = this.unit == HUMAN_START_LOC
 		|| this.unit == ORC_START_LOC;
+	let valid = true;
 
 	if (startLocation && this.player == NEUTRAL) {
 		return; // cannot place start location for neutral player
 	}
 
-	let unitSize = this.pud.units.unitSize[this.unit];
-	let points = this.computePoints(x, y, unitSize.x, unitSize.y);
+	const unitSize = this.pud.units.unitSize[this.unit];
+	const points = this.computePoints(x, y, unitSize.x, unitSize.y);
 
 	const LAND = 0o1, AIR = 0o2, SEA = 0o4;
-	let flags = this.pud.units.flags[this.unit];
-	let unitType = getUnitType(flags);
+	const flags = this.pud.units.flags[this.unit];
+	const unitType = getUnitType(flags);
 
-	let resourceArea = [];
+	const resourceArea = [];
 
 	if (
 		flags[GOLD_SOURCE] || flags[GOLD_DEPOT]
 		|| flags[OIL_SOURCE] || flags[OIL_PLATFORM] || flags[OIL_DEPOT]
 	) { // determines exclusion area around resource sources and return points
-		let start = points[0] - RESOURCE_DISTANCE
+		const start = points[0] - RESOURCE_DISTANCE
 			- this.pud.width * RESOURCE_DISTANCE;
-		let row = 2 * RESOURCE_DISTANCE + unitSize.x;
-		let col = 2 * RESOURCE_DISTANCE + unitSize.y;
+		const row = 2 * RESOURCE_DISTANCE + unitSize.x;
+		const col = 2 * RESOURCE_DISTANCE + unitSize.y;
 
 		for (let i = 0; i < col; i++) {
 			for (let j = 0; j < row; j++) {
-				let coord = start + j + i * this.pud.width;
+				const coord = start + j + i * this.pud.width;
 
 				// ignores negative values from placing building on top or left
 				// edges of map
@@ -1341,8 +1384,8 @@ Editor.prototype.validateArea = function(x, y) {
 				// computes distance from building to calculated point to omit
 				// "wraparound" values from placing building on right or bottom
 				// edges of map
-				let h = Math.abs(x - coord % this.pud.width);
-				let v = Math.abs(y - Math.floor(coord / this.pud.height));
+				const h = Math.abs(x - coord % this.pud.width);
+				const v = Math.abs(y - Math.floor(coord / this.pud.height));
 
 				if (
 					h > RESOURCE_DISTANCE + unitSize.x
@@ -1357,8 +1400,8 @@ Editor.prototype.validateArea = function(x, y) {
 	}
 
 	// checks if area contains other units
-	for (let [i, unit] of this.pud.unitMap.entries()) {
-		let unitStartLocation = unit.id == HUMAN_START_LOC
+	for (const [i, unit] of this.pud.unitMap.entries()) {
+		const unitStartLocation = unit.id == HUMAN_START_LOC
 			|| unit.id == ORC_START_LOC;
 
 		// start locations ignore collision with everything except
@@ -1367,8 +1410,8 @@ Editor.prototype.validateArea = function(x, y) {
 			continue;
 		}
 
-		let compareType = getUnitType(this.pud.units.flags[unit.id]);
-		let compareFlags = this.pud.units.flags[unit.id];
+		const compareType = getUnitType(this.pud.units.flags[unit.id]);
+		const compareFlags = this.pud.units.flags[unit.id];
 
 		// allows air units over ground/sea units and buildings
 		if (
@@ -1381,7 +1424,7 @@ Editor.prototype.validateArea = function(x, y) {
 			continue;
 		}
 
-		for (let point of this.pud.unitMap[i].points) {
+		for (const point of this.pud.unitMap[i].points) {
 			if (points.includes(point)) {
 				valid = false;
 				break;
@@ -1406,9 +1449,9 @@ Editor.prototype.validateArea = function(x, y) {
 	let coastTiles = 0;
 
 	// checks if unit is allowed on movement tile
-	for (let point of points) {
-		let special = this.pud.movementMap[point] & 0xff00;
-		let tile    = this.pud.movementMap[point] & 0x00ff;
+	for (const point of points) {
+		const special = this.pud.movementMap[point] & 0xff00;
+		const tile    = this.pud.movementMap[point] & 0x00ff;
 
 		if (special == 0x00) {
 			if (flags[BUILDING]) { // buildings
@@ -1452,9 +1495,9 @@ Editor.prototype.validateArea = function(x, y) {
 	return valid;
 
 	function getUnitType(flags) {
-		let type = flags[LAND_UNIT]
-		         | flags[AIR_UNIT] << 1
-		         | flags[SEA_UNIT] << 2;
+		const type = flags[LAND_UNIT]
+		           | flags[AIR_UNIT] << 1
+		           | flags[SEA_UNIT] << 2;
 
 		// treats as land if no flags set (special case for ballista/catapult)
 		return type || LAND;
@@ -1467,7 +1510,7 @@ Editor.prototype.updateTileInfo = function(x, y) {
 	$("#text_posX").value = x;
 	$("#text_posY").value = y;
 
-	let index = x + this.pud.width * y;
+	const index = x + this.pud.width * y;
 	$("#text_index").value = index;
 
 	if (index <= this.pud.tileMap.length) {
@@ -1484,7 +1527,7 @@ Editor.prototype.updateTileInfo = function(x, y) {
 };
 
 Editor.prototype.selectPlayer = function(player) {
-	for (let element of $$(".player")) {
+	for (const element of $$(".player")) {
 		element.classList.toggle("current", element.value == player);
 	}
 
@@ -1494,11 +1537,11 @@ Editor.prototype.selectPlayer = function(player) {
 
 	// does not reassign ownership of critters, gold mines, oil patches,
 	// or start locations in box selections
-	let omit = [57, 92, 93, HUMAN_START_LOC, ORC_START_LOC];
+	const OMIT_UNITS = [57, 92, 93, HUMAN_START_LOC, ORC_START_LOC];
 
 	// reassigns owner of selected units
-	for (let unit of Object.values(this.selected)) {
-		if (omit.includes(unit.id)) {
+	for (const unit of Object.values(this.selected)) {
+		if (OMIT_UNITS.includes(unit.id)) {
 			continue;
 		}
 
@@ -1508,7 +1551,7 @@ Editor.prototype.selectPlayer = function(player) {
 		ownerChanged++;
 	}
 
-	let raceChanged = this.pud.races[this.player] != this.pud.races[player];
+	const raceChanged = this.pud.races[this.player] != this.pud.races[player];
 
 	if (ownerChanged || raceChanged) {
 		// redraw units if owner or race changes
@@ -1527,11 +1570,11 @@ Editor.prototype.selectPlayer = function(player) {
 };
 
 Editor.prototype.selectPalette = function(palette) {
-	for (let element of $$(".palette")) {
+	for (const element of $$(".palette")) {
 		element.classList.toggle("open", element.id == palette);
 	}
 
-	for (let element of $$(".tab")) {
+	for (const element of $$(".tab")) {
 		element.classList.toggle("current", element.value == palette);
 	}
 
@@ -1578,8 +1621,8 @@ Editor.prototype.changeTileset = function(tileset) {
 	}
 
 	// changes terrain buttons to match tileset
-	for (let element of $$(".tile")) {
-		let path = element.getAttribute("src").split("/");
+	for (const element of $$(".tile")) {
+		const path = element.getAttribute("src").split("/");
 		path[2] = data.tilesets[tileset];
 		element.setAttribute("src", path.join("/"));
 	}
@@ -1590,39 +1633,33 @@ Editor.prototype.changeTileset = function(tileset) {
 };
 
 Editor.prototype.changeUnitPalette = function() {
-	let group = $("#select_unitsPalette").value;
+	const group = $("#select_unitsPalette").value;
 
 	if (data.units[group] == undefined) {
 		return;
 	}
 
-	clear($("#unitsPalette"));
-
-	let ul = document.createElement("ul");
+	const ul = document.createElement("ul");
 	ul.id = "unitsPalette";
 
-	for (let type of Object.values(data.units[group])) {
+	for (const type of Object.values(data.units[group])) {
 		let race = data.races[this.pud.races[this.player]];
 
 		if (type[race] == undefined) {
 			race = "neutral";
 		}
 
-		let unit = type[race];
+		const unit = type[race];
 
-		let li = document.createElement("li");
-		let button = document.createElement("button");
-		let img = document.createElement("img");
+		const li = document.createElement("li");
+		const button = document.createElement("button");
+		const img = document.createElement("img");
 
-		let icon = unit.icon.toString().padStart(4, "0") + ".png";
+		const icon = unit.icon.toString().padStart(4, "0") + ".png";
 
-		button.className = "unit";
 		button.value = unit.id;
+		button.classList.add("unit");
 		button.setAttribute("type", "button");
-		button.addEventListener("click", function() {
-			this.mode = PLACE_UNIT;
-			this.unit = unit.id;
-		}.bind(this));
 
 		img.src = "icons/" + data.tilesets[this.pud.tileset] + "/" + icon;
 		img.setAttribute("alt", "[" + unit.name + "]");
@@ -1637,20 +1674,20 @@ Editor.prototype.changeUnitPalette = function() {
 };
 
 Editor.prototype.saveImage = function() {
-	let canvas = document.createElement("canvas");
+	const canvas = document.createElement("canvas");
 	canvas.width  = $("#tileMap").width;
 	canvas.height = $("#tileMap").height;
 
-	let context = canvas.getContext("2d");
+	const context = canvas.getContext("2d");
 	// composites all layers into a single image
 	drawLayer($("#tileMap"));
 	drawLayer($("#unitMap"));
 	drawLayer($("#movementMap"));
 
-	let filename = this.pud.filename.replace(/\.pud$/, ".png");
+	const filename = this.pud.filename.replace(/\.pud$/, ".png");
 
 	canvas.toBlob(function(blob) {
-		let a = $("#download");
+		const a = $("#download");
 		a.download = filename;
 		a.href = window.URL.createObjectURL(blob);
 		a.click();
@@ -1750,9 +1787,9 @@ Overlays.prototype.openProperties = function(key) {
 	}
 
 	function openPlayers() {
-		for (let element of $$(".ai")) {
-			for (let [id, name] of data.ai) {
-				let option = document.createElement("option");
+		for (const element of $$(".ai")) {
+			for (const [id, name] of data.ai) {
+				const option = document.createElement("option");
 				option.value = id;
 				option.textContent = name;
 				element.appendChild(option);
@@ -1775,16 +1812,17 @@ Overlays.prototype.openProperties = function(key) {
 	}
 
 	function openUnits() {
-		let select = $("#select_units"), units = {};
+		const select = $("#select_units");
+		const units = {};
 
-		for (let group of Object.keys(data.units)) {
-			for (let type of Object.keys(data.units[group])) {
-				for (let race of Object.keys(data.units[group][type])) {
+		for (const group of Object.keys(data.units)) {
+			for (const type of Object.keys(data.units[group])) {
+				for (const race of Object.keys(data.units[group][type])) {
 					if (units[race] == undefined) {
 						units[race] = [];
 					}
 
-					let unit = data.units[group][type][race];
+					const unit = data.units[group][type][race];
 
 					if (unit.skip) {
 						continue;
@@ -1795,15 +1833,15 @@ Overlays.prototype.openProperties = function(key) {
 			}
 		}
 
-		for (let race of Object.keys(units)) {
-			let optgroup = document.createElement("optgroup");
-			let label = race.charAt(0).toUpperCase() + race.slice(1);
+		for (const race of Object.keys(units)) {
+			const optgroup = document.createElement("optgroup");
+			const label = race.charAt(0).toUpperCase() + race.slice(1);
 			optgroup.setAttribute("label", label);
 
 			units[race].sort();
 
-			for (let unit of units[race]) {
-				let option = document.createElement("option");
+			for (const unit of units[race]) {
+				const option = document.createElement("option");
 				option.value = unit.id;
 				option.textContent = unit.name;
 				optgroup.appendChild(option);
@@ -1816,22 +1854,22 @@ Overlays.prototype.openProperties = function(key) {
 		select.disabled = editor.pud.units.useDefaults;
 		select.selectedIndex = 0;
 
-		let option = select.options[select.selectedIndex];
+		const option = select.options[select.selectedIndex];
 		$("#legend_units").textContent = option.label;
 
 		self.fillProperties("units");
 	}
 
 	function openUpgrades() {
-		let select = $("#select_upgrades");
+		const select = $("#select_upgrades");
 
-		for (let race of Object.keys(data.upgrades)) {
-			let optgroup = document.createElement("optgroup");
-			let label = race.charAt(0).toUpperCase() + race.slice(1);
+		for (const race of Object.keys(data.upgrades)) {
+			const optgroup = document.createElement("optgroup");
+			const label = race.charAt(0).toUpperCase() + race.slice(1);
 			optgroup.setAttribute("label", label);
 
-			for (let [id, name] of data.upgrades[race]) {
-				let option = document.createElement("option");
+			for (const [id, name] of data.upgrades[race]) {
+				const option = document.createElement("option");
 				option.value = id;
 				option.textContent = name;
 				optgroup.appendChild(option);
@@ -1844,7 +1882,7 @@ Overlays.prototype.openProperties = function(key) {
 		select.disabled = editor.pud.upgrades.useDefaults;
 		select.selectedIndex = 0;
 
-		let option = select.options[select.selectedIndex];
+		const option = select.options[select.selectedIndex];
 		$("#legend_upgrades").textContent = option.label;
 
 		self.fillProperties("upgrades");
@@ -1858,41 +1896,44 @@ Overlays.prototype.openProperties = function(key) {
 	}
 
 	function openSelection() {
-		let select = $("#select_unitMap"), units = {};
+		const select = $("#select_unitMap");
+		const units = {};
 
-		clear(select, false);
+		while (select.options.length > 0) { // removes old items from list
+			select.remove(0);
+		}
 
-		for (let group of Object.keys(data.units)) {
-			for (let id of Object.keys(data.units[group])) {
-				for (let race of Object.keys(data.units[group][id])) {
-					let unit = data.units[group][id][race];
+		for (const group of Object.keys(data.units)) {
+			for (const id of Object.keys(data.units[group])) {
+				for (const race of Object.keys(data.units[group][id])) {
+					const unit = data.units[group][id][race];
 					units[unit.id] = unit.name;
 				}
 			}
 		}
 
-		for (let [key, value] of Object.entries(editor.selected)) {
-			let item = document.createElement("option");
+		for (const [key, value] of Object.entries(editor.selected)) {
+			const item = document.createElement("option");
 			item.value = key;
 			item.textContent = units[value.id] || "Unknown";
 			select.appendChild(item);
 		}
 
 		select.selectedIndex = 0;
+
 		self.fillProperties("unitMap");
 		self.changeResource();
 	}
 
 	function setRadio(name, compare) {
-		let radios = document.getElementsByName("radio_" + name);
-
-		for (let element of radios) {
+		for (const element of document.getElementsByName("radio_" + name)) {
 			element.checked = element.value == compare;
 		}
 	}
 
 	function setSelect(id, value) {
-		let select = $("#select_" + id), options = Array.from(select.options);
+		const select = $("#select_" + id);
+		const options = Array.from(select.options);
 
 		select.selectedIndex = options.findIndex(function(option) {
 			return option.value == value;
@@ -1913,10 +1954,11 @@ Overlays.prototype.fillProperties = function(key) {
 		return fillSelectionProperties();
 	}
 
-	let index = $("#select_" + key).value, value = "";
+	const index = $("#select_" + key).value;
+	let value = "";
 
-	for (let element of $$("." + key)) {
-		let [type, id, sub] = element.id.split("_");
+	for (const element of $$("." + key)) {
+		const [type, id, sub] = element.id.split("_");
 
 		if (editor.pud[key][id] != undefined) {
 			if (editor.pud[key][id][index] != undefined) {
@@ -1939,7 +1981,7 @@ Overlays.prototype.fillProperties = function(key) {
 		}
 
 		if (sub) {
-			for (let property in value) {
+			for (const property in value) {
 				if (property == sub) {
 					if (type == "checkbox") {
 						$("#" + element.id).checked = Boolean(value[property]);
@@ -1966,53 +2008,42 @@ Overlays.prototype.fillProperties = function(key) {
 	this.index = index;
 
 	function fillRestrictionProperties() {
-		let index = $("#select_restrictions").value;
-		let category = index.replace(/Research(ed|ing)/, "");
+		const index = $("#select_restrictions").value;
+		const category = index.replace(/Research(ed|ing)/, "");
 
-		let tr = document.createElement("tr");
-		let td = document.createElement("th");
-		tr.appendChild(td);
+		const table = document.createElement("table");
+		const tr = document.createElement("tr");
+		const th = document.createElement("th");
+		tr.appendChild(th);
 
 		for (let i = 1; i <= PLAYERS; i++) {
-			let td = document.createElement("th");
-			td.className = "player" + i;
-			td.textContent = i;
-			td.addEventListener("click", function() {
-				for (let element of $$(".restrictions")) {
-					let [type, index, player] = element.id.split("_");
-
-					if (player == i - 1) {
-						element.checked = !element.checked;
-					}
-				}
-			});
-			tr.appendChild(td);
+			const th = document.createElement("th");
+			const button = document.createElement("button");
+			button.value = i - 1;
+			button.textContent = i;
+			button.classList.add("restcol", "player" + i);
+			th.appendChild(button);
+			tr.appendChild(th);
 		}
 
 		if ($$(".restrictions").length > 0) {
 			self.saveWorking("restrictions");
 		}
 
-		clear($("#restrictions table"));
-		$("#restrictions table").appendChild(tr);
+		table.appendChild(tr);
 
-		for (let [i, item] of data.restrictions[category].entries()) {
+		for (const [i, item] of data.restrictions[category].entries()) {
 			if (item == "") {
 				continue;
 			}
 
-			tr = document.createElement("tr");
-			td = document.createElement("td");
-			td.textContent = item;
-			td.addEventListener("click", function() {
-				for (let element of $$(".restrictions")) {
-					let [type, index, player] = element.id.split("_");
-
-					if (index == i) {
-						element.checked = !element.checked;
-					}
-				}
-			});
+			const tr = document.createElement("tr");
+			const td = document.createElement("td");
+			const button = document.createElement("button");
+			button.value = i;
+			button.textContent = item;
+			button.classList.add("restrow");
+			td.appendChild(button);
 			tr.appendChild(td);
 
 			for (let j = 0; j < PLAYERS; j++) {
@@ -2031,37 +2062,40 @@ Overlays.prototype.fillProperties = function(key) {
 					value = index == category;
 				}
 
-				td = document.createElement("td");
+				const td = document.createElement("td");
 
-				let input = document.createElement("input");
+				const input = document.createElement("input");
 				input.id = "checkbox_" + i + "_" + j;
-				input.className = "restrictions";
 				input.checked = Boolean(value);
 				input.value = i;
+				input.classList.add("restrictions");
 				input.setAttribute("type", "checkbox");
 
 				td.appendChild(input);
 				tr.appendChild(td);
 			}
 
-			$("#restrictions table").appendChild(tr);
+			table.appendChild(tr);
 		}
 
+		$("#restrictions table").replaceWith(table);
 		self.index = index;
 	}
 
 	function fillSelectionProperties() {
-		let select = $("#select_unitMap");
-		let option = select.options[select.selectedIndex], index = option.value;
+		const select = $("#select_unitMap");
+		const option = select.options[select.selectedIndex];
+		const index = option.value;
 
 		$("#legend_unitMap").textContent = option.label;
 
 		self.saveWorking("unitMap");
 
-		let unit = editor.selected[index], value = "";
+		const unit = editor.selected[index];
+		let value = "";
 
-		for (let element of $$(".unitMap")) {
-			let [type, id] = element.id.split("_");
+		for (const element of $$(".unitMap")) {
+			const [type, id] = element.id.split("_");
 
 			if (editor.selected[index] != undefined) {
 				if (editor.selected[index][id] != undefined) {
@@ -2078,7 +2112,7 @@ Overlays.prototype.fillProperties = function(key) {
 			$("#" + element.id).value = value;
 		}
 
-		let startLocation = unit.id == HUMAN_START_LOC
+		const startLocation = unit.id == HUMAN_START_LOC
 			|| unit.id == ORC_START_LOC;
 
 		if (startLocation) {
@@ -2089,7 +2123,7 @@ Overlays.prototype.fillProperties = function(key) {
 			$("#select_owner").disabled = false;
 		}
 
-		let flags = editor.pud.units.flags[unit.id];
+		const flags = editor.pud.units.flags[unit.id];
 
 		if (flags[GOLD_SOURCE] || flags[OIL_SOURCE] || flags[OIL_PLATFORM]) {
 			$("#row_resource").classList.remove("hidden");
@@ -2139,8 +2173,8 @@ Overlays.prototype.saveProperties = function(key) {
 	this.hide(key);
 
 	function saveCreate() {
-		let tileset = readRadio("terrain");
-		let size    = readRadio("size");
+		const tileset = readRadio("terrain");
+		const size    = readRadio("size");
 
 		files.loadTemplate(data.tilesets[tileset], size);
 	}
@@ -2149,7 +2183,7 @@ Overlays.prototype.saveProperties = function(key) {
 		editor.pud.filename = $("#text_filename").value;
 		editor.pud.description = $("#text_description").value;
 
-		let tileset = readRadio("tileset");
+		const tileset = readRadio("tileset");
 
 		if (editor.pud.tileset != tileset){
 			editor.changeTileset(tileset);
@@ -2177,14 +2211,14 @@ Overlays.prototype.saveProperties = function(key) {
 	}
 
 	function saveRestrictions() {
-		for (let index of Object.keys(self.working)) {
-			for (let i of Object.keys(self.working[index])) {
-				for (let j of Object.keys(self.working[index][i])) {
+		for (const index of Object.keys(self.working)) {
+			for (const i of Object.keys(self.working[index])) {
+				for (const j of Object.keys(self.working[index][i])) {
 					if (editor.pud.restrictions[index][j] == undefined) {
 						continue;
 					}
 
-					let value = Boolean(self.working[index][i][j]);
+					const value = Boolean(self.working[index][i][j]);
 					editor.pud.restrictions[index][j][i] = value;
 				}
 			}
@@ -2194,8 +2228,8 @@ Overlays.prototype.saveProperties = function(key) {
 	function saveSelection() {
 		let ownerChanged = 0;
 
-		for (let index of Object.keys(self.working)) {
-			for (let property of Object.keys(self.working[index])) {
+		for (const index of Object.keys(self.working)) {
+			for (const property of Object.keys(self.working[index])) {
 				if (editor.pud.unitMap[index] == undefined) {
 					continue;
 				}
@@ -2204,10 +2238,10 @@ Overlays.prototype.saveProperties = function(key) {
 					continue;
 				}
 
-				let value = Number(self.working[index][property]);
+				const value = Number(self.working[index][property]);
 
 				if (property == "owner") {
-					let unit = editor.pud.unitMap[index];
+					const unit = editor.pud.unitMap[index];
 
 					// changes race of unit when owner is changed if necessary
 					unit.id = editor.convertUnit(unit.id, unit.owner, value);
@@ -2225,14 +2259,12 @@ Overlays.prototype.saveProperties = function(key) {
 	}
 
 	function readNumber(id, size) {
-		let num = Number($("#number_" + id).value);
+		const num = Number($("#number_" + id).value);
 		return Math.max(num, 0);
 	}
 
 	function readRadio(name) {
-		let radios = document.getElementsByName("radio_" + name);
-
-		for (let element of radios) {
+		for (const element of document.getElementsByName("radio_" + name)) {
 			if (element.checked) {
 				return Number(element.value);
 			}
@@ -2244,8 +2276,8 @@ Overlays.prototype.saveProperties = function(key) {
 			return;
 		}
 
-		for (let index of Object.keys(self.working)) {
-			for (let property of Object.keys(self.working[index])) {
+		for (const index of Object.keys(self.working)) {
+			for (const property of Object.keys(self.working[index])) {
 				if (editor.pud[key][property] == undefined) {
 					continue;
 				}
@@ -2254,7 +2286,7 @@ Overlays.prototype.saveProperties = function(key) {
 					continue;
 				}
 
-				let value = self.working[index][property];
+				const value = self.working[index][property];
 				editor.pud[key][property][index] = value;
 			}
 		}
@@ -2262,32 +2294,32 @@ Overlays.prototype.saveProperties = function(key) {
 };
 
 Overlays.prototype.revertProperties = function(key) {
-	let index = $("#select_" + key).value;
+	const index = $("#select_" + key).value;
 	delete this.working[index];
 	this.fillProperties(key);
 };
 
 Overlays.prototype.resetProperties = function(key) {
-	let index = $("#select_" + key).value;
+	const index = $("#select_" + key).value;
 
 	if (this.working[index] == undefined) {
 		this.working[index] = {};
 	}
 
-	for (let property of Object.keys(defaults[key])) {
+	for (const property of Object.keys(defaults[key])) {
 		if (property == "useDefaults") {
 			continue;
 		}
 
-		let keys = Object.keys(defaults[key][property][index]);
+		const keys = Object.keys(defaults[key][property][index]);
 
 		if (keys.length > 0) {
-			for (let sub of keys) {
+			for (const sub of keys) {
 				if (this.working[index][property] == undefined) {
 					this.working[index][property] = {};
 				}
 
-				let value = defaults[key][property][index][sub];
+				const value = defaults[key][property][index][sub];
 				this.working[index][property][sub] = value;
 			}
 		} else {
@@ -2305,7 +2337,7 @@ Overlays.prototype.saveWorking = function(key) {
 
 	this.working[this.index] = $$("." + key).reduce(function(obj, element) {
 		if (!element.disabled) {
-			let [type, id, sub] = element.id.split("_");
+			const [type, id, sub] = element.id.split("_");
 			let value = false;
 
 			if (type == "checkbox") {
@@ -2332,10 +2364,10 @@ Overlays.prototype.saveWorking = function(key) {
 Overlays.prototype.changeIcon = function(input, oldImg, select) {
 	input.value = Math.min(Math.max(input.value, 0), LAST_ICON);
 
-	let tileset = data.tilesets[editor.pud.tileset];
-	let icon = input.value.padStart(4, "0");
+	const tileset = data.tilesets[editor.pud.tileset];
+	const icon = input.value.padStart(4, "0");
 
-	let newImg = new Image();
+	const newImg = new Image();
 	newImg.src = "icons/" + tileset + "/" + icon + ".png";
 	newImg.addEventListener("load", function() {
 		oldImg.src = this.src;
@@ -2387,11 +2419,11 @@ Pud.prototype.load = function(filename, buffer) {
 
 	while (pos < buffer.byteLength) {
 		try {
-			let key = hexToStr(new Uint8Array(buffer, pos, DWORD));
-			let length = new DataView(buffer, pos + 4, DWORD).getInt32(0, true);
+			const key = hexToStr(new Uint8Array(buffer, pos, DWORD));
+			const len = new DataView(buffer, pos + 4, DWORD).getInt32(0, true);
 
-			this.struct[key] = new Uint8Array(buffer, pos + 8, length);
-			pos += length + 8;
+			this.struct[key] = new Uint8Array(buffer, pos + 8, len);
+			pos += len + 8;
 		} catch (err) {
 			console.error(err);
 			break;
@@ -2427,7 +2459,7 @@ Pud.prototype.load = function(filename, buffer) {
 	this.valid &= this.version == STANDARD || this.version == EXPANSION;
 	this.valid &= this.tileset <= 0xff;
 
-	let area = this.width * this.height;
+	const area = this.width * this.height;
 	this.valid &= this.tileMap.length == area;
 	this.valid &= this.movementMap.length == area;
 
@@ -2462,15 +2494,15 @@ Pud.prototype.load = function(filename, buffer) {
 	if (!this.useAlow) { // copies default restriction data if no ALOW section
 		this.restrictions = {};
 
-		for (let key of Object.keys(defaults.restrictions)) {
+		for (const key of Object.keys(defaults.restrictions)) {
 			this.restrictions[key] = [];
 
-			for (let i of Object.keys(defaults.restrictions[key])) {
-				let keys = Object.keys(defaults.restrictions[key][i]);
+			for (const i of Object.keys(defaults.restrictions[key])) {
+				const keys = Object.keys(defaults.restrictions[key][i]);
 				this.restrictions[key][i] = [];
 
-				for (let j of keys) {
-					let value = defaults.restrictions[key][i][j];
+				for (const j of keys) {
+					const value = defaults.restrictions[key][i][j];
 					this.restrictions[key][i][j] = value;
 				}
 			}
@@ -2506,7 +2538,7 @@ Pud.prototype.load = function(filename, buffer) {
 			return;
 		}
 
-		let schema = data.schema[key];
+		const schema = data.schema[key];
 
 		if (schema.type == ARRAY) {
 			return makeArray(self.struct[key], schema.size);
@@ -2523,7 +2555,7 @@ Pud.prototype.load = function(filename, buffer) {
 			return data;
 		}
 
-		let arr = [];
+		const arr = [];
 
 		for (let i = 0; i < data.length; i += size) {
 			arr.push(parseNum(data.slice(i, i + size)));
@@ -2534,10 +2566,11 @@ Pud.prototype.load = function(filename, buffer) {
 
 	// breaks typed array into named chunks containing arrays of given size
 	function makeMap(arr, schema) {
-		let obj = {}, addr = 0;
+		const obj = {};
+		let addr = 0;
 
-		for (let [key, value] of schema.map) {
-			let [len, size, type] = value;
+		for (const [key, value] of schema.map) {
+			const [len, size, type] = value;
 			obj[key] = arr.slice(addr, addr + len * size);
 
 			if (type == ARRAY) {
@@ -2560,7 +2593,7 @@ Pud.prototype.load = function(filename, buffer) {
 
 	// parses two words into dimensions
 	function parseDim(data) {
-		let dim = [];
+		const dim = [];
 
 		for (let i = 0; i < data.length; i += DWORD) {
 			dim.push({
@@ -2576,7 +2609,7 @@ Pud.prototype.load = function(filename, buffer) {
 	function parseBits(arr) {
 		return arr.map(function(value) {
 			const SIZE = 32;
-			let sub = [];
+			const sub = [];
 
 			for (let i = 0; i < SIZE; i++) {
 				sub.push(Boolean(value & (1 << i)));
@@ -2604,7 +2637,7 @@ Pud.prototype.load = function(filename, buffer) {
 			return;
 		}
 
-		let type = self.struct["TYPE"];
+		const type = self.struct["TYPE"];
 
 		// checks for file format magic number
 		// last two bytes can be any value
@@ -2623,8 +2656,8 @@ Pud.prototype.load = function(filename, buffer) {
 			return;
 		}
 
-		let desc = hexToStr(self.struct["DESC"]);
-		let stop = desc.indexOf("\x00"); // terminates at null char
+		const desc = hexToStr(self.struct["DESC"]);
+		const stop = desc.indexOf("\x00"); // terminates at null char
 
 		return desc.slice(0, stop);
 	}
@@ -2636,15 +2669,15 @@ Pud.prototype.load = function(filename, buffer) {
 			return [0, 0];
 		}
 
-		let dim = self.struct["DIM "];
+		const dim = self.struct["DIM "];
 
 		if (dim.length != 4) {
 			setInvalid("Invalid map dimensions.");
 			return [0, 0];
 		}
 
-		let x = dim[0];
-		let y = dim[2];
+		const x = dim[0];
+		const y = dim[2];
 
 		if (x > MAX_WIDTH || y > MAX_HEIGHT) {
 			setInvalid("Map dimensions are too large.");
@@ -2660,7 +2693,8 @@ Pud.prototype.load = function(filename, buffer) {
 			return;
 		}
 
-		let unit = self.struct["UNIT"], unitMap = [];
+		const unit = self.struct["UNIT"];
+		const unitMap = [];
 
 		for (let i = 0; i < unit.length; i += QWORD) {
 			unitMap.push({
@@ -2688,9 +2722,9 @@ Pud.prototype.save = function() {
 		return;
 	}
 
-	let tileset = this.tileset == SWAMP ? WASTELAND : this.tileset;
+	const tileset = this.tileset == SWAMP ? WASTELAND : this.tileset;
 
-	let sections = new Map([ // order is significant
+	const sections = new Map([ // order is significant
 		["TYPE", saveType()],
 		["VER ", convertNum(this.version, WORD)],
 		["DESC", saveDesc()],
@@ -2720,7 +2754,7 @@ Pud.prototype.save = function() {
 
 	let length = 0;
 
-	for (let [key, contents] of sections) {
+	for (const [key, contents] of sections) {
 		if (contents == undefined) {
 			continue;
 		}
@@ -2728,9 +2762,10 @@ Pud.prototype.save = function() {
 		length += QWORD + contents.length;
 	}
 
-	let file = new Uint8Array(length), pos = 0;
+	const file = new Uint8Array(length);
+	let pos = 0;
 
-	for (let [key, contents] of sections) {
+	for (const [key, contents] of sections) {
 		if (contents == undefined) {
 			continue;
 		}
@@ -2739,7 +2774,7 @@ Pud.prototype.save = function() {
 			file[pos] = key.charCodeAt(i);
 		}
 
-		let len = convertNum(contents.length, DWORD);
+		const len = convertNum(contents.length, DWORD);
 
 		for (let i = 0; i < len.length; i++, pos++) { // section length
 			file[pos] = len[i];
@@ -2757,11 +2792,11 @@ Pud.prototype.save = function() {
 			throw "The map is empty. Place one or more units.";
 		}
 
-		let players = new Set();
-		let start = Array(self.controller.length).fill();
+		const players = new Set();
+		const start = Array(self.controller.length).fill();
 
 		// determines active players (i.e., players with units placed)
-		for (let unit of self.unitMap) {
+		for (const unit of self.unitMap) {
 			players.add(unit.owner);
 
 			// requires start locations for active players
@@ -2772,7 +2807,7 @@ Pud.prototype.save = function() {
 
 		const PASSIVE_COMPUTER = 2, NOBODY = 3, HUMAN = 5;
 
-		for (let player of players) {
+		for (const player of players) {
 			if (player != NEUTRAL && start[player] == undefined) {
 				throw `Must place a start location for player ${player + 1}.`;
 			}
@@ -2800,19 +2835,17 @@ Pud.prototype.save = function() {
 
 	// converts number to big-endian typed array
 	function convertNum(num, size) {
-		let arr = new Uint8Array(size);
-
-		return arr.map(function(undefined, i) {
+		return new Uint8Array(size).map(function(undefined, i) {
 			return (num & (0xff << i * 8)) >> i * 8;
 		});
 	}
 
 	// converts array with elements of given size into typed array
 	function convertArray(data, size) {
-		let arr = new Uint8Array(data.length * size);
+		const arr = new Uint8Array(data.length * size);
 
 		for (let i = 0; i < data.length; i++) {
-			let num = convertNum(data[i], size);
+			const num = convertNum(data[i], size);
 
 			for (let j = 0; j < num.length; j++) {
 				arr[i * size + j] = num[j];
@@ -2829,15 +2862,16 @@ Pud.prototype.save = function() {
 
 		let length = 0;
 
-		for (let [key, value] of schema.map) {
-			let [len, size, type] = value;
+		for (const [key, value] of schema.map) {
+			const [len, size, type] = value;
 			length += len * size;
 		}
 
-		let arr = new Uint8Array(length), pos = 0;
+		const arr = new Uint8Array(length);
+		let pos = 0;
 
-		for (let [key, value] of schema.map) {
-			let [len, size, type] = value;
+		for (const [key, value] of schema.map) {
+			const [len, size, type] = value;
 			let contents = null;
 
 			if (type == ARRAY) {
@@ -2861,11 +2895,12 @@ Pud.prototype.save = function() {
 	}
 
 	function convertDim(data) {
-		let arr = new Uint8Array(DWORD * data.length), pos = 0;
+		const arr = new Uint8Array(DWORD * data.length);
+		let pos = 0;
 
 		for (let i = 0; i < data.length; i++, pos += DWORD) {
-			let x = convertNum(data[i].x, WORD);
-			let y = convertNum(data[i].y, WORD);
+			const x = convertNum(data[i].x, WORD);
+			const y = convertNum(data[i].y, WORD);
 
 			arr[pos]     = x[0];
 			arr[pos + 1] = x[1];
@@ -2877,7 +2912,8 @@ Pud.prototype.save = function() {
 	}
 
 	function convertBits(data) {
-		let arr = new Uint8Array(data.length * DWORD), pos = 0;
+		const arr = new Uint8Array(data.length * DWORD);
+		let pos = 0;
 
 		for (let i = 0; i < data.length; i++) {
 			let value = 0;
@@ -2886,7 +2922,7 @@ Pud.prototype.save = function() {
 				value += data[i][j] << j;
 			}
 
-			let num = convertNum(value, DWORD);
+			const num = convertNum(value, DWORD);
 
 			for (let j = 0; j < num.length; j++, pos++) {
 				arr[pos] = num[j];
@@ -2897,16 +2933,14 @@ Pud.prototype.save = function() {
 	}
 
 	function convertOctal(data) {
-		let arr = new Uint8Array(data.length);
-
-		return arr.map(function(undefined, i) {
+		return new Uint8Array(data.length).map(function(undefined, i) {
 			return data[i][0] * 0o1 | data[i][1] * 0o2 | data[i][2] * 0o4;
 		});
 	}
 
 	function saveType() {
-		let len = FILE_SIGNATURE.length;
-		let arr = new Uint8Array(len + DWORD);
+		const len = FILE_SIGNATURE.length;
+		const arr = new Uint8Array(len + DWORD);
 
 		for (let i = 0; i < len; i++) {
 			arr[i] = FILE_SIGNATURE.charCodeAt(i);
@@ -2920,7 +2954,7 @@ Pud.prototype.save = function() {
 	}
 
 	function saveDesc() {
-		let arr = new Uint8Array(32);
+		const arr = new Uint8Array(32);
 		self.description = self.description.slice(0, 30);
 
 		for (let i = 0; i < self.description.length; i++) {
@@ -2931,11 +2965,13 @@ Pud.prototype.save = function() {
 	}
 
 	function saveUnit() {
-		let arr = new Uint8Array(QWORD * self.unitMap.length), pos = 0;
+		const arr = new Uint8Array(QWORD * self.unitMap.length);
+		let pos = 0;
 
-		for (let unit of self.unitMap) {
-			let x = convertNum(unit.x, WORD), y = convertNum(unit.y, WORD);
-			let property = convertNum(unit.property, WORD);
+		for (const unit of self.unitMap) {
+			const x = convertNum(unit.x, WORD);
+			const y = convertNum(unit.y, WORD);
+			const property = convertNum(unit.property, WORD);
 
 			arr[pos]     = x[0];
 			arr[pos + 1] = x[1];
@@ -2964,7 +3000,7 @@ function Files(id) {
 
 Files.prototype.browse = function() {
 	const self = this;
-	let xhr = new XMLHttpRequest();
+	const xhr = new XMLHttpRequest();
 
 	// opens at root directory if a template file is currently loaded
 	if (this.dirs.includes("templates")) {
@@ -2977,43 +3013,23 @@ Files.prototype.browse = function() {
 		path += "/";
 	}
 
-	const DIRECTORY = "dir", FILE = "pud";
+	const PARENT = "parent", DIRECTORY = "dir", FILE = "pud";
 
 	xhr.addEventListener("readystatechange", function() {
 		if (this.readyState == 4 && this.status == 200) {
-			let dirs = this.response.dirs, files = this.response.files;
-
-			let ul = document.createElement("ul");
+			const ul = document.createElement("ul");
 			ul.id = self.id;
 
 			if (self.dirs.length > 0) { // except root directory
-				ul.appendChild(createItem(DIRECTORY, "..",
-					function(event) {
-						event.preventDefault();
-						self.dirs.pop();
-						self.browse();
-					})
-				);
+				ul.appendChild(createItem(PARENT, ".."));
 			}
 
-			for (let dir of dirs) {
-				ul.appendChild(createItem(DIRECTORY, dir,
-					function(event) {
-						event.preventDefault();
-						self.dirs.push(dir);
-						self.browse();
-					})
-				);
+			for (const dir of this.response.dirs) {
+				ul.appendChild(createItem(DIRECTORY, dir));
 			}
 
-			for (let file of files) {
-				ul.appendChild(createItem(FILE, file,
-					function(event) {
-						event.preventDefault();
-						overlays.hide("browser");
-						self.load(file, editor.open.bind(editor));
-					})
-				);
+			for (const file of this.response.files) {
+				ul.appendChild(createItem(FILE, file));
 			}
 
 			$("#" + self.id).replaceWith(ul);
@@ -3023,14 +3039,15 @@ Files.prototype.browse = function() {
 	xhr.responseType = "json";
 	xhr.send();
 
-	function createItem(className, file, callback) {
-		let li = document.createElement("li");
+	function createItem(className, file) {
+		const li = document.createElement("li");
 
-		let a = document.createElement("a");
+		const a = document.createElement("a");
 		a.href = MAPS_DIR + "/" + path + file;
-		a.className = className;
-		a.textContent = className == DIRECTORY ? "[" + file + "]" : file;
-		a.addEventListener("click", callback);
+		a.textContent = (className == PARENT || className == DIRECTORY)
+		              ? "[" + file + "]"
+		              : file;
+		a.classList.add(className);
 		li.appendChild(a);
 
 		return li;
@@ -3038,7 +3055,7 @@ Files.prototype.browse = function() {
 };
 
 Files.prototype.load = function(filename, callback) {
-	let xhr = new XMLHttpRequest();
+	const xhr = new XMLHttpRequest();
 	let path = this.dirs.join("/") + "/" + filename;
 
 	// removes initial slash from file path if present
@@ -3055,6 +3072,21 @@ Files.prototype.load = function(filename, callback) {
 	xhr.open("GET", MAPS_DIR + "/" + path, true);
 	xhr.responseType = "arraybuffer";
 	xhr.send();
+};
+
+Files.prototype.openParent = function() {
+	this.dirs.pop();
+	this.browse();
+};
+
+Files.prototype.openDir = function(href) {
+	this.dirs.push(window.decodeURIComponent(href.split("/").pop()));
+	this.browse();
+};
+
+Files.prototype.openFile = function(href) {
+	const filename = window.decodeURIComponent(href.split("/").pop());
+	this.load(filename, editor.open.bind(editor));
 };
 
 Files.prototype.loadTemplate = function(tileset, size) {

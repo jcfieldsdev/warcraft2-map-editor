@@ -66,11 +66,11 @@ a, button, div#filename {
 	cursor: pointer;
 }
 
-a.dir {
+a.dir, a.parent {
 	background-image: url(icon-open.svg);
 }
 
-a.dir, a.pud {
+a.dir, a.parent, a.pud {
 	text-decoration: none;
 }
 
@@ -214,6 +214,10 @@ div#overlay_create fieldset {
 	width: 16em;
 }
 
+div#overlay_link, div.overlay table {
+	white-space: nowrap;
+}
+
 div#overlay_resources input {
 	width: 6em;
 }
@@ -298,10 +302,6 @@ div.overlay.open {
 	opacity: 1;
 	transition: 0.3s opacity;
 	visibility: visible;
-}
-
-div.overlay table {
-	white-space: nowrap;
 }
 
 div.palette {
