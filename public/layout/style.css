@@ -12,10 +12,6 @@
 	src: url(fonts/FrizQuadrata-Italic.woff2) format("woff2");
 }
 
-*.hidden, a#download {
-	display: none;
-}
-
 *.player1 {
 	background: none;
 	color: #f00;
@@ -64,6 +60,10 @@ a {
 
 a, button, div#filename {
 	cursor: pointer;
+}
+
+a#download {
+	display: none;
 }
 
 a.dir, a.parent {

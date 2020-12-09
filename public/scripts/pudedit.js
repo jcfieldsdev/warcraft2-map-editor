@@ -238,7 +238,7 @@ window.addEventListener("load", function() {
 
 		// layer toggles
 		if (element.matches(".layer")) {
-			$("#" + element.value).classList.toggle("hidden", !element.checked);
+			$("#" + element.value).hidden = !element.checked;
 		}
 
 		// property sheet open buttons
@@ -1718,7 +1718,7 @@ Editor.prototype.saveImage = function() {
 	}, "image/png");
 
 	function drawLayer(element) {
-		if (!element.classList.contains("hidden")) {
+		if (!element.hidden) {
 			context.drawImage(element, 0, 0, canvas.width, canvas.height);
 		}
 	}
@@ -2138,34 +2138,22 @@ Overlays.prototype.fillProperties = function(key) {
 		const startLocation = unit.id == HUMAN_START_LOC
 			|| unit.id == ORC_START_LOC;
 
-		if (startLocation) {
-			$("#row_owner").classList.add("hidden");
-			$("#select_owner").disabled = true;
-		} else {
-			$("#row_owner").classList.remove("hidden");
-			$("#select_owner").disabled = false;
-		}
+		$("#row_owner").hidden = startLocation;
+		$("#select_owner").disabled = startLocation;
 
 		const flags = editor.pud.units.flags[unit.id];
+		const isResourceSource = flags[GOLD_SOURCE]
+			|| flags[OIL_SOURCE]
+			|| flags[OIL_PLATFORM];
+		const isUnit = !startLocation && !flags[BUILDING];
 
-		if (flags[GOLD_SOURCE] || flags[OIL_SOURCE] || flags[OIL_PLATFORM]) {
-			$("#row_resource").classList.remove("hidden");
-			$("#range_property").disabled = false;
-		} else {
-			$("#row_resource").classList.add("hidden");
-			$("#range_property").disabled = true;
-		}
+		$("#row_resource").hidden = !isResourceSource;
+		$("#range_property").disabled = !isResourceSource;
+
+		$("#row_ai").hidden = !isUnit;
+		$("#select_property").disabled = !isUnit;
 
 		self.changeResource();
-
-		if (!startLocation && !flags[BUILDING]) { // units, not buildings
-			$("#row_ai").classList.remove("hidden");
-			$("#select_property").disabled = false;
-		} else {
-			$("#row_ai").classList.add("hidden");
-			$("#select_property").disabled = true;
-		}
-
 		self.index = index;
 	}
 };
