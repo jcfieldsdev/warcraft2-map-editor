@@ -38,7 +38,7 @@ Uses [Feather icons](https://github.com/feathericons/feather) by [Cole Bemis](ht
 
 ## Authors
 
-- J.C. Fields <jcfields+gitlab@gmail.com>
+- J.C. Fields <jcfields@jcfields.dev>
 
 ## License
 
