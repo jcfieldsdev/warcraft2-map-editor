@@ -110,18 +110,15 @@ const files    = new Files("files");
  */
 
 window.addEventListener("load", function() {
-	const query = window.location.search.replace(/\?map=(.*)/, "$1");
+	const params = getParams();
 
-	if (query == "") {
+	if (params.map == undefined || params.map == "") {
 		files.loadTemplate(DEFAULT_TILESET, DEFAULT_SIZE);
 	} else { // loads map specified in optional URL parameter
-		const dirs = query.split("/");
+		const dirs = params.map.split("/");
 
 		files.dirs = dirs;
-		files.load(
-			window.decodeURIComponent(dirs.pop()),
-			editor.open.bind(editor)
-		);
+		files.load(dirs.pop(), editor.open.bind(editor));
 	}
 
 	window.addEventListener("keyup", function(event) {
@@ -473,6 +470,17 @@ window.addEventListener("load", function() {
 			reader.readAsArrayBuffer(file);
 		}
 	});
+
+	function getParams() {
+		const params = {};
+
+		for (const pair of window.location.search.substring(1).split("&")) {
+			const [key, value] = pair.split("=");
+			params[key] = window.decodeURIComponent(value);
+		}
+
+		return params;
+	}
 
 	function create() {
 		overlays.openProperties("create");
