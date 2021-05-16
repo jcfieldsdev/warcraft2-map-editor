@@ -110,15 +110,12 @@ const files    = new Files("files");
  */
 
 window.addEventListener("load", function() {
-	const params = getParams();
+	const map = new URL(window.location.href).searchParams.get("map");
 
-	if (params.map == undefined || params.map == "") {
-		files.loadTemplate(DEFAULT_TILESET, DEFAULT_SIZE);
+	if (map == undefined || map == "") {
+		files.openTemplate(DEFAULT_TILESET, DEFAULT_SIZE);
 	} else { // loads map specified in optional URL parameter
-		const dirs = params.map.split("/");
-
-		files.dirs = dirs;
-		files.load(dirs.pop(), editor.open.bind(editor));
+		files.openFile(map);
 	}
 
 	window.addEventListener("keyup", function(event) {
@@ -298,20 +295,13 @@ window.addEventListener("load", function() {
 		// file browser parent directory
 		if (element.matches(".parent")) {
 			event.preventDefault();
-			files.openParent();
+			files.browseParent();
 		}
 
 		// file browser directory
 		if (element.matches(".dir")) {
 			event.preventDefault();
-			files.openDir(element.href);
-		}
-
-		// file browser map file
-		if (element.matches(".pud")) {
-			event.preventDefault();
-			overlays.hide("browser");
-			files.openFile(element.href);
+			files.browseDir(element.value);
 		}
 
 		// restrictions table column
@@ -371,6 +361,10 @@ window.addEventListener("load", function() {
 	document.addEventListener("mousedown", function(event) {
 		const element = event.target;
 
+		if (element.matches == undefined) {
+			return;
+		}
+
 		if (element.matches("#frame")) {
 			if (event.button == LEFT) {
 				editor.dragFrame = true;
@@ -391,6 +385,10 @@ window.addEventListener("load", function() {
 	});
 	document.addEventListener("mouseup", function(event) {
 		const element = event.target;
+
+		if (element.matches == undefined) {
+			return;
+		}
 
 		if (element.matches("#frame")) {
 			if (event.button == LEFT) {
@@ -426,6 +424,10 @@ window.addEventListener("load", function() {
 	});
 	document.addEventListener("mousemove", function(event) {
 		const element = event.target;
+
+		if (element.matches == undefined) {
+			return;
+		}
 
 		if (element.matches("#frame")) {
 			if (editor.dragFrame) {
@@ -471,17 +473,6 @@ window.addEventListener("load", function() {
 		}
 	});
 
-	function getParams() {
-		const params = {};
-
-		for (const pair of window.location.search.substring(1).split("&")) {
-			const [key, value] = pair.split("=");
-			params[key] = window.decodeURIComponent(value);
-		}
-
-		return params;
-	}
-
 	function create() {
 		overlays.openProperties("create");
 	}
@@ -504,8 +495,8 @@ window.addEventListener("load", function() {
 			a.href = window.URL.createObjectURL(blob);
 			a.click();
 			window.URL.revokeObjectURL(blob);
-		} catch (err) {
-			return overlays.displayError(err);
+		} catch (error) {
+			return overlays.displayError(error);
 		}
 	}
 
@@ -577,7 +568,7 @@ function Editor() {
 	this.terrainY = 0;
 }
 
-Editor.prototype.open = function(filename, path, buffer) {
+Editor.prototype.open = function(path, buffer) {
 	window.scrollTo(0, 0);
 
 	if (buffer == null) {
@@ -585,7 +576,7 @@ Editor.prototype.open = function(filename, path, buffer) {
 	}
 
 	this.pud = new Pud();
-	this.pud.load(filename, buffer);
+	this.pud.load(path.split("/").pop(), buffer);
 
 	if (!this.pud.valid) {
 		return overlays.displayError("The map file is corrupted or invalid.");
@@ -719,7 +710,7 @@ Editor.prototype.drawUnitMap = function() {
 	this.miniUnitBuffer.clearRect(0, 0, width, height);
 
 	const self = this;
-	const bottomPromises = [], top = [];
+	const top = [], bottom = [];
 
 	// sorts units by stacking priority
 	for (const [i, unit] of this.pud.unitMap.entries()) {
@@ -729,16 +720,14 @@ Editor.prototype.drawUnitMap = function() {
 		) {
 			top.push(i);
 		} else {
-			bottomPromises.push(makePromise(i));
+			bottom.push(i);
 		}
 	}
 
-	Promise.all(bottomPromises).then(function() {
+	Promise.all(bottom.map(drawUnit)).then(function() {
 		// draws flying units and start locations after other units
-		const topPromises = top.map(makePromise);
-
-		// draws units after all images have loaded
-		Promise.all(topPromises).then(function() {
+		Promise.all(top.map(drawUnit)).then(function() {
+			// draws units after all images have loaded
 			this.unitMap.clearRect(0, 0, width, height);
 			this.unitMap.drawImage(
 				this.unitBuffer.canvas,
@@ -755,40 +744,36 @@ Editor.prototype.drawUnitMap = function() {
 		}.bind(this));
 	}.bind(this));
 
-	function makePromise(i) {
+	function drawUnit(i) {
 		return new Promise(function(resolve) {
-			drawUnit(resolve, i);
+			const unit = self.pud.unitMap[i];
+			let unitSize = 1;
+
+			if (unit.id in self.pud.units.unitSize) {
+				unitSize = self.pud.units.unitSize[unit.id];
+			} else {
+				console.error("Missing unit size for unit:", unit.id);
+			}
+
+			const path = "units/" + data.tilesets[self.pud.tileset] + "/";
+
+			const img = new Image();
+			img.src = path + unit.id.toString().padStart(4, "0") + ".png";
+			img.addEventListener("load", function() {
+				const x = unit.x * TILE_SIZE;
+				const y = unit.y * TILE_SIZE;
+
+				const w = unitSize.x * TILE_SIZE;
+				const h = unitSize.y * TILE_SIZE;
+
+				drawToUnitMap(x, y, w, h, i, unit, img);
+				drawToMiniMap(x, y, w, h, unit);
+
+				resolve();
+			});
+
+			return img;
 		});
-	}
-
-	function drawUnit(resolve, i) {
-		const unit = self.pud.unitMap[i];
-		let unitSize = 1;
-
-		if (unit.id in self.pud.units.unitSize) {
-			unitSize = self.pud.units.unitSize[unit.id];
-		} else {
-			console.error("Missing unit size for unit:", unit.id);
-		}
-
-		const path = "units/" + data.tilesets[self.pud.tileset] + "/";
-
-		const img = new Image();
-		img.src = path + unit.id.toString().padStart(4, "0") + ".png";
-		img.addEventListener("load", function() {
-			const x = unit.x * TILE_SIZE;
-			const y = unit.y * TILE_SIZE;
-
-			const w = unitSize.x * TILE_SIZE;
-			const h = unitSize.y * TILE_SIZE;
-
-			drawToUnitMap(x, y, w, h, i, unit, img);
-			drawToMiniMap(x, y, w, h, unit);
-
-			resolve();
-		});
-
-		return img;
 	}
 
 	function drawToUnitMap(x, y, w, h, i, unit, img) {
@@ -2195,7 +2180,7 @@ Overlays.prototype.saveProperties = function(key) {
 		const tileset = readRadio("terrain");
 		const size    = readRadio("size");
 
-		files.loadTemplate(data.tilesets[tileset], size);
+		files.openTemplate(data.tilesets[tileset], size);
 	}
 
 	function saveMap() {
@@ -2443,8 +2428,8 @@ Pud.prototype.load = function(filename, buffer) {
 
 			this.struct[key] = new Uint8Array(buffer, pos + 8, len);
 			pos += len + 8;
-		} catch (err) {
-			console.error(err);
+		} catch (error) {
+			console.error(error);
 			break;
 		}
 	}
@@ -3019,7 +3004,6 @@ function Files(id) {
 
 Files.prototype.browse = function() {
 	const self = this;
-	const xhr = new XMLHttpRequest();
 
 	// opens at root directory if a template file is currently loaded
 	if (this.dirs.includes("templates")) {
@@ -3032,23 +3016,22 @@ Files.prototype.browse = function() {
 		path += "/";
 	}
 
-	const PARENT = "parent", DIRECTORY = "dir", FILE = "pud";
-
+	const xhr = new XMLHttpRequest();
 	xhr.addEventListener("readystatechange", function() {
 		if (this.readyState == 4 && this.status == 200) {
 			const ul = document.createElement("ul");
 			ul.id = self.id;
 
 			if (self.dirs.length > 0) { // except root directory
-				ul.appendChild(createItem(PARENT, ".."));
+				ul.appendChild(createDir("..", "parent"));
 			}
 
 			for (const dir of this.response.dirs) {
-				ul.appendChild(createItem(DIRECTORY, dir));
+				ul.appendChild(createDir(dir, "dir"));
 			}
 
 			for (const file of this.response.files) {
-				ul.appendChild(createItem(FILE, file));
+				ul.appendChild(createFile(file));
 			}
 
 			$("#" + self.id).replaceWith(ul);
@@ -3058,57 +3041,60 @@ Files.prototype.browse = function() {
 	xhr.responseType = "json";
 	xhr.send();
 
-	function createItem(className, file) {
+	function createDir(file, className) {
+		const li = document.createElement("li");
+
+		const button = document.createElement("button");
+		button.value = MAPS_DIR + "/" + path + file;
+		button.textContent = "[" + file + "]";
+		button.classList.add(className);
+		li.appendChild(button);
+
+		return li;
+	}
+
+	function createFile(file) {
 		const li = document.createElement("li");
 
 		const a = document.createElement("a");
-		a.href = MAPS_DIR + "/" + path + file;
-		a.textContent = (className == PARENT || className == DIRECTORY)
-		              ? "[" + file + "]"
-		              : file;
-		a.classList.add(className);
+		a.href = "?map=" + path + file;
+		a.textContent = file;
+		a.classList.add("pud");
 		li.appendChild(a);
 
 		return li;
 	}
 };
 
-Files.prototype.load = function(filename, callback) {
-	const xhr = new XMLHttpRequest();
-	let path = this.dirs.join("/") + "/" + filename;
+Files.prototype.openFile = function(path) {
+	this.dirs = path.split("/").slice(0, -1);
 
-	// removes initial slash from file path if present
-	// (for files in root directory)
-	if (path.slice(0, 1) == "/") {
-		path = path.slice(1);
-	}
-
-	xhr.addEventListener("readystatechange", function() {
-		if (this.readyState == 4) {
-			callback(filename, path, this.status == 200 ? this.response : null);
-		}
+	return new Promise(function(resolve) {
+		const xhr = new XMLHttpRequest();
+		xhr.addEventListener("readystatechange", function() {
+			if (this.readyState == 4) {
+				const buffer = this.status == 200 ? this.response : null;
+				resolve({path, buffer});
+			}
+		});
+		xhr.open("GET", MAPS_DIR + "/" + path, true);
+		xhr.responseType = "arraybuffer";
+		xhr.send();
+	}.bind(this)).then(function({path, buffer}) {
+		editor.open(path, buffer);
 	});
-	xhr.open("GET", MAPS_DIR + "/" + path, true);
-	xhr.responseType = "arraybuffer";
-	xhr.send();
 };
 
-Files.prototype.openParent = function() {
+Files.prototype.openTemplate = function(tileset, size) {
+	this.openFile(["templates", tileset, size + "x" + size + ".pud"].join("/"));
+};
+
+Files.prototype.browseParent = function() {
 	this.dirs.pop();
 	this.browse();
 };
 
-Files.prototype.openDir = function(href) {
+Files.prototype.browseDir = function(href) {
 	this.dirs.push(window.decodeURIComponent(href.split("/").pop()));
 	this.browse();
-};
-
-Files.prototype.openFile = function(href) {
-	const filename = window.decodeURIComponent(href.split("/").pop());
-	this.load(filename, editor.open.bind(editor));
-};
-
-Files.prototype.loadTemplate = function(tileset, size) {
-	this.dirs = ["templates", tileset];
-	this.load(size + "x" + size + ".pud", editor.open.bind(editor));
 };

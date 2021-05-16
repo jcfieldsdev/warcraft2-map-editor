@@ -66,16 +66,9 @@ a#download {
 	display: none;
 }
 
-a.dir, a.parent {
-	background-image: url(icon-open.svg);
-}
-
-a.dir, a.parent, a.pud {
-	text-decoration: none;
-}
-
 a.pud {
 	background-image: url(icon-map.svg);
+	text-decoration: none;
 }
 
 body {
@@ -95,6 +88,10 @@ button {
 button.action img {
 	height: 1em;
 	width: 1em;
+}
+
+button.dir, button.parent {
+	background-image: url(icon-open.svg);
 }
 
 button.reset, button.revert {
@@ -558,8 +555,10 @@ ul#files {
 	white-space: nowrap;
 }
 
-ul#files a {
+ul#files a, ul#files button {
+	background-position: 0 50%;
 	background-repeat: no-repeat;
+	background-size: 1em 1em;
 	padding-left: 1.5em;
 }
 
