@@ -466,7 +466,7 @@ window.addEventListener("load", function() {
 		if (file != null) {
 			const reader = new FileReader();
 			reader.addEventListener("load", function(event) {
-				editor.open(file.name, "", event.target.result);
+				editor.open(file.name, event.target.result);
 				overlays.hide("browser");
 			});
 			reader.readAsArrayBuffer(file);

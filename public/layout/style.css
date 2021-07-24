@@ -501,7 +501,6 @@ select:not([size]) {
 	background-image: url(select.svg);
 	background-position: 100% 50%;
 	background-repeat: no-repeat;
-	background-size: 1em 1em;
 }
 
 td {
