@@ -135,7 +135,8 @@ window.addEventListener("load", function() {
 			}
 		}
 
-		if (keyCode == 46) { // Del
+		if (keyCode == 8 || keyCode == 46) { // Del
+			event.preventDefault();
 			editor.removeSelected();
 		}
 
@@ -633,18 +634,6 @@ Editor.prototype.open = function(path, buffer) {
 		this.selectPalette(DEFAULT_PALETTE);
 	}
 
-	for (const unit of this.pud.unitMap) {
-		// tracks unit positions so they persist when units are redrawn
-		unit.position = undefined;
-
-		// tracks points occupied by unit for collision detection
-		const unitSize = this.pud.units.unitSize[unit.id];
-		unit.points = this.computePoints(
-			unit.x, unit.y,
-			unitSize.x, unitSize.y
-		);
-	}
-
 	// draws tile map and unit map, changes unit icons to match tileset
 	this.changeTileset(this.pud.tileset);
 
@@ -939,24 +928,21 @@ Editor.prototype.selectUnits = function(x, y, add=false) {
 		this.select.strokeStyle = SELECT_COLOR;
 	}
 
-	let points = [];
-
 	[x, y] = this.findNearestTile(x, y);
 
-	if (this.selectMultiple) {
-		const mx = Math.floor(this.selectX / TILE_SIZE);
-		const my = Math.floor(this.selectY / TILE_SIZE);
+	const mx = Math.floor(this.selectX / TILE_SIZE);
+	const my = Math.floor(this.selectY / TILE_SIZE);
 
-		const w = Math.abs(mx - x);
-		const h = Math.abs(my - y);
+	const nx = Math.min(mx, x);
+	const ny = Math.min(my, y);
 
-		if (w > 0 && h > 0) {
-			points = this.computePoints(Math.min(mx, x), Math.min(my, y), w, h);
-		} else {
-			// treats box select as single-unit click if smaller than tile size;
-			// prevents annoying misclicks
-			this.selectMultiple = false;
-		}
+	const w = Math.abs(mx - x);
+	const h = Math.abs(my - y);
+
+	if (this.selectMultiple && (w < 0 || h < 0)) {
+		// treats box select as single-unit click if smaller than tile size;
+		// prevents annoying misclicks
+		this.selectMultiple = false;
 	}
 
 	for (const [i, unit] of this.pud.unitMap.entries()) {
@@ -968,15 +954,15 @@ Editor.prototype.selectUnits = function(x, y, add=false) {
 		let intersect = false;
 
 		if (this.selectMultiple) {
-			for (const point of this.pud.unitMap[i].points) {
-				if (points.includes(point)) {
-					intersect = true;
-					break;
-				}
-			}
+			intersect = nx < unit.x + unitSize.x
+				&& nx + w > unit.x
+				&& ny < unit.y + unitSize.y
+				&& ny + h > unit.y;
 		} else {
-			const point = x + this.pud.width * y;
-			intersect = this.pud.unitMap[i].points.includes(point);
+			intersect = x <= unit.x + unitSize.x - 1
+				&& x + w >= unit.x
+				&& y <= unit.y + unitSize.y - 1
+				&& y + h >= unit.y;
 		}
 
 		if (intersect && (!add || this.selected[i] == undefined)) {
@@ -1069,8 +1055,7 @@ Editor.prototype.addUnit = function(x, y) {
 		id,
 		owner,
 		property,
-		position: undefined,
-		points: this.computePoints(x, y, unitSize.x, unitSize.y)
+		position: undefined
 	});
 	this.drawUnitMap();
 };
@@ -1304,18 +1289,6 @@ Editor.prototype.paintTerrain = function(x, y) {
 	}
 };
 
-Editor.prototype.computePoints = function(x, y, ux, uy) {
-	const points = [];
-
-	for (let i = 0; i < uy; i++) {
-		for (let j = 0; j < ux; j++) {
-			points.push(x + j + this.pud.width * (y + i));
-		}
-	}
-
-	return points;
-};
-
 Editor.prototype.findNearestTile = function(x, y, w=0, h=0) {
 	x += window.scrollX;
 	y += window.scrollY;
@@ -1369,137 +1342,110 @@ Editor.prototype.validateArea = function(x, y) {
 		return; // cannot place start location for neutral player
 	}
 
-	const unitSize = this.pud.units.unitSize[this.unit];
-	const points = this.computePoints(x, y, unitSize.x, unitSize.y);
-
 	const LAND = 0o1, AIR = 0o2, SEA = 0o4;
 	const flags = this.pud.units.flags[this.unit];
+	const unitSize = this.pud.units.unitSize[this.unit];
 	const unitType = getUnitType(flags);
 
-	const resourceArea = [];
-
-	if (
-		flags[GOLD_SOURCE] || flags[GOLD_DEPOT]
-		|| flags[OIL_SOURCE] || flags[OIL_PLATFORM] || flags[OIL_DEPOT]
-	) { // determines exclusion area around resource sources and return points
-		const start = points[0] - RESOURCE_DISTANCE
-			- this.pud.width * RESOURCE_DISTANCE;
-		const row = 2 * RESOURCE_DISTANCE + unitSize.x;
-		const col = 2 * RESOURCE_DISTANCE + unitSize.y;
-
-		for (let i = 0; i < col; i++) {
-			for (let j = 0; j < row; j++) {
-				const coord = start + j + i * this.pud.width;
-
-				// ignores negative values from placing building on top or left
-				// edges of map
-				if (coord < 0) {
-					continue;
-				}
-
-				// computes distance from building to calculated point to omit
-				// "wraparound" values from placing building on right or bottom
-				// edges of map
-				const h = Math.abs(x - coord % this.pud.width);
-				const v = Math.abs(y - Math.floor(coord / this.pud.height));
-
-				if (
-					h > RESOURCE_DISTANCE + unitSize.x
-					|| v > RESOURCE_DISTANCE + unitSize.y
-				) {
-					continue;
-				}
-
-				resourceArea.push(coord);
-			}
-		}
-	}
-
 	// checks if area contains other units
-	for (const [i, unit] of this.pud.unitMap.entries()) {
-		const unitStartLocation = unit.id == HUMAN_START_LOC
-			|| unit.id == ORC_START_LOC;
+	for (const otherUnit of this.pud.unitMap.values()) {
+		const unitStartLocation = otherUnit.id == HUMAN_START_LOC
+			|| otherUnit.id == ORC_START_LOC;
 
 		// start locations ignore collision with everything except
 		// other start locations and neutral units
-		if ((startLocation ^ unitStartLocation) && unit.owner != NEUTRAL) {
+		if ((startLocation ^ unitStartLocation) && otherUnit.owner != NEUTRAL) {
 			continue;
 		}
 
-		const compareType = getUnitType(this.pud.units.flags[unit.id]);
-		const compareFlags = this.pud.units.flags[unit.id];
+		const otherUnitType = getUnitType(this.pud.units.flags[otherUnit.id]);
+		const otherFlags = this.pud.units.flags[otherUnit.id];
 
 		// allows air units over ground/sea units and buildings
 		if (
-			(flags[AIR_UNIT] ^ compareFlags[AIR_UNIT])
+			(flags[AIR_UNIT] ^ otherFlags[AIR_UNIT])
 			&& ((unitType & (LAND | SEA) || flags[BUILDING])
-				^ (compareType == LAND
-				|| compareType == SEA
-				|| compareFlags[BUILDING]))
+				^ (otherUnitType == LAND
+				|| otherUnitType == SEA
+				|| otherFlags[BUILDING]))
 		) {
 			continue;
 		}
 
-		for (const point of this.pud.unitMap[i].points) {
-			if (points.includes(point)) {
-				valid = false;
-				break;
-			}
+		const otherUnitSize = this.pud.units.unitSize[otherUnit.id];
 
-			if ( // enforces resource exclusion area
-				(flags[GOLD_SOURCE] && compareFlags[GOLD_DEPOT])
-				|| (flags[GOLD_DEPOT] && compareFlags[GOLD_SOURCE])
-				|| ((flags[OIL_SOURCE] || flags[OIL_PLATFORM])
-					&& compareFlags[OIL_DEPOT])
-				|| (flags[OIL_DEPOT]
-					&& (compareFlags[OIL_SOURCE] || compareFlags[OIL_PLATFORM]))
+		if (
+			x < otherUnit.x + otherUnitSize.x
+			&& x + unitSize.x > otherUnit.x
+			&& y < otherUnit.y + otherUnitSize.y
+			&& y + unitSize.y > otherUnit.y
+		) {
+			valid = false;
+		} else if (
+			(flags[GOLD_SOURCE] && otherFlags[GOLD_DEPOT])
+			|| (flags[GOLD_DEPOT] && otherFlags[GOLD_SOURCE])
+			|| ((flags[OIL_SOURCE] || flags[OIL_PLATFORM])
+				&& otherFlags[OIL_DEPOT])
+			|| (flags[OIL_DEPOT]
+				&& (otherFlags[OIL_SOURCE] || otherFlags[OIL_PLATFORM]))
+		) { // enforces resource exclusion area
+			if (
+				x < otherUnit.x + otherUnitSize.x + RESOURCE_DISTANCE
+				&& x + unitSize.x + RESOURCE_DISTANCE > otherUnit.x
+				&& y < otherUnit.y + otherUnitSize.y + RESOURCE_DISTANCE
+				&& y + unitSize.y + RESOURCE_DISTANCE > otherUnit.y
 			) {
-				if (resourceArea.includes(point)) {
-					valid = false;
-					break;
-				}
+				valid = false;
 			}
+		}
+
+		if (!valid) {
+			break;
 		}
 	}
 
 	let coastTiles = 0;
 
 	// checks if unit is allowed on movement tile
-	for (const point of points) {
-		const special = this.pud.movementMap[point] & 0xff00;
-		const tile    = this.pud.movementMap[point] & 0x00ff;
+	for (let i = 0; i < unitSize.y; i++) {
+		for (let j = 0; j < unitSize.x; j++) {
+			const point = x + j + this.pud.width * (y + i);
 
-		if (special == 0x00) {
-			if (flags[BUILDING]) { // buildings
-				if (flags[SHORE_BUILDING]) {
-					valid &= tile == 0x02 || tile == 0x82 || tile == 0x40;
+			const special = this.pud.movementMap[point] & 0xff00;
+			const tile    = this.pud.movementMap[point] & 0x00ff;
 
-					// counts coast tiles
-					coastTiles += tile == 0x02 || tile == 0x82;
-				} else if (flags[OIL_SOURCE] || flags[OIL_PLATFORM]) {
-					valid &= tile == 0x00 || tile == 0x40;
-				} else {
-					valid &= tile == 0x00 || tile == 0x01;
+			if (special == 0x00) {
+				if (flags[BUILDING]) { // buildings
+					if (flags[SHORE_BUILDING]) {
+						valid &= tile == 0x02 || tile == 0x82 || tile == 0x40;
+
+						// counts coast tiles
+						coastTiles += tile == 0x02 || tile == 0x82;
+					} else if (flags[OIL_SOURCE] || flags[OIL_PLATFORM]) {
+						valid &= tile == 0x00 || tile == 0x40;
+					} else {
+						valid &= tile == 0x00 || tile == 0x01;
+					}
+				} else { // units
+					if (unitType & LAND || startLocation) {
+						valid &= tile == 0x00 || tile == 0x01 || tile == 0x11;
+					} else if (unitType & AIR) {
+						valid &= true;
+					} else if (unitType & SEA) {
+						valid &= tile == 0x00 || tile == 0x40;
+					}
 				}
-			} else { // units
-				if (unitType & LAND || startLocation) {
-					valid &= tile == 0x00 || tile == 0x01 || tile == 0x11;
-				} else if (unitType & AIR) {
-					valid &= true;
-				} else if (unitType & SEA) {
-					valid &= tile == 0x00 || tile == 0x40;
+			} else if (special == 0x02) {
+				if (unitType & AIR) {
+					valid = false;
 				}
-			}
-		} else if (special == 0x02) {
-			if (unitType & AIR) {
+			} else if (special == 0xff) {
 				valid = false;
 			}
-		} else if (special == 0xff) {
-			valid = false;
-		}
 
-		if (!valid) {
-			break;
+			if (!valid) {
+				break;
+			}
 		}
 	}
 
@@ -2706,7 +2652,8 @@ Pud.prototype.load = function(filename, buffer) {
 				y:        parseNum(unit.slice(i + 2, i + 2 + WORD)),
 				id:       unit[i + 4],
 				owner:    unit[i + 5],
-				property: parseNum(unit.slice(i + 6, i + 6 + WORD))
+				property: parseNum(unit.slice(i + 6, i + 6 + WORD)),
+				position: undefined
 			});
 		}
 
