@@ -46,9 +46,10 @@
 	<li><button type="button" id="link"><img src="layout/icon-link.svg" alt="[Link to Map]"> Link to Map</button></li>
 	<li><button type="button" id="about"><img src="layout/icon-about.svg" alt="[About]"> About</button></li>
 </ul>
-<div id="layers"><label><input type="checkbox" value="tileMap" checked="checked" class="layer"> Terrain</label>
-<label><input type="checkbox" value="unitMap" checked="checked" class="layer"> Units</label>
-<label><input type="checkbox" value="movementMap" class="layer"> Movement</label></div></div>
+<div id="layers"><div><label><input type="checkbox" value="tileMap" checked="checked" class="layer"> Terrain</label>
+<label><input type="checkbox" value="unitMap" checked="checked" class="layer"> Units</label></div>
+<div><label><input type="checkbox" value="movementMap" class="layer"> Movement</label>
+<label><input type="checkbox" value="actionMap" class="layer"> Action</label></div></div></div>
 <div id="terrain" class="palette">
 <details id="info"><summary>Tile Information:</summary>
 <table><tr><td>Position:</td><td><input type="text" disabled="disabled" id="text_posX" class="dim">×<input type="text" disabled="disabled" id="text_posY" class="dim"></td></tr>
@@ -110,6 +111,7 @@
 <canvas id="tileMap"></canvas>
 <canvas id="unitMap"></canvas>
 <canvas id="movementMap" hidden="hidden"></canvas>
+<canvas id="actionMap" hidden="hidden"></canvas>
 <canvas id="select"></canvas>
 <div id="overlay_create" class="overlay"><div class="title"><h2>Create</h2>
 <button type="button" value="create" title="Create" class="save"><img src="layout/widget-save.svg" alt="Create"></button>

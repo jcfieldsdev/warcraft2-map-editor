@@ -603,6 +603,7 @@ Editor.prototype.open = function(path, buffer) {
 	setSize("tileMap",     width,        height);
 	setSize("unitMap",     width,        height);
 	setSize("movementMap", width,        height);
+	setSize("actionMap",   width,        height);
 	setSize("select",      width,        height);
 	setSize("miniUnitMap", MINIMAP_SIZE, MINIMAP_SIZE);
 	setSize("miniTileMap", MINIMAP_SIZE, MINIMAP_SIZE);
@@ -611,6 +612,7 @@ Editor.prototype.open = function(path, buffer) {
 	this.tileMap = $("#tileMap").getContext("2d");
 	this.unitMap = $("#unitMap").getContext("2d");
 	this.movementMap = $("#movementMap").getContext("2d");
+	this.actionMap = $("#actionMap").getContext("2d");
 	this.select = $("#select").getContext("2d");
 	this.miniTileMap = $("#miniTileMap").getContext("2d");
 	this.miniUnitMap = $("#miniUnitMap").getContext("2d");
@@ -638,6 +640,7 @@ Editor.prototype.open = function(path, buffer) {
 	this.changeTileset(this.pud.tileset);
 
 	this.drawMovementMap();
+	this.drawActionMap();
 
 	function setSize(id, w, h) {
 		$("#" + id).width  = w;
@@ -833,7 +836,6 @@ Editor.prototype.drawUnitMap = function() {
 	}
 };
 
-
 Editor.prototype.drawMovementMap = function() {
 	const w = TILE_SIZE - 4;
 	const h = w;
@@ -850,6 +852,35 @@ Editor.prototype.drawMovementMap = function() {
 		} else {
 			const hex = this.formatHex(tile);
 			console.error(`Missing movement tile: ${hex} at (${x}, ${y})`);
+		}
+
+		if ((i + 1) % this.pud.width == 0) { // new row
+			x = 0;
+			y++;
+		} else {
+			x++;
+		}
+	}
+};
+
+Editor.prototype.drawActionMap = function() {
+	const w = TILE_SIZE - 12;
+	const h = w;
+	let x = 0, y = 0;
+
+	this.actionMap.lineWidth = 1;
+
+	for (const [i, tile] of this.pud.actionMap.entries()) {
+		const type = (tile & 0xff00) >> 8;
+
+		if (type in data.action) {
+			this.actionMap.strokeStyle = data.action[type];
+			this.actionMap.strokeRect(
+				x * TILE_SIZE + 6, y * TILE_SIZE + 6, w, h
+			);
+		} else {
+			const hex = this.formatHex(tile);
+			console.error(`Missing action tile: ${hex} at (${x}, ${y})`);
 		}
 
 		if ((i + 1) % this.pud.width == 0) { // new row

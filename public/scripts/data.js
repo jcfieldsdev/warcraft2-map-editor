@@ -1765,7 +1765,7 @@ data.tiles = [
 data.races = ["human", "orc", "human"]; // neutral (0x02) is treated as human
 data.tilesets = ["forest", "winter", "wasteland", "swamp"];
 
-data.movement = {
+data.movement = { // same colors used by Puddraft
 	0x0000: "#fff",    // bridge (all units)
 	0x0001: "#0f0",    // land
 	0x0002: "#008080", // coast corner
@@ -1775,6 +1775,12 @@ data.movement = {
 	0x0082: "#00f",    // coast
 	0x0089: "#808080", // orc wall
 	0x008d: "#808080"  // human wall
+};
+
+data.action = {
+	0x00: "#000080", // water
+	0x40: "#00c000", // land
+	0xff: "#c0c0c0"  // unpathable
 };
 
 data.ai = new Map([
