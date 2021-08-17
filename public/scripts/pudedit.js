@@ -2363,12 +2363,11 @@ Overlays.prototype.changeResource = function() {
  * Pud prototype
  */
 
-function Pud(filename="", struct={}) {
-	this.filename = filename;
-	this.struct = struct;
+function Pud() {
+	this.filename = "";
 	this.valid = true;
 
-	this.id = "";
+	this.id = null;
 	this.version = STANDARD;
 	this.certificate = 0;
 	this.description = "";
@@ -2377,9 +2376,9 @@ function Pud(filename="", struct={}) {
 	this.tileset = 0;
 	this.useAlow = false;
 
-	this.races = [];
-	this.controller = [];
-	this.ai = [];
+	this.races = null;
+	this.controller = null;
+	this.ai = null;
 
 	this.startGold = [];
 	this.startLumber = [];
@@ -2396,21 +2395,7 @@ function Pud(filename="", struct={}) {
 }
 
 Pud.prototype.load = function(filename, buffer) {
-	let pos = 0;
-
-	while (pos < buffer.byteLength) {
-		try {
-			const key = hexToStr(new Uint8Array(buffer, pos, DWORD));
-			const len = new DataView(buffer, pos + 4, DWORD).getInt32(0, true);
-
-			this.struct[key] = new Uint8Array(buffer, pos + 8, len);
-			pos += len + 8;
-		} catch (error) {
-			console.error(error);
-			break;
-		}
-	}
-
+	const sections = this.openFile(buffer);
 	this.filename = filename;
 
 	const REQUIRED = true, OPTIONAL = false;
@@ -2496,13 +2481,6 @@ Pud.prototype.load = function(filename, buffer) {
 		});
 	}
 
-	// converts hex to ASCII
-	function hexToStr(arr) {
-		return arr.reduce(function(str, hex) {
-			return str + String.fromCharCode(hex);
-		}, "");
-	}
-
 	// parses typed array to little-endian number
 	function parseNum(arr) {
 		return arr.reduce(function(num, hex, i) {
@@ -2511,7 +2489,7 @@ Pud.prototype.load = function(filename, buffer) {
 	}
 
 	function readSection(key, required=REQUIRED) {
-		if (self.struct[key] == undefined) {
+		if (sections.get(key) == undefined) {
 			if (required) {
 				setInvalid(`Missing required section: ${key}`);
 			}
@@ -2522,11 +2500,11 @@ Pud.prototype.load = function(filename, buffer) {
 		const schema = data.schema[key];
 
 		if (schema.type == ARRAY) {
-			return makeArray(self.struct[key], schema.size);
+			return makeArray(sections.get(key), schema.size);
 		} else if (schema.type == MAP) {
-			return makeMap(self.struct[key], schema);
+			return makeMap(sections.get(key), schema);
 		} else if (schema.type == NUMBER) {
-			return parseNum(self.struct[key]);
+			return parseNum(sections.get(key));
 		}
 	}
 
@@ -2613,52 +2591,54 @@ Pud.prototype.load = function(filename, buffer) {
 
 	// identifies as PUD file and gets unique map ID
 	function readType() {
-		if (self.struct["TYPE"] == undefined) {
+		const section = sections.get("TYPE");
+
+		if (section == undefined) {
 			setInvalid("Missing required section: TYPE");
 			return;
 		}
 
-		const type = self.struct["TYPE"];
-
 		// checks for file format magic number
 		// last two bytes can be any value
-		if (!hexToStr(type).startsWith(FILE_SIGNATURE.slice(0, -2))) {
+		if (!self.hexToStr(section).startsWith(FILE_SIGNATURE.slice(0, -2))) {
 			setInvalid("Invalid file signature.");
 			return;
 		}
 
-		return type.slice(FILE_SIGNATURE.length); // returns ID
+		return section.slice(FILE_SIGNATURE.length); // returns ID
 	}
 
 	// reads scenario description
 	function readDesc() {
-		if (self.struct["DESC"] == undefined) {
+		const section = sections.get("DESC");
+
+		if (section == undefined) {
 			setInvalid("Missing required section: DESC");
 			return;
 		}
 
-		const desc = hexToStr(self.struct["DESC"]);
-		const stop = desc.indexOf("\x00"); // terminates at null char
+		const desc = self.hexToStr(section);
+		const stop = section.indexOf("\x00"); // terminates at null char
 
-		return desc.slice(0, stop);
+		return section.slice(0, stop);
 	}
 
 	// gets map dimensions
 	function readDim() {
-		if (self.struct["DIM "] == undefined) {
+		const section = sections.get("DIM ");
+
+		if (section == undefined) {
 			setInvalid("Missing required section: DIM ");
 			return [0, 0];
 		}
 
-		const dim = self.struct["DIM "];
-
-		if (dim.length != 4) {
+		if (section.length != 4) {
 			setInvalid("Invalid map dimensions.");
 			return [0, 0];
 		}
 
-		const x = dim[0];
-		const y = dim[2];
+		const x = section[0];
+		const y = section[2];
 
 		if (x > MAX_WIDTH || y > MAX_HEIGHT) {
 			setInvalid("Map dimensions are too large.");
@@ -2669,21 +2649,22 @@ Pud.prototype.load = function(filename, buffer) {
 
 	// gets unit map
 	function readUnit() {
-		if (self.struct["UNIT"] == undefined) {
+		const section = sections.get("UNIT");
+
+		if (section == undefined) {
 			setInvalid("Missing required section: UNIT");
 			return;
 		}
 
-		const unit = self.struct["UNIT"];
 		const unitMap = [];
 
-		for (let i = 0; i < unit.length; i += QWORD) {
+		for (let i = 0; i < section.length; i += QWORD) {
 			unitMap.push({
-				x:        parseNum(unit.slice(i,     i + WORD)),
-				y:        parseNum(unit.slice(i + 2, i + 2 + WORD)),
-				id:       unit[i + 4],
-				owner:    unit[i + 5],
-				property: parseNum(unit.slice(i + 6, i + 6 + WORD)),
+				x:        parseNum(section.slice(i,     i + WORD)),
+				y:        parseNum(section.slice(i + 2, i + 2 + WORD)),
+				id:       section[i + 4],
+				owner:    section[i + 5],
+				property: parseNum(section.slice(i + 6, i + 6 + WORD)),
 				position: undefined
 			});
 		}
@@ -2732,40 +2713,7 @@ Pud.prototype.save = function() {
 		sections.delete("ALOW");
 	}
 
-	let length = 0;
-
-	for (const [key, contents] of sections) {
-		if (contents == undefined) {
-			continue;
-		}
-
-		length += QWORD + contents.length;
-	}
-
-	const file = new Uint8Array(length);
-	let pos = 0;
-
-	for (const [key, contents] of sections) {
-		if (contents == undefined) {
-			continue;
-		}
-
-		for (let i = 0; i < key.length; i++, pos++) { // section name
-			file[pos] = key.charCodeAt(i);
-		}
-
-		const len = convertNum(contents.length, DWORD);
-
-		for (let i = 0; i < len.length; i++, pos++) { // section length
-			file[pos] = len[i];
-		}
-
-		for (let i = 0; i < contents.length; i++, pos++) {
-			file[pos] = contents[i];
-		}
-	}
-
-	return new Blob([file], {type: MIME_TYPE});
+	return this.createFile(sections);
 
 	function validateMap() {
 		if (self.unitMap.length == 0) {
@@ -2988,6 +2936,68 @@ Pud.prototype.save = function() {
 	}
 };
 
+Pud.prototype.openFile = function(buffer) {
+	const sections = new Map();
+	let pos = 0;
+
+	while (pos < buffer.byteLength) {
+		try {
+			const key = this.hexToStr(new Uint8Array(buffer, pos, DWORD));
+			const len = new DataView(buffer, pos + 4, DWORD).getInt32(0, true);
+
+			sections.set(key, new Uint8Array(buffer, pos + 8, len));
+			pos += len + 8;
+		} catch (error) {
+			console.error(error);
+			break;
+		}
+	}
+
+	return sections;
+};
+
+Pud.prototype.createFile = function(sections) {
+	let length = 0;
+
+	for (const [key, contents] of sections) {
+		if (contents == undefined) {
+			continue;
+		}
+
+		length += QWORD + contents.length;
+	}
+
+	const file = new Uint8Array(length);
+	let pos = 0;
+
+	for (const [key, contents] of sections) {
+		if (contents == undefined) {
+			continue;
+		}
+
+		for (let i = 0; i < key.length; i++, pos++) { // section name
+			file[pos] = key.charCodeAt(i);
+		}
+
+		for (let i = 0; i < DWORD; i++, pos++) { // section length
+			file[pos] = (contents.length & (0xff << i * 8)) >> i * 8;
+		}
+
+		for (let i = 0; i < contents.length; i++, pos++) {
+			file[pos] = contents[i];
+		}
+	}
+
+	return new Blob([file], {type: MIME_TYPE});
+};
+
+// converts hex to ASCII
+Pud.prototype.hexToStr = function(arr) {
+	return arr.reduce(function(str, hex) {
+		return str + String.fromCharCode(hex);
+	}, "");
+};
+
 /*
  * Files prototype
  */
@@ -2998,8 +3008,6 @@ function Files(id) {
 }
 
 Files.prototype.browse = function() {
-	const self = this;
-
 	// opens at root directory if a template file is currently loaded
 	if (this.dirs.includes("templates")) {
 		this.dirs = [];
@@ -3011,30 +3019,38 @@ Files.prototype.browse = function() {
 		path += "/";
 	}
 
-	const xhr = new XMLHttpRequest();
-	xhr.addEventListener("readystatechange", function() {
-		if (this.readyState == 4 && this.status == 200) {
-			const ul = document.createElement("ul");
-			ul.id = self.id;
-
-			if (self.dirs.length > 0) { // except root directory
-				ul.appendChild(createDir("..", "parent"));
+	return new Promise(function(resolve, reject) {
+		const xhr = new XMLHttpRequest();
+		xhr.addEventListener("readystatechange", function() {
+			if (this.readyState == 4) {
+				if (this.status == 200) {
+					resolve(this.response);
+				} else {
+					reject("Could not open the file browser.");
+				}
 			}
+		});
+		xhr.open("GET", MAPS_DIR + "/" + path + "index.json", true);
+		xhr.responseType = "json";
+		xhr.send();
+	}).then(function({dirs, files}) {
+		const ul = document.createElement("ul");
+		ul.id = this.id;
 
-			for (const dir of this.response.dirs) {
-				ul.appendChild(createDir(dir, "dir"));
-			}
-
-			for (const file of this.response.files) {
-				ul.appendChild(createFile(file));
-			}
-
-			$("#" + self.id).replaceWith(ul);
+		if (this.dirs.length > 0) { // except root directory
+			ul.appendChild(createDir("..", "parent"));
 		}
-	});
-	xhr.open("GET", MAPS_DIR + "/" + path + "index.json", true);
-	xhr.responseType = "json";
-	xhr.send();
+
+		for (const dir of dirs) {
+			ul.appendChild(createDir(dir, "dir"));
+		}
+
+		for (const file of files) {
+			ul.appendChild(createFile(file));
+		}
+
+		$("#" + this.id).replaceWith(ul);
+	}.bind(this));
 
 	function createDir(file, className) {
 		const li = document.createElement("li");
@@ -3064,12 +3080,15 @@ Files.prototype.browse = function() {
 Files.prototype.openFile = function(path) {
 	this.dirs = path.split("/").slice(0, -1);
 
-	return new Promise(function(resolve) {
+	return new Promise(function(resolve, reject) {
 		const xhr = new XMLHttpRequest();
 		xhr.addEventListener("readystatechange", function() {
 			if (this.readyState == 4) {
-				const buffer = this.status == 200 ? this.response : null;
-				resolve({path, buffer});
+				if (this.status == 200) {
+					resolve({path, buffer: this.response});
+				} else {
+					reject("Could not open the specified file.");
+				}
 			}
 		});
 		xhr.open("GET", MAPS_DIR + "/" + path, true);
