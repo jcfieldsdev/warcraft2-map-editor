@@ -35,13 +35,13 @@ const EXPANSION = 0x13;
 const MIME_TYPE = "application/x-warcraft2-scenario";
 
 // editor
-const MAPS_DIR        = "maps";
-const DEFAULT_PALETTE = "units";
-const DEFAULT_TILESET = "forest";
-const DEFAULT_SIZE    = 128;
-const MINIMAP_SIZE    = 200;
-const LEFT_MARGIN     = 270;
-const FRAME_COLOR     = "#fff";
+const MAPS_DIR          = "maps";
+const DEFAULT_PALETTE   = "units";
+const DEFAULT_TILESET   = "forest";
+const DEFAULT_SIZE      = 128;
+const MINIMAP_SIZE      = 200;
+const LEFT_MARGIN       = 270;
+const FRAME_COLOR       = "#fff";
 const PLACE_VALID_COLOR = "#fff";
 const PLACE_ERROR_COLOR = "#f00";
 const SELECT_COLOR      = "#0f0";
@@ -62,7 +62,7 @@ const MAX_WIDTH      = 128;
 const MAX_HEIGHT     = 128;
 const DEFAULT_GOLD   = 6; // x2500
 const DEFAULT_OIL    = 2; // x2500
-const RESOURCE_DISTANCE = 3; // distance between gold mines/town halls
+const RESOURCE_AREA  = 3; // distance between gold mines/town halls
 const LAST_ICON      = 195;
 
 // tilesets
@@ -71,9 +71,16 @@ const WINTER    = 1;
 const WASTELAND = 2;
 const SWAMP     = 3;
 
-// units
+// special units
+const CRITTER         = 57;
+const GOLD_MINE       = 92;
+const OIL_PATCH       = 93;
 const HUMAN_START_LOC = 94;
 const ORC_START_LOC   = 95;
+const CIRCLE_OF_POWER = 100;
+const DARK_PORTAL     = 101;
+const RUNESTONE       = 102;
+
 
 // unit flags
 const LAND_UNIT      = 0;
@@ -1056,9 +1063,6 @@ Editor.prototype.addUnit = function(x, y) {
 		property = DEFAULT_OIL;
 	}
 
-	const CRITTER = 57, GOLD_MINE = 92, OIL_PATCH = 93;
-	const CIRCLE_OF_POWER = 100, DARK_PORTAL = 101, RUNESTONE = 102;
-
 	// places certain units and buildings as neutral player regardless of
 	// selected player (but can reassign ownership in selection properties)
 	if (
@@ -1080,14 +1084,7 @@ Editor.prototype.addUnit = function(x, y) {
 		}
 	}
 
-	this.pud.unitMap.push({
-		x,
-		y,
-		id,
-		owner,
-		property,
-		position: undefined
-	});
+	this.pud.unitMap.push({x, y, id, owner, property, position: undefined});
 	this.drawUnitMap();
 };
 
@@ -1421,10 +1418,10 @@ Editor.prototype.validateArea = function(x, y) {
 				&& (otherFlags[OIL_SOURCE] || otherFlags[OIL_PLATFORM]))
 		) { // enforces resource exclusion area
 			if (
-				x < otherUnit.x + otherUnitSize.x + RESOURCE_DISTANCE
-				&& x + unitSize.x + RESOURCE_DISTANCE > otherUnit.x
-				&& y < otherUnit.y + otherUnitSize.y + RESOURCE_DISTANCE
-				&& y + unitSize.y + RESOURCE_DISTANCE > otherUnit.y
+				x < otherUnit.x + otherUnitSize.x + RESOURCE_AREA
+				&& x + unitSize.x + RESOURCE_AREA > otherUnit.x
+				&& y < otherUnit.y + otherUnitSize.y + RESOURCE_AREA
+				&& y + unitSize.y + RESOURCE_AREA > otherUnit.y
 			) {
 				valid = false;
 			}
@@ -1530,7 +1527,8 @@ Editor.prototype.selectPlayer = function(player) {
 
 	// does not reassign ownership of critters, gold mines, oil patches,
 	// or start locations in box selections
-	const OMIT_UNITS = [57, 92, 93, HUMAN_START_LOC, ORC_START_LOC];
+	const OMIT_UNITS = [CRITTER, GOLD_MINE, OIL_PATCH,
+		HUMAN_START_LOC, ORC_START_LOC];
 
 	// reassigns owner of selected units
 	for (const unit of Object.values(this.selected)) {
