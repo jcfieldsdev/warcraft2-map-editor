@@ -2704,15 +2704,13 @@ Pud.prototype.save = function() {
 		return;
 	}
 
-	const tileset = this.tileset == SWAMP ? WASTELAND : this.tileset;
-
 	const sections = new Map([ // order is significant
 		["TYPE", saveType()],
-		["VER ", convertNum(this.version, WORD)],
+		["VER ", saveVers()],
 		["DESC", saveDesc()],
 		["OWNR", this.controller],
-		["ERA ", convertNum(tileset, WORD)],
-		["ERAX", this.tileset == SWAMP ? convertNum(this.tileset, WORD) : null],
+		["ERA ", saveEra()],
+		["ERAX", saveErax()],
 		["DIM ", convertNum(this.width | this.height << 16, DWORD)],
 		["UDTA", convertMap(this.units,        data.schema["UDTA"])],
 		["UGRD", convertMap(this.upgrades,     data.schema["UGRD"])],
@@ -2935,15 +2933,34 @@ Pud.prototype.save = function() {
 		return arr;
 	}
 
+	function saveVers() {
+		const expansionHeroes = self.unitMap.some(function(unit) {
+			return data.expansionHeroes.includes(unit.id);
+		});
+
+		self.version = expansionHeroes ? EXPANSION : STANDARD;
+
+		return convertNum(self.version, WORD);
+	}
+
 	function saveDesc() {
 		const arr = new Uint8Array(32);
-		self.description = self.description.slice(0, 30);
+		self.description = self.description.slice(0, 31); // last byte is null
 
 		for (let i = 0; i < self.description.length; i++) {
 			arr[i] = self.description.charCodeAt(i);
 		}
 
 		return arr;
+	}
+
+	function saveEra() {
+		const tileset = self.tileset == SWAMP ? WASTELAND : self.tileset;
+		return convertNum(tileset, WORD);
+	}
+
+	function saveErax() {
+		return self.tileset == SWAMP ? convertNum(self.tileset, WORD) : null;
 	}
 
 	function saveUnit() {

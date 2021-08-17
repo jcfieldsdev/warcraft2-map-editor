@@ -1780,7 +1780,7 @@ data.movement = { // same colors used by Puddraft
 data.action = {
 	0x00: "#000080", // water
 	0x40: "#00c000", // land
-	0xff: "#c0c0c0"  // unpathable
+	0xff: "#ff0"     // unpathable
 };
 
 data.ai = new Map([
@@ -2517,6 +2517,8 @@ data.units = {
 		}
 	}
 };
+
+data.expansionHeroes = [20, 21, 22, 23, 24, 25, 35, 44, 46, 47];
 
 data.upgrades = {
 	human: new Map([

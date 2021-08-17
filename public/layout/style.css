@@ -200,7 +200,8 @@ div#filename, div.palette {
 	line-height: 200%;
 }
 
-div#info, div#overlay_create legend, div#overlay_map legend, div#restrictions table td {
+div#info, div#overlay_create legend, div#overlay_map legend,
+div#restrictions table td {
 	font-size: 0.8rem;
 }
 
@@ -210,6 +211,11 @@ div#layers, div#terrain {
 
 div#overlay_create fieldset {
 	width: 16em;
+}
+
+div#overlay_create fieldset:first-child {
+	float: left;
+	margin-right: 1em;
 }
 
 div#overlay_link, div.overlay table {
