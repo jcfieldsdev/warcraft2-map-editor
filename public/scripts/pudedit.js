@@ -81,7 +81,6 @@ const CIRCLE_OF_POWER = 100;
 const DARK_PORTAL     = 101;
 const RUNESTONE       = 102;
 
-
 // unit flags
 const LAND_UNIT      = 0;
 const AIR_UNIT       = 1;
@@ -778,7 +777,7 @@ Editor.prototype.drawUnitMap = function() {
 	function drawToUnitMap(x, y, w, h, i, unit, img) {
 		const owner = Math.min(unit.owner, 7);
 		const startLocation = unit.id == HUMAN_START_LOC
-			|| unit.id == ORC_START_LOC;
+		                   || unit.id == ORC_START_LOC;
 		let sx = 0, sy = 0;
 
 		if (!startLocation && !self.pud.units.flags[unit.id][BUILDING]) {
@@ -993,14 +992,14 @@ Editor.prototype.selectUnits = function(x, y, add=false) {
 
 		if (this.selectMultiple) {
 			intersect = nx < unit.x + unitSize.x
-				&& nx + w > unit.x
-				&& ny < unit.y + unitSize.y
-				&& ny + h > unit.y;
+			         && nx + w > unit.x
+			         && ny < unit.y + unitSize.y
+			         && ny + h > unit.y;
 		} else {
 			intersect = x <= unit.x + unitSize.x - 1
-				&& x + w >= unit.x
-				&& y <= unit.y + unitSize.y - 1
-				&& y + h >= unit.y;
+			         && x + w >= unit.x
+			         && y <= unit.y + unitSize.y - 1
+			         && y + h >= unit.y;
 		}
 
 		if (intersect && (!add || this.selected[i] == undefined)) {
@@ -1064,7 +1063,7 @@ Editor.prototype.addUnit = function(x, y) {
 	}
 
 	// places certain units and buildings as neutral player regardless of
-	// selected player (but can reassign ownership in selection properties)
+	// selected player (can reassign ownership in selection properties)
 	if (
 		id == CRITTER || id == GOLD_MINE || id == OIL_PATCH
 		|| id == CIRCLE_OF_POWER || id == DARK_PORTAL || id == RUNESTONE
@@ -1076,7 +1075,7 @@ Editor.prototype.addUnit = function(x, y) {
 	if (id == HUMAN_START_LOC || id == ORC_START_LOC) {
 		for (const [i, unit] of this.pud.unitMap.entries()) {
 			const startLocation = unit.id == HUMAN_START_LOC
-				|| unit.id == ORC_START_LOC;
+			                    | unit.id == ORC_START_LOC;
 
 			if (startLocation && unit.owner == this.player) {
 				this.removeUnit(i);
@@ -1363,7 +1362,7 @@ Editor.prototype.findNearestTile = function(x, y, w=0, h=0) {
 
 Editor.prototype.validateArea = function(x, y) {
 	const startLocation = this.unit == HUMAN_START_LOC
-		|| this.unit == ORC_START_LOC;
+	                    | this.unit == ORC_START_LOC;
 	let valid = true;
 
 	if (startLocation && this.player == NEUTRAL) {
@@ -1378,7 +1377,7 @@ Editor.prototype.validateArea = function(x, y) {
 	// checks if area contains other units
 	for (const otherUnit of this.pud.unitMap.values()) {
 		const unitStartLocation = otherUnit.id == HUMAN_START_LOC
-			|| otherUnit.id == ORC_START_LOC;
+		                       || otherUnit.id == ORC_START_LOC;
 
 		// start locations ignore collision with everything except
 		// other start locations and neutral units
@@ -1525,8 +1524,8 @@ Editor.prototype.selectPlayer = function(player) {
 
 	let ownerChanged = 0;
 
-	// does not reassign ownership of critters, gold mines, oil patches,
-	// or start locations in box selections
+	// does not reassign ownership of certain units in box selections (can only
+	// do so explicitly in selection properties)
 	const OMIT_UNITS = [CRITTER, GOLD_MINE, OIL_PATCH,
 		HUMAN_START_LOC, ORC_START_LOC];
 
@@ -2104,15 +2103,15 @@ Overlays.prototype.fillProperties = function(key) {
 		}
 
 		const startLocation = unit.id == HUMAN_START_LOC
-			|| unit.id == ORC_START_LOC;
+		                   || unit.id == ORC_START_LOC;
 
 		$("#row_owner").hidden = startLocation;
 		$("#select_owner").disabled = startLocation;
 
 		const flags = editor.pud.units.flags[unit.id];
 		const isResourceSource = flags[GOLD_SOURCE]
-			|| flags[OIL_SOURCE]
-			|| flags[OIL_PLATFORM];
+		                      || flags[OIL_SOURCE]
+		                      || flags[OIL_PLATFORM];
 		const isUnit = !startLocation && !flags[BUILDING];
 
 		$("#row_resource").hidden = !isResourceSource;
@@ -2488,7 +2487,7 @@ Pud.prototype.load = function(filename, buffer) {
 
 	function readSection(key, required=REQUIRED) {
 		if (sections.get(key) == undefined) {
-			if (required) {
+			if (required == REQUIRED) {
 				setInvalid(`Missing required section: ${key}`);
 			}
 
@@ -2616,9 +2615,9 @@ Pud.prototype.load = function(filename, buffer) {
 		}
 
 		const desc = self.hexToStr(section);
-		const stop = section.indexOf("\x00"); // terminates at null char
 
-		return section.slice(0, stop);
+		// terminates at null char
+		return desc.slice(0, desc.indexOf("\x00"));
 	}
 
 	// gets map dimensions
