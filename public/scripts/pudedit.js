@@ -1663,6 +1663,7 @@ Editor.prototype.saveImage = function() {
 	drawLayer($("#tileMap"));
 	drawLayer($("#unitMap"));
 	drawLayer($("#movementMap"));
+	drawLayer($("#actionMap"));
 
 	const filename = this.pud.filename.replace(/\.pud$/, ".png");
 
@@ -2483,12 +2484,13 @@ Pud.prototype.load = function(filename, buffer) {
 			return;
 		}
 
-		if (schema.type == ARRAY) {
-			return makeArray(sections.get(key), schema.size);
-		} else if (schema.type == MAP) {
-			return makeMap(sections.get(key), schema);
-		} else if (schema.type == NUMBER) {
-			return parseNum(sections.get(key));
+		switch (schema.type) {
+			case ARRAY:
+				return makeArray(sections.get(key), schema.size);
+			case MAP:
+				return makeMap(sections.get(key), schema);
+			case NUMBER:
+				return parseNum(sections.get(key));
 		}
 	}
 
@@ -2708,12 +2710,13 @@ Pud.prototype.save = function() {
 	function saveSection(key, value) {
 		const schema = data.schema[key];
 
-		if (schema.type == ARRAY) {
-			return convertArray(value, schema.size);
-		} else if (schema.type == MAP) {
-			return convertMap(value, schema);
-		} else if (schema.type == NUMBER) {
-			return convertNum(value, schema.size);
+		switch (schema.type) {
+			case ARRAY:
+				return convertArray(value, schema.size);
+			case MAP:
+				return convertMap(value, schema);
+			case NUMBER:
+				return convertNum(value, schema.size);
 		}
 	}
 
