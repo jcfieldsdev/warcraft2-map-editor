@@ -2393,8 +2393,8 @@ Pud.prototype.load = function(filename, buffer) {
 	const sections = this.openFile(buffer);
 	this.filename = filename;
 
-	const REQUIRED = true, OPTIONAL = false;
 	const self = this;
+	const REQUIRED = true, OPTIONAL = false;
 
 	this.id             = readType();
 	this.version        = readSection("VER ");
@@ -2443,7 +2443,7 @@ Pud.prototype.load = function(filename, buffer) {
 	}, this);
 
 	this.races = this.races.map(function(race) {
-		return race > 0x02 ? 0x02 : race; // neutral
+		return Math.min(race, 0x02); // neutral
 	});
 
 	this.ai = this.ai.map(function(ai) {
@@ -2584,7 +2584,7 @@ Pud.prototype.load = function(filename, buffer) {
 		});
 	}
 
-	// identifies as PUD file and gets unique map ID
+	// identifies as pud file and gets unique map ID
 	function readType() {
 		const section = sections.get("TYPE");
 
@@ -2674,12 +2674,11 @@ Pud.prototype.load = function(filename, buffer) {
 };
 
 Pud.prototype.save = function() {
-	const self = this;
-
-	if (!validateMap()) {
+	if (!this.validateMap()) {
 		return;
 	}
 
+	const self = this;
 	const sections = new Map([ // order is significant
 		["TYPE", saveType()],
 		["VER ", saveVers()],
@@ -2709,52 +2708,6 @@ Pud.prototype.save = function() {
 	}
 
 	return this.createFile(sections);
-
-	function validateMap() {
-		if (self.unitMap.length == 0) {
-			throw "The map is empty. Place one or more units.";
-		}
-
-		const players = new Set();
-		const start = Array(self.controller.length).fill();
-
-		// determines active players (i.e., players with units placed)
-		for (const unit of self.unitMap) {
-			players.add(unit.owner);
-
-			// requires start locations for active players
-			if (unit.id == HUMAN_START_LOC || unit.id == ORC_START_LOC) {
-				start[unit.owner] = true;
-			}
-		}
-
-		const PASSIVE_COMPUTER = 2, NOBODY = 3, HUMAN = 5;
-
-		for (const player of players) {
-			if (player != NEUTRAL && start[player] == undefined) {
-				throw `Must place a start location for player ${player + 1}.`;
-			}
-		}
-
-		self.controller = self.controller.map(function(controller, i) {
-			if (i == NEUTRAL) { // neutral player is always passive computer
-				controller = PASSIVE_COMPUTER;
-			} else {
-				if (players.has(i)) {
-					if (controller == NOBODY) {
-						// sets nobody to human if player has units
-						controller = HUMAN;
-					}
-				} else { // sets inactive players to nobody
-					controller = NOBODY;
-				}
-			}
-
-			return controller;
-		});
-
-		return true;
-	}
 
 	// converts number to big-endian typed array
 	function convertNum(num, size) {
@@ -2984,6 +2937,52 @@ Pud.prototype.createFile = function(sections) {
 	}
 
 	return new Blob([file], {type: MIME_TYPE});
+};
+
+Pud.prototype.validateMap = function() {
+	if (this.unitMap.length == 0) {
+		throw "The map is empty. Place one or more units.";
+	}
+
+	const players = new Set();
+	const start = Array(this.controller.length).fill();
+
+	// determines active players (i.e., players with units placed)
+	for (const unit of this.unitMap) {
+		players.add(unit.owner);
+
+		// requires start locations for active players
+		if (unit.id == HUMAN_START_LOC || unit.id == ORC_START_LOC) {
+			start[unit.owner] = true;
+		}
+	}
+
+	const PASSIVE_COMPUTER = 2, NOBODY = 3, HUMAN = 5;
+
+	for (const player of players) {
+		if (player != NEUTRAL && start[player] == undefined) {
+			throw `Must place a start location for player ${player + 1}.`;
+		}
+	}
+
+	this.controller = this.controller.map(function(controller, i) {
+		if (i == NEUTRAL) { // neutral player is always passive computer
+			controller = PASSIVE_COMPUTER;
+		} else {
+			if (players.has(i)) {
+				if (controller == NOBODY) {
+					// sets nobody to human if player has units
+					controller = HUMAN;
+				}
+			} else { // sets inactive players to nobody
+				controller = NOBODY;
+			}
+		}
+
+		return controller;
+	});
+
+	return true;
 };
 
 // converts hex to ASCII
