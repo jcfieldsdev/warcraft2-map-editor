@@ -2390,21 +2390,19 @@ function Pud() {
 }
 
 Pud.prototype.load = function(filename, buffer) {
+	const self = this;
 	const sections = this.openFile(buffer);
 	this.filename = filename;
-
-	const self = this;
-	const REQUIRED = true, OPTIONAL = false;
 
 	this.id             = readType();
 	this.version        = readSection("VER ");
 	this.description    = readDesc();
 	this.controller     = readSection("OWNR");
-	this.tileset        = readSection("ERAX", OPTIONAL) || readSection("ERA ");
+	this.tileset        = readSection("ERAX") || readSection("ERA ");
 	[this.width, this.height] = readDim();
 	this.units          = readSection("UDTA");
 	this.upgrades       = readSection("UGRD");
-	this.restrictions   = readSection("ALOW", OPTIONAL);
+	this.restrictions   = readSection("ALOW") || {};
 	this.races          = readSection("SIDE");
 	this.startGold      = readSection("SGLD");
 	this.startLumber    = readSection("SLBR");
@@ -2414,7 +2412,7 @@ Pud.prototype.load = function(filename, buffer) {
 	this.movementMap    = readSection("SQM ");
 	this.oilMap         = readSection("OILM"); // unused
 	this.actionMap      = readSection("REGM");
-	this.certificate    = readSection("SIGN", OPTIONAL) || 0;
+	this.certificate    = readSection("SIGN") || 0;
 	this.unitMap        = readUnit();
 
 	this.valid &= this.version == STANDARD || this.version == EXPANSION;
@@ -2450,11 +2448,9 @@ Pud.prototype.load = function(filename, buffer) {
 		return Math.min(ai, 0x52);
 	});
 
-	this.useAlow = this.restrictions != undefined;
+	this.useAlow = Object.keys(this.restrictions).length > 0;
 
 	if (!this.useAlow) { // copies default restriction data if no ALOW section
-		this.restrictions = {};
-
 		for (const key of Object.keys(defaults.restrictions)) {
 			this.restrictions[key] = [];
 
@@ -2476,23 +2472,16 @@ Pud.prototype.load = function(filename, buffer) {
 		});
 	}
 
-	// parses typed array to little-endian number
-	function parseNum(arr) {
-		return arr.reduce(function(num, hex, i) {
-			return num + (hex << i * 8);
-		}, 0);
-	}
+	function readSection(key) {
+		const schema = data.schema[key];
 
-	function readSection(key, required=REQUIRED) {
 		if (sections.get(key) == undefined) {
-			if (required == REQUIRED) {
+			if (schema.required) {
 				setInvalid(`Missing required section: ${key}`);
 			}
 
 			return;
 		}
-
-		const schema = data.schema[key];
 
 		if (schema.type == ARRAY) {
 			return makeArray(sections.get(key), schema.size);
@@ -2503,79 +2492,86 @@ Pud.prototype.load = function(filename, buffer) {
 		}
 	}
 
+	// parses typed array to little-endian number
+	function parseNum(originalArray) {
+		return originalArray.reduce(function(num, hex, i) {
+			return num + (hex << i * 8);
+		}, 0);
+	}
+
 	// breaks typed array into array with elements of given size
-	function makeArray(data, size) {
+	function makeArray(originalArray, size) {
 		if (size == BYTE) {
-			return data;
+			return originalArray;
 		}
 
-		const arr = [];
+		const newArray = [];
 
-		for (let i = 0; i < data.length; i += size) {
-			arr.push(parseNum(data.slice(i, i + size)));
+		for (let i = 0; i < originalArray.length; i += size) {
+			newArray.push(parseNum(originalArray.slice(i, i + size)));
 		}
 
-		return arr;
+		return newArray;
 	}
 
 	// breaks typed array into named chunks containing arrays of given size
-	function makeMap(arr, schema) {
-		const obj = {};
+	function makeMap(originalArray, schema) {
+		const newMap = {};
 		let addr = 0;
 
 		for (const [key, value] of schema.map) {
 			const [len, size, type] = value;
-			obj[key] = arr.slice(addr, addr + len * size);
+			newMap[key] = originalArray.slice(addr, addr + len * size);
 
 			if (type == ARRAY) {
-				obj[key] = makeArray(obj[key], size);
+				newMap[key] = makeArray(newMap[key], size);
 			} else if (type == BOOLEAN) {
-				obj[key] = Boolean(obj[key]);
+				newMap[key] = Boolean(newMap[key]);
 			} else if (type == DIMENSIONS) {
-				obj[key] = parseDim(obj[key]);
+				newMap[key] = parseDim(newMap[key]);
 			} else if (type == BIT_VECTOR) {
-				obj[key] = parseBits(makeArray(obj[key], size));
+				newMap[key] = parseBits(makeArray(newMap[key], size));
 			} else if (type == OCTAL) {
-				obj[key] = parseOctal(obj[key]);
+				newMap[key] = parseOctal(newMap[key]);
 			}
 
 			addr += len * size;
 		}
 
-		return obj;
+		return newMap;
 	}
 
 	// parses two words into dimensions
-	function parseDim(data) {
-		const dim = [];
+	function parseDim(originalArray) {
+		const newArray = [];
 
-		for (let i = 0; i < data.length; i += DWORD) {
-			dim.push({
-				x: data[i],
-				y: data[i + WORD]
+		for (let i = 0; i < originalArray.length; i += DWORD) {
+			newArray.push({
+				x: originalArray[i],
+				y: originalArray[i + WORD]
 			});
 		}
 
-		return dim;
+		return newArray;
 	}
 
 	// breaks bit vectors into arrays of booleans
-	function parseBits(arr) {
-		return arr.map(function(value) {
+	function parseBits(originalArray) {
+		return originalArray.map(function(value) {
 			const SIZE = 32;
-			const sub = [];
+			const newArray = [];
 
 			for (let i = 0; i < SIZE; i++) {
-				sub.push(Boolean(value & (1 << i)));
+				newArray.push(Boolean(value & (1 << i)));
 			}
 
-			return sub;
+			return newArray;
 		});
 	}
 
 	// parses octal values
-	function parseOctal(arr) {
-		return Array.from(arr).map(function(value) {
+	function parseOctal(originalArray) {
+		return Array.from(originalArray).map(function(value) {
 			return [
 				Boolean(value & 0o1),
 				Boolean(value & 0o2),
@@ -2686,19 +2682,19 @@ Pud.prototype.save = function() {
 		["OWNR", this.controller],
 		["ERA ", saveEra()],
 		["ERAX", saveErax()],
-		["DIM ", convertNum(this.width | this.height << 16, DWORD)],
-		["UDTA", convertMap(this.units,        data.schema["UDTA"])],
-		["UGRD", convertMap(this.upgrades,     data.schema["UGRD"])],
-		["ALOW", convertMap(this.restrictions, data.schema["ALOW"])],
+		["DIM ", saveSection("DIM ", this.width | this.height << 16)],
+		["UDTA", saveSection("UDTA", this.units)],
+		["UGRD", saveSection("UGRD", this.upgrades)],
+		["ALOW", saveSection("ALOW", this.restrictions)],
 		["SIDE", this.races],
-		["SGLD", convertArray(this.startGold,   WORD)],
-		["SLBR", convertArray(this.startLumber, WORD)],
-		["SOIL", convertArray(this.startOil,    WORD)],
+		["SGLD", saveSection("SGLD", this.startGold)],
+		["SLBR", saveSection("SLBR", this.startLumber)],
+		["SOIL", saveSection("SOIL", this.startOil)],
 		["AIPL", this.ai],
-		["MTXM", convertArray(this.tileMap,     WORD)],
-		["SQM ", convertArray(this.movementMap, WORD)],
-		["OILM", convertArray(this.oilMap,      WORD)],
-		["REGM", convertArray(this.actionMap,   WORD)],
+		["MTXM", saveSection("MTXM", this.tileMap)],
+		["SQM ", saveSection("SQM ", this.movementMap)],
+		["OILM", saveSection("OILM", this.oilMap)],
+		["REGM", saveSection("REGM", this.actionMap)],
 		["UNIT", saveUnit()]
 	]);
 
@@ -2709,6 +2705,18 @@ Pud.prototype.save = function() {
 
 	return this.createFile(sections);
 
+	function saveSection(key, value) {
+		const schema = data.schema[key];
+
+		if (schema.type == ARRAY) {
+			return convertArray(value, schema.size);
+		} else if (schema.type == MAP) {
+			return convertMap(value, schema);
+		} else if (schema.type == NUMBER) {
+			return convertNum(value, schema.size);
+		}
+	}
+
 	// converts number to big-endian typed array
 	function convertNum(num, size) {
 		return new Uint8Array(size).map(function(undefined, i) {
@@ -2717,22 +2725,22 @@ Pud.prototype.save = function() {
 	}
 
 	// converts array with elements of given size into typed array
-	function convertArray(data, size) {
-		const arr = new Uint8Array(data.length * size);
+	function convertArray(originalArray, size) {
+		const newArray = new Uint8Array(originalArray.length * size);
 
-		for (let i = 0; i < data.length; i++) {
-			const num = convertNum(data[i], size);
+		for (let i = 0; i < originalArray.length; i++) {
+			const num = convertNum(originalArray[i], size);
 
 			for (let j = 0; j < num.length; j++) {
-				arr[i * size + j] = num[j];
+				newArray[i * size + j] = num[j];
 			}
 		}
 
-		return arr;
+		return newArray;
 	}
 
-	function convertMap(data, schema) {
-		if (data == undefined) {
+	function convertMap(originalMap, schema) {
+		if (originalMap == undefined) {
 			return;
 		}
 
@@ -2743,7 +2751,7 @@ Pud.prototype.save = function() {
 			length += len * size;
 		}
 
-		const arr = new Uint8Array(length);
+		const newArray = new Uint8Array(length);
 		let pos = 0;
 
 		for (const [key, value] of schema.map) {
@@ -2751,82 +2759,84 @@ Pud.prototype.save = function() {
 			let contents = null;
 
 			if (type == ARRAY) {
-				contents = convertArray(data[key], size);
+				contents = convertArray(originalMap[key], size);
 			} else if (type == BOOLEAN) {
-				contents = convertNum(Number(data[key]), size);
+				contents = convertNum(Number(originalMap[key]), size);
 			} else if (type == DIMENSIONS) {
-				contents = convertDim(data[key]);
+				contents = convertDim(originalMap[key]);
 			} else if (type == BIT_VECTOR) {
-				contents = convertBits(data[key]);
+				contents = convertBits(originalMap[key]);
 			} else if (type == OCTAL) {
-				contents = convertOctal(data[key]);
+				contents = convertOctal(originalMap[key]);
 			}
 
 			for (let i = 0; i < contents.length; i++, pos++) {
-				arr[pos] = contents[i];
+				newArray[pos] = contents[i];
 			}
 		}
 
-		return arr;
+		return newArray;
 	}
 
-	function convertDim(data) {
-		const arr = new Uint8Array(DWORD * data.length);
+	function convertDim(originalArray) {
+		const newArray = new Uint8Array(DWORD * originalArray.length);
 		let pos = 0;
 
-		for (let i = 0; i < data.length; i++, pos += DWORD) {
-			const x = convertNum(data[i].x, WORD);
-			const y = convertNum(data[i].y, WORD);
+		for (let i = 0; i < originalArray.length; i++, pos += DWORD) {
+			const x = convertNum(originalArray[i].x, WORD);
+			const y = convertNum(originalArray[i].y, WORD);
 
-			arr[pos]     = x[0];
-			arr[pos + 1] = x[1];
-			arr[pos + 2] = y[0];
-			arr[pos + 3] = y[1];
+			newArray[pos]     = x[0];
+			newArray[pos + 1] = x[1];
+			newArray[pos + 2] = y[0];
+			newArray[pos + 3] = y[1];
 		}
 
-		return arr;
+		return newArray;
 	}
 
-	function convertBits(data) {
-		const arr = new Uint8Array(data.length * DWORD);
+	function convertBits(originalArray) {
+		const newArray = new Uint8Array(originalArray.length * DWORD);
 		let pos = 0;
 
-		for (let i = 0; i < data.length; i++) {
+		for (let i = 0; i < originalArray.length; i++) {
 			let value = 0;
 
-			for (let j = 0; j < data[i].length; j++) {
-				value += data[i][j] << j;
+			for (let j = 0; j < originalArray[i].length; j++) {
+				value += originalArray[i][j] << j;
 			}
 
 			const num = convertNum(value, DWORD);
 
 			for (let j = 0; j < num.length; j++, pos++) {
-				arr[pos] = num[j];
+				newArray[pos] = num[j];
 			}
 		}
 
-		return arr;
+		return newArray;
 	}
 
-	function convertOctal(data) {
-		return new Uint8Array(data.length).map(function(undefined, i) {
-			return data[i][0] * 0o1 | data[i][1] * 0o2 | data[i][2] * 0o4;
+	function convertOctal(originalArray) {
+		return new Uint8Array(originalArray.length).map(function(undefined, i) {
+			return originalArray[i][0] * 0o1
+			     | originalArray[i][1] * 0o2
+			     | originalArray[i][2] * 0o4;
 		});
 	}
 
 	function saveType() {
 		const len = FILE_SIGNATURE.length;
-		const arr = new Uint8Array(len + DWORD);
+		const newArray = new Uint8Array(len + DWORD);
 
 		for (let i = 0; i < len; i++) {
-			arr[i] = FILE_SIGNATURE.charCodeAt(i);
+			newArray[i] = FILE_SIGNATURE.charCodeAt(i);
 		}
 
 		for (let i = 0; i < self.id.length; i++) {
-			arr[i + len] = self.id[i];
+			newArray[i + len] = self.id[i];
 		}
 
-		return arr;
+		return newArray;
 	}
 
 	function saveVers() {
@@ -2840,14 +2850,14 @@ Pud.prototype.save = function() {
 	}
 
 	function saveDesc() {
-		const arr = new Uint8Array(32);
+		const newArray = new Uint8Array(32);
 		self.description = self.description.slice(0, 31); // last byte is null
 
 		for (let i = 0; i < self.description.length; i++) {
-			arr[i] = self.description.charCodeAt(i);
+			newArray[i] = self.description.charCodeAt(i);
 		}
 
-		return arr;
+		return newArray;
 	}
 
 	function saveEra() {
@@ -2860,7 +2870,7 @@ Pud.prototype.save = function() {
 	}
 
 	function saveUnit() {
-		const arr = new Uint8Array(QWORD * self.unitMap.length);
+		const newArray = new Uint8Array(QWORD * self.unitMap.length);
 		let pos = 0;
 
 		for (const unit of self.unitMap) {
@@ -2868,19 +2878,19 @@ Pud.prototype.save = function() {
 			const y = convertNum(unit.y, WORD);
 			const property = convertNum(unit.property, WORD);
 
-			arr[pos]     = x[0];
-			arr[pos + 1] = x[1];
-			arr[pos + 2] = y[0];
-			arr[pos + 3] = y[1];
-			arr[pos + 4] = unit.id;
-			arr[pos + 5] = unit.owner;
-			arr[pos + 6] = property[0];
-			arr[pos + 7] = property[1];
+			newArray[pos]     = x[0];
+			newArray[pos + 1] = x[1];
+			newArray[pos + 2] = y[0];
+			newArray[pos + 3] = y[1];
+			newArray[pos + 4] = unit.id;
+			newArray[pos + 5] = unit.owner;
+			newArray[pos + 6] = property[0];
+			newArray[pos + 7] = property[1];
 
 			pos += QWORD;
 		}
 
-		return arr;
+		return newArray;
 	}
 };
 
@@ -2986,8 +2996,8 @@ Pud.prototype.validateMap = function() {
 };
 
 // converts hex to ASCII
-Pud.prototype.hexToStr = function(arr) {
-	return arr.reduce(function(str, hex) {
+Pud.prototype.hexToStr = function(originalArray) {
+	return originalArray.reduce(function(str, hex) {
 		return str + String.fromCharCode(hex);
 	}, "");
 };

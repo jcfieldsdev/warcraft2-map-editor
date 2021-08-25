@@ -14,24 +14,48 @@ const NUMBER     = 3;
 const BIT_VECTOR = 4;
 const OCTAL      = 5;
 const DIMENSIONS = 6;
+const STRING     = 7;
 
 const data = {};
 
 data.schema = {
+	"TYPE": {
+		required: true,
+		type: STRING,
+		size: 16
+	},
 	"VER ": {
-		type: NUMBER
+		required: true,
+		type: NUMBER,
+		size: WORD
+	},
+	"DESC": {
+		required: true,
+		type: STRING,
+		size: 32
 	},
 	"OWNR": {
+		required: true,
 		type: ARRAY,
 		size: BYTE
 	},
 	"ERA ": {
-		type: NUMBER
+		required: true,
+		type: NUMBER,
+		size: WORD
 	},
 	"ERAX": {
-		type: NUMBER
+		required: false,
+		type: NUMBER,
+		size: WORD
+	},
+	"DIM ": {
+		required: true,
+		type: NUMBER,
+		size: DWORD
 	},
 	"UDTA": {
+		required: true,
 		type: MAP,
 		map:  new Map([
 			["useDefaults",       [1,   WORD,  BOOLEAN]],
@@ -66,6 +90,7 @@ data.schema = {
 		])
 	},
 	"UGRD": {
+		required: true,
 		type: MAP,
 		map:  new Map([
 			["useDefaults",     [1,  WORD,  BOOLEAN]],
@@ -79,6 +104,7 @@ data.schema = {
 		]),
 	},
 	"ALOW": {
+		required: false,
 		type: MAP,
 		map:  new Map([
 			["units",               [16, DWORD, BIT_VECTOR]],
@@ -90,43 +116,59 @@ data.schema = {
 		])
 	},
 	"SIDE": {
+		required: true,
 		type: ARRAY,
 		size: BYTE
 	},
 	"SGLD": {
+		required: true,
 		type: ARRAY,
 		size: WORD
 	},
 	"SLBR": {
+		required: true,
 		type: ARRAY,
 		size: WORD
 	},
 	"SOIL": {
+		required: true,
 		type: ARRAY,
 		size: WORD
 	},
 	"AIPL": {
+		required: true,
 		type: ARRAY,
 		size: BYTE
 	},
 	"MTXM": {
+		required: true,
 		type: ARRAY,
 		size: WORD
 	},
 	"SQM ": {
+		required: true,
 		type: ARRAY,
 		size: WORD
 	},
 	"OILM": {
+		required: true,
 		type: ARRAY,
 		size: WORD
 	},
 	"REGM": {
+		required: true,
 		type: ARRAY,
 		size: WORD
 	},
+	"UNIT": {
+		required: true,
+		type: ARRAY,
+		size: QWORD
+	},
 	"SIGN": {
-		type: NUMBER
+		required: false,
+		type: NUMBER,
+		size: DWORD
 	}
 };
 
