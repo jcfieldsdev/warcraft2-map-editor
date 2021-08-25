@@ -2165,7 +2165,7 @@ Properties.prototype.saveSheet = function(key) {
 			editor.pud.controller[i] = $("#select_controller" + i).value;
 			editor.pud.ai[i]         = $("#select_ai" + i).value;
 
-			if (oldRace != newRace) { // redraws units if race changes
+			if (oldRaceId != newRaceId) { // redraws units if race changes
 				editor.convertAllUnits(i, oldRaceId, newRaceId);
 				editor.drawUnitMap();
 			}
