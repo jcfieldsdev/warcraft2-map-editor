@@ -218,10 +218,6 @@ div#overlay_create fieldset:first-child {
 	margin-right: 1em;
 }
 
-div#overlay_link, div.overlay table {
-	white-space: nowrap;
-}
-
 div#overlay_resources input {
 	width: 6em;
 }
@@ -300,6 +296,10 @@ div.overlay, nav, noscript {
 	border-radius: 1em;
 	box-shadow: 4px 4px 8px 0 #000;
 	position: fixed;
+}
+
+div.overlay table {
+	white-space: nowrap;
 }
 
 div.overlay.open {

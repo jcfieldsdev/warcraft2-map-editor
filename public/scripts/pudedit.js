@@ -33,9 +33,11 @@ const FILE_SIGNATURE = "WAR2 MAP\x00\x00\x0a\xff";
 const STANDARD  = 0x11;
 const EXPANSION = 0x13;
 const MIME_TYPE = "application/x-warcraft2-scenario";
+const DEFAULT_FILE_NAME = "Untitled.pud";
 
 // editor
 const MAPS_DIR          = "maps";
+const TEMPLATES_DIR     = "templates";
 const DEFAULT_PALETTE   = "units";
 const DEFAULT_TILESET   = "forest";
 const DEFAULT_SIZE      = 128;
@@ -116,13 +118,7 @@ const files      = new Files("files");
  */
 
 window.addEventListener("load", function() {
-	const map = new URL(window.location.href).searchParams.get("map");
-
-	if (map == undefined || map == "") {
-		files.openTemplate(DEFAULT_TILESET, DEFAULT_SIZE);
-	} else { // loads map specified in optional URL parameter
-		files.openFile(map);
-	}
+	files.parseQueryString();
 
 	window.addEventListener("keyup", function(event) {
 		const keyCode = event.keyCode;
@@ -196,15 +192,6 @@ window.addEventListener("load", function() {
 			editor.saveImage();
 		}
 
-		if (element.closest("#link")) {
-			if (editor.path != "") {
-				const link = window.location.href.split("?")[0];
-
-				$("#text_link").value = link + "?map=" + editor.path;
-				properties.show("link");
-			}
-		}
-
 		if (element.closest("#about")) {
 			properties.show("about");
 		}
@@ -215,11 +202,6 @@ window.addEventListener("load", function() {
 
 		if (element.closest("#inspect")) {
 			editor.clearSelect();
-		}
-
-		if (element.closest("#copy")) {
-			$("#" + element.closest("#copy").value).select();
-			document.execCommand("copy");
 		}
 
 		// new/open/save buttons
@@ -467,18 +449,7 @@ window.addEventListener("load", function() {
 	});
 
 	// for overlay widgets
-	$("#file").addEventListener("change", function(event) {
-		const file = event.target.files[0];
-
-		if (file != null) {
-			const reader = new FileReader();
-			reader.addEventListener("load", function(event) {
-				editor.open(file.name, event.target.result);
-				properties.hide("browser");
-			});
-			reader.readAsArrayBuffer(file);
-		}
-	});
+	$("#file").addEventListener("change", files.openUploadedFile.bind(files));
 
 	function create() {
 		properties.openSheet("create");
@@ -582,18 +553,22 @@ Editor.prototype.open = function(path, buffer) {
 		return properties.displayError("The map file does not exist.");
 	}
 
-	this.pud = new Pud();
-	this.pud.load(path.split("/").pop(), buffer);
+	const dirs = path.split("/");
 
-	if (!this.pud.valid) {
+	this.pud = new Pud();
+	this.pud.load(dirs.pop(), buffer);
+
+	if (!this.pud.isValid) {
 		return properties.displayError("The map file is corrupted or invalid.");
 	}
 
 	this.path = path;
 
-	// disables "Link to Map" button if user map is loaded
-	$("#link").disabled = !Boolean(path);
+	if (dirs[0] == TEMPLATES_DIR) {
+		this.pud.filename = DEFAULT_FILE_NAME;
+	}
 
+	document.title = this.pud.filename;
 	$("#filename").textContent = this.pud.filename;
 
 	$("#text_filename").classList.toggle(
@@ -988,21 +963,21 @@ Editor.prototype.selectUnits = function(x, y, add=false) {
 		}
 
 		const unitSize = this.pud.units.unitSize[unit.id];
-		let intersect = false;
+		let isSelected = false;
 
 		if (this.selectMultiple) {
-			intersect = nx < unit.x + unitSize.x
-			         && nx + w > unit.x
-			         && ny < unit.y + unitSize.y
-			         && ny + h > unit.y;
+			isSelected = nx < unit.x + unitSize.x
+			          && nx + w > unit.x
+			          && ny < unit.y + unitSize.y
+			          && ny + h > unit.y;
 		} else {
-			intersect = x <= unit.x + unitSize.x - 1
-			         && x + w >= unit.x
-			         && y <= unit.y + unitSize.y - 1
-			         && y + h >= unit.y;
+			isSelected = x <= unit.x + unitSize.x - 1
+			          && x + w >= unit.x
+			          && y <= unit.y + unitSize.y - 1
+			          && y + h >= unit.y;
 		}
 
-		if (intersect && (!add || this.selected[i] == undefined)) {
+		if (isSelected && (!add || this.selected[i] == undefined)) {
 			this.select.strokeRect(
 				unit.x * TILE_SIZE, unit.y * TILE_SIZE,
 				unitSize.x * TILE_SIZE, unitSize.y * TILE_SIZE
@@ -1019,11 +994,11 @@ Editor.prototype.drawUnitBrush = function(x, y) {
 	const unitSize = this.pud.units.unitSize[this.unit];
 	[x, y] = this.findNearestTile(x, y, unitSize.x, unitSize.y);
 
-	const valid = this.validateArea(x, y);
+	const isValid = this.validateArea(x, y);
 
 	this.clearSelect();
 	this.select.lineWidth = 1;
-	this.select.strokeStyle = valid ? PLACE_VALID_COLOR : PLACE_ERROR_COLOR;
+	this.select.strokeStyle = isValid ? PLACE_VALID_COLOR : PLACE_ERROR_COLOR;
 	this.select.strokeRect(
 		x * TILE_SIZE, y * TILE_SIZE,
 		TILE_SIZE * unitSize.x, TILE_SIZE * unitSize.y
@@ -1353,7 +1328,7 @@ Editor.prototype.findNearestTile = function(x, y, w=0, h=0) {
 Editor.prototype.validateArea = function(x, y) {
 	const startLocation = this.unit == HUMAN_START_LOC
 	                    | this.unit == ORC_START_LOC;
-	let valid = true;
+	let isValid = true;
 
 	if (startLocation && this.player == NEUTRAL) {
 		return; // cannot place start location for neutral player
@@ -1397,7 +1372,7 @@ Editor.prototype.validateArea = function(x, y) {
 			&& y < otherUnit.y + otherUnitSize.y
 			&& y + unitSize.y > otherUnit.y
 		) {
-			valid = false;
+			isValid = false;
 		} else if (
 			(flags[GOLD_SOURCE] && otherFlags[GOLD_DEPOT])
 			|| (flags[GOLD_DEPOT] && otherFlags[GOLD_SOURCE])
@@ -1412,11 +1387,11 @@ Editor.prototype.validateArea = function(x, y) {
 				&& y < otherUnit.y + otherUnitSize.y + RESOURCE_AREA
 				&& y + unitSize.y + RESOURCE_AREA > otherUnit.y
 			) {
-				valid = false;
+				isValid = false;
 			}
 		}
 
-		if (!valid) {
+		if (!isValid) {
 			break;
 		}
 	}
@@ -1434,33 +1409,33 @@ Editor.prototype.validateArea = function(x, y) {
 			if (special == 0x00) {
 				if (flags[BUILDING]) { // buildings
 					if (flags[SHORE_BUILDING]) {
-						valid &= tile == 0x02 || tile == 0x82 || tile == 0x40;
+						isValid &= tile == 0x02 || tile == 0x82 || tile == 0x40;
 
 						// counts coast tiles
 						coastTiles += tile == 0x02 || tile == 0x82;
 					} else if (flags[OIL_SOURCE] || flags[OIL_PLATFORM]) {
-						valid &= tile == 0x00 || tile == 0x40;
+						isValid &= tile == 0x00 || tile == 0x40;
 					} else {
-						valid &= tile == 0x00 || tile == 0x01;
+						isValid &= tile == 0x00 || tile == 0x01;
 					}
 				} else { // units
 					if (unitType & LAND || startLocation) {
-						valid &= tile == 0x00 || tile == 0x01 || tile == 0x11;
+						isValid &= tile == 0x00 || tile == 0x01 || tile == 0x11;
 					} else if (unitType & AIR) {
-						valid &= true;
+						isValid &= true;
 					} else if (unitType & SEA) {
-						valid &= tile == 0x00 || tile == 0x40;
+						isValid &= tile == 0x00 || tile == 0x40;
 					}
 				}
 			} else if (special == 0x02) {
 				if (unitType & AIR) {
-					valid = false;
+					isValid = false;
 				}
 			} else if (special == 0xff) {
-				valid = false;
+				isValid = false;
 			}
 
-			if (!valid) {
+			if (!isValid) {
 				break;
 			}
 		}
@@ -1468,10 +1443,10 @@ Editor.prototype.validateArea = function(x, y) {
 
 	if (flags[SHORE_BUILDING]) {
 		// shore buildings must be on at least one coast tile
-		valid &= coastTiles > 0;
+		isValid &= coastTiles > 0;
 	}
 
-	return valid;
+	return isValid;
 
 	function getUnitType(flags) {
 		const type = flags[LAND_UNIT]
@@ -2154,6 +2129,7 @@ Properties.prototype.saveSheet = function(key) {
 			editor.changeTileset(tileset);
 		}
 
+		document.title = editor.pud.filename;
 		$("#filename").textContent = editor.pud.filename;
 	}
 
@@ -2361,7 +2337,7 @@ Properties.prototype.changeResource = function() {
 
 function Pud() {
 	this.filename = "";
-	this.valid = true;
+	this.isValid = true;
 
 	this.id = null;
 	this.version = STANDARD;
@@ -2416,18 +2392,18 @@ Pud.prototype.load = function(filename, buffer) {
 	this.certificate    = readSection("SIGN") || 0;
 	this.unitMap        = readUnit();
 
-	this.valid &= this.version == STANDARD || this.version == EXPANSION;
-	this.valid &= this.tileset <= 0xff;
+	this.isValid &= this.version == STANDARD || this.version == EXPANSION;
+	this.isValid &= this.tileset <= 0xff;
 
 	const area = this.width * this.height;
-	this.valid &= this.tileMap.length == area;
-	this.valid &= this.movementMap.length == area;
+	this.isValid &= this.tileMap.length == area;
+	this.isValid &= this.movementMap.length == area;
 
 	this.tileset = this.tileset > SWAMP ? FOREST : this.tileset;
 
 	this.controller = this.controller.map(function(controller) {
 		if (controller > 0xff) {
-			this.valid = false;
+			this.isValid = false;
 		}
 
 		if (controller == 0x01) { // computer
@@ -2666,7 +2642,7 @@ Pud.prototype.load = function(filename, buffer) {
 	}
 
 	function setInvalid(message) {
-		self.valid = false;
+		self.isValid = false;
 		console.error(message);
 	}
 };
@@ -3016,7 +2992,7 @@ function Files(id) {
 
 Files.prototype.browse = function() {
 	// opens at root directory if a template file is currently loaded
-	if (this.dirs.includes("templates")) {
+	if (this.dirs[0] == TEMPLATES_DIR) {
 		this.dirs = [];
 	}
 
@@ -3107,7 +3083,22 @@ Files.prototype.openFile = function(path) {
 };
 
 Files.prototype.openTemplate = function(tileset, size) {
-	this.openFile(["templates", tileset, size + "x" + size + ".pud"].join("/"));
+	this.openFile([TEMPLATES_DIR, tileset, `${size}x${size}.pud`].join("/"));
+	this.removeQueryString();
+};
+
+Files.prototype.openUploadedFile = function(event) {
+	const file = event.target.files[0];
+
+	if (file != null) {
+		const reader = new FileReader();
+		reader.addEventListener("load", function(event) {
+			this.removeQueryString();
+			editor.open(file.name, event.target.result);
+			properties.hide("browser");
+		}.bind(this));
+		reader.readAsArrayBuffer(file);
+	}
 };
 
 Files.prototype.browseParent = function() {
@@ -3118,4 +3109,22 @@ Files.prototype.browseParent = function() {
 Files.prototype.browseDir = function(href) {
 	this.dirs.push(window.decodeURIComponent(href.split("/").pop()));
 	this.browse();
+};
+
+Files.prototype.parseQueryString = function() {
+	const map = new URL(window.location.href).searchParams.get("map");
+
+	if (map == undefined || map == "") {
+		this.openTemplate(DEFAULT_TILESET, DEFAULT_SIZE);
+	} else { // loads map specified in optional URL parameter
+		this.openFile(map);
+	}
+};
+
+Files.prototype.removeQueryString = function() {
+	const url = new URL(window.location.href);
+
+	if (url.searchParams.get("map") != undefined) {
+		window.history.pushState({}, document.title, url.pathname);
+	}
 };
