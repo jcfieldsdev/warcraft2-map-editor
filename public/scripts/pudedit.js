@@ -93,7 +93,7 @@ const GOLD_SOURCE    = 22;
 const GOLD_DEPOT     = 12; // town halls
 const OIL_SOURCE     = 21;
 const OIL_PLATFORM   = 11;
-const OIL_DEPOT      = 24;
+const OIL_DEPOT      = 24; // shipyards and refineries
 
 // terrain
 const PLAIN = 0, FILLER = 1, RANDOM = 2;
@@ -578,17 +578,17 @@ Editor.prototype.open = function(path, buffer) {
 		"ladder", this.pud.certificate == LADDER
 	);
 
-	const width = this.pud.width * TILE_SIZE;
+	const width  = this.pud.width  * TILE_SIZE;
 	const height = this.pud.height * TILE_SIZE;
 
-	setSize("tileMap",     width,        height);
-	setSize("unitMap",     width,        height);
-	setSize("movementMap", width,        height);
-	setSize("actionMap",   width,        height);
-	setSize("select",      width,        height);
-	setSize("miniUnitMap", MINIMAP_SIZE, MINIMAP_SIZE);
-	setSize("miniTileMap", MINIMAP_SIZE, MINIMAP_SIZE);
-	setSize("frame",       MINIMAP_SIZE, MINIMAP_SIZE);
+	setCanvasSize("tileMap",     width,        height);
+	setCanvasSize("unitMap",     width,        height);
+	setCanvasSize("movementMap", width,        height);
+	setCanvasSize("actionMap",   width,        height);
+	setCanvasSize("select",      width,        height);
+	setCanvasSize("miniUnitMap", MINIMAP_SIZE, MINIMAP_SIZE);
+	setCanvasSize("miniTileMap", MINIMAP_SIZE, MINIMAP_SIZE);
+	setCanvasSize("frame",       MINIMAP_SIZE, MINIMAP_SIZE);
 
 	this.tileMap = $("#tileMap").getContext("2d");
 	this.unitMap = $("#unitMap").getContext("2d");
@@ -623,7 +623,7 @@ Editor.prototype.open = function(path, buffer) {
 	this.drawMovementMap();
 	this.drawActionMap();
 
-	function setSize(id, w, h) {
+	function setCanvasSize(id, w, h) {
 		$("#" + id).width  = w;
 		$("#" + id).height = h;
 	}
@@ -682,7 +682,6 @@ Editor.prototype.drawUnitMap = function() {
 	this.unitBuffer.clearRect(0, 0, width, height);
 	this.miniUnitBuffer.clearRect(0, 0, width, height);
 
-	const self = this;
 	const top = [], bottom = [];
 
 	// sorts units by stacking priority
@@ -697,9 +696,9 @@ Editor.prototype.drawUnitMap = function() {
 		}
 	}
 
-	Promise.all(bottom.map(drawUnit)).then(function() {
+	Promise.all(bottom.map(drawUnit.bind(this))).then(function() {
 		// draws flying units and start locations after other units
-		Promise.all(top.map(drawUnit)).then(function() {
+		Promise.all(top.map(drawUnit.bind(this))).then(function() {
 			// draws units after all images have loaded
 			this.unitMap.clearRect(0, 0, width, height);
 			this.unitMap.drawImage(
@@ -719,16 +718,16 @@ Editor.prototype.drawUnitMap = function() {
 
 	function drawUnit(i) {
 		return new Promise(function(resolve) {
-			const unit = self.pud.unitMap[i];
+			const unit = this.pud.unitMap[i];
 			let unitSize = 1;
 
-			if (unit.id in self.pud.units.unitSize) {
-				unitSize = self.pud.units.unitSize[unit.id];
+			if (unit.id in this.pud.units.unitSize) {
+				unitSize = this.pud.units.unitSize[unit.id];
 			} else {
 				console.error("Missing unit size for unit:", unit.id);
 			}
 
-			const path = "units/" + data.tilesets[self.pud.tileset] + "/";
+			const path = "units/" + data.tilesets[this.pud.tileset] + "/";
 
 			const img = new Image();
 			img.src = path + unit.id.toString().padStart(4, "0") + ".png";
@@ -739,14 +738,14 @@ Editor.prototype.drawUnitMap = function() {
 				const w = unitSize.x * TILE_SIZE;
 				const h = unitSize.y * TILE_SIZE;
 
-				drawToUnitMap(x, y, w, h, i, unit, img);
-				drawToMiniMap(x, y, w, h, unit);
+				drawToUnitMap.call(this, x, y, w, h, i, unit, img);
+				drawToMiniMap.call(this, x, y, w, h, unit);
 
 				resolve();
-			});
+			}.bind(this));
 
 			return img;
-		});
+		}.bind(this));
 	}
 
 	function drawToUnitMap(x, y, w, h, i, unit, img) {
@@ -755,7 +754,7 @@ Editor.prototype.drawUnitMap = function() {
 		                   || unit.id == ORC_START_LOC;
 		let sx = 0, sy = 0;
 
-		if (!startLocation && !self.pud.units.flags[unit.id][BUILDING]) {
+		if (!startLocation && !this.pud.units.flags[unit.id][BUILDING]) {
 			// centers unit in tile
 			x -= (img.width - w) / 2;
 			y -= (img.width - h) / 2;
@@ -763,22 +762,22 @@ Editor.prototype.drawUnitMap = function() {
 			w = img.width;
 			h = w;
 
-			if (self.pud.unitMap[i].position == undefined) {
+			if (this.pud.unitMap[i].position == undefined) {
 				// picks random idle frame
 				sy = h * Math.floor(Math.random() * 5);
-				self.pud.unitMap[i].position = sy;
+				this.pud.unitMap[i].position = sy;
 			} else {
-				sy = self.pud.unitMap[i].position;
+				sy = this.pud.unitMap[i].position;
 			}
 		}
 
-		self.unitBuffer.drawImage(img, sx, sy, w, h, x, y, w, h);
+		this.unitBuffer.drawImage(img, sx, sy, w, h, x, y, w, h);
 
 		if (owner == 0) { // artwork is already in player 1 colors by default
 			return;
 		}
 
-		const imageData = self.unitBuffer.getImageData(x, y, w, h);
+		const imageData = this.unitBuffer.getImageData(x, y, w, h);
 
 		// changes player colors to match unit owner
 		for (let i = 0; i < imageData.data.length; i += 4) { // 4 for RGBA
@@ -795,7 +794,7 @@ Editor.prototype.drawUnitMap = function() {
 			}
 		}
 
-		self.unitBuffer.putImageData(imageData, x, y);
+		this.unitBuffer.putImageData(imageData, x, y);
 	}
 
 	function drawToMiniMap(x, y, w, h, unit) {
@@ -812,8 +811,8 @@ Editor.prototype.drawUnitMap = function() {
 		w = Math.ceil(w);
 		h = Math.ceil(h);
 
-		self.miniUnitBuffer.fillStyle = "#" + r + g + b;
-		self.miniUnitBuffer.fillRect(x, y, w, h);
+		this.miniUnitBuffer.fillStyle = "#" + r + g + b;
+		this.miniUnitBuffer.fillRect(x, y, w, h);
 	}
 };
 
@@ -1142,7 +1141,6 @@ Editor.prototype.convertAllUnits = function(player, oldRaceId, newRaceId) {
 };
 
 Editor.prototype.paintTerrain = function(x, y) {
-	const self = this;
 	let tile = this.tile;
 
 	this.drawTerrainBrush(x, y);
@@ -1155,7 +1153,7 @@ Editor.prototype.paintTerrain = function(x, y) {
 	const changes = [];
 
 	do {
-		const boundary = computeBoundary(x, y, this.size);
+		const boundary = computeBoundary.call(this, x, y, this.size);
 
 		if ((tile & 0xf0) == LIGHT_DIRT) {
 			if ((this.pud.tileMap[boundary.tl] & 0xf0) == LIGHT_GRASS) {
@@ -1204,18 +1202,18 @@ Editor.prototype.paintTerrain = function(x, y) {
 	for (let i = 0; i < this.size; i++) {
 		for (let j = 0; j < this.size; j++) {
 			const point = x + i + (y + j) * this.pud.width;
-			changeTile(point, tile + Math.floor(Math.random() * 3));
+			changeTile.call(this, point, tile + Math.floor(Math.random() * 3));
 		}
 	}
 
 	// draws boundary tiles
 	for (const change of changes) {
-		drawTile(change.point, change.index);
+		drawTile.call(this, change.point, change.index);
 	}
 
 	function getTileType(x, y) {
-		if (x >= 0 && x < self.pud.width && y >= 0 && y < self.pud.height) {
-			return self.pud.tileMap[x + y * self.pud.width] & 0xf0;
+		if (x >= 0 && x < this.pud.width && y >= 0 && y < this.pud.height) {
+			return this.pud.tileMap[x + y * this.pud.width] & 0xf0;
 		}
 	}
 
@@ -1223,10 +1221,10 @@ Editor.prototype.paintTerrain = function(x, y) {
 		const points = {};
 
 		// corners
-		points.tl = createPoint(x - 1,    y - 1);    // top-left
-		points.tr = createPoint(x + size, y - 1);    // top-right
-		points.bl = createPoint(x - 1,    y + size); // bottom-left
-		points.br = createPoint(x + size, y + size); // bottom-right
+		points.tl = createPoint.call(this, x - 1,    y - 1);    // top-left
+		points.tr = createPoint.call(this, x + size, y - 1);    // top-right
+		points.bl = createPoint.call(this, x - 1,    y + size); // bottom-left
+		points.br = createPoint.call(this, x + size, y + size); // bottom-right
 
 		points.t = [];
 		points.b = [];
@@ -1234,48 +1232,48 @@ Editor.prototype.paintTerrain = function(x, y) {
 		points.r = [];
 
 		for (let i = 0; i < size; i++) {
-			points.t.push(createPoint(x + i,    y - 1));    // top
-			points.b.push(createPoint(x + i,    y + size)); // bottom
-			points.l.push(createPoint(x - 1,    y + i));    // left
-			points.r.push(createPoint(x + size, y + i));    // right
+			points.t.push(createPoint.call(this, x + i,    y - 1));    // top
+			points.b.push(createPoint.call(this, x + i,    y + size)); // bottom
+			points.l.push(createPoint.call(this, x - 1,    y + i));    // left
+			points.r.push(createPoint.call(this, x + size, y + i));    // right
 		}
 
 		return points;
 	}
 
 	function createPoint(x, y) {
-		if (x >= 0 && x < self.pud.width && y >= 0 && y < self.pud.height) {
-			return x + y * self.pud.width;
+		if (x >= 0 && x < this.pud.width && y >= 0 && y < this.pud.height) {
+			return x + y * this.pud.width;
 		}
 	}
 
 	function changeTile(point, index) {
 		changes.push({point, index});
-		self.pud.tileMap[point] = index;
+		this.pud.tileMap[point] = index;
 	}
 
 	function drawTile(point, index) {
-		if (index in data.tiles[self.pud.tileset]) {
-			let tile = data.tiles[self.pud.tileset][index];
-			let cx = point % self.pud.width * TILE_SIZE;
-			let cy = Math.floor(point / self.pud.height) * TILE_SIZE;
+		if (index in data.tiles[this.pud.tileset]) {
+			let tile = data.tiles[this.pud.tileset][index];
+			let cx = point % this.pud.width * TILE_SIZE;
+			let cy = Math.floor(point / this.pud.height) * TILE_SIZE;
 
-			self.tileMap.drawImage(
-				self.tiles,
+			this.tileMap.drawImage(
+				this.tiles,
 				tile.x, tile.y,
 				TILE_SIZE, TILE_SIZE,
 				cx, cy,
 				TILE_SIZE, TILE_SIZE
 			);
-			self.miniTileMap.drawImage(
-				self.tiles,
+			this.miniTileMap.drawImage(
+				this.tiles,
 				tile.x, tile.y,
 				MINI_TILE_SIZE, MINI_TILE_SIZE,
 				cx, cy,
 				TILE_SIZE, TILE_SIZE
 			);
 		} else {
-			let hex = self.formatHex(index);
+			let hex = this.formatHex(index);
 			console.error(`Missing terrain tile: ${hex} at (${x}, ${y})`);
 		}
 	}
@@ -1706,7 +1704,6 @@ Properties.prototype.displayError = function(message) {
 };
 
 Properties.prototype.openSheet = function(key) {
-	const self = this;
 	const openSheet = {
 		create:       openCreate,
 		map:          openMap,
@@ -1719,10 +1716,10 @@ Properties.prototype.openSheet = function(key) {
 	}[key];
 
 	if (openSheet != undefined) {
-		openSheet();
+		openSheet.call(this);
 		this.show(key);
 	} else {
-		console.error(`Invalid property sheet: ${key}`);
+		console.error(`Unknown property sheet: ${key}`);
 	}
 
 	function openCreate() {
@@ -1810,7 +1807,7 @@ Properties.prototype.openSheet = function(key) {
 		const option = select.options[select.selectedIndex];
 		$("#legend_units").textContent = option.label;
 
-		self.fillSheet("units");
+		this.fillSheet("units");
 	}
 
 	function openUpgrades() {
@@ -1838,14 +1835,14 @@ Properties.prototype.openSheet = function(key) {
 		const option = select.options[select.selectedIndex];
 		$("#legend_upgrades").textContent = option.label;
 
-		self.fillSheet("upgrades");
+		this.fillSheet("upgrades");
 	}
 
 	function openRestrictions() {
 		$("#checkbox_restrictions").checked = !editor.pud.useAlow;
 		$("#select_restrictions").disabled = !editor.pud.useAlow;
 
-		self.fillSheet("restrictions");
+		this.fillSheet("restrictions");
 	}
 
 	function openSelection() {
@@ -1874,8 +1871,8 @@ Properties.prototype.openSheet = function(key) {
 
 		select.selectedIndex = 0;
 
-		self.fillSheet("unitMap");
-		self.changeResource();
+		this.fillSheet("unitMap");
+		this.changeResource();
 	}
 
 	function setRadio(name, compare) {
@@ -1899,14 +1896,13 @@ Properties.prototype.fillSheet = function(key) {
 		return;
 	}
 
-	const self = this;
 	const fillSheet = {
 		restrictions: fillRestrictions,
 		unitMap:      fillSelection
 	}[key];
 
 	if (fillSheet != undefined) {
-		return fillSheet();
+		return fillSheet.call(this);
 	}
 
 	const index = $("#select_" + key).value;
@@ -1982,7 +1978,7 @@ Properties.prototype.fillSheet = function(key) {
 		}
 
 		if ($$(".restrictions").length > 0) {
-			self.saveWorking("restrictions");
+			this.saveWorking("restrictions");
 		}
 
 		table.appendChild(tr);
@@ -2004,9 +2000,9 @@ Properties.prototype.fillSheet = function(key) {
 			for (let j = 0; j < PLAYERS; j++) {
 				let value = false;
 
-				if (self.working[index] != undefined) {
-					if (self.working[index][i] != undefined) {
-						value = self.working[index][i][j];
+				if (this.working[index] != undefined) {
+					if (this.working[index][i] != undefined) {
+						value = this.working[index][i][j];
 					}
 				} else if (editor.pud.restrictions[index][j] != undefined) {
 					value = editor.pud.restrictions[index][j][i];
@@ -2034,7 +2030,7 @@ Properties.prototype.fillSheet = function(key) {
 		}
 
 		$("#restrictions table").replaceWith(table);
-		self.index = index;
+		this.index = index;
 	}
 
 	function fillSelection() {
@@ -2044,7 +2040,7 @@ Properties.prototype.fillSheet = function(key) {
 
 		$("#legend_unitMap").textContent = option.label;
 
-		self.saveWorking("unitMap");
+		this.saveWorking("unitMap");
 
 		const unit = editor.selected[index];
 		let value = "";
@@ -2058,9 +2054,9 @@ Properties.prototype.fillSheet = function(key) {
 				}
 			}
 
-			if (self.working[index] != undefined) {
-				if (self.working[index][id] != undefined) {
-					value = self.working[index][id];
+			if (this.working[index] != undefined) {
+				if (this.working[index][id] != undefined) {
+					value = this.working[index][id];
 				}
 			}
 
@@ -2085,13 +2081,12 @@ Properties.prototype.fillSheet = function(key) {
 		$("#row_ai").hidden = !isUnit;
 		$("#select_property").disabled = !isUnit;
 
-		self.changeResource();
-		self.index = index;
+		this.changeResource();
+		this.index = index;
 	}
 };
 
 Properties.prototype.saveSheet = function(key) {
-	const self = this;
 	const saveSheet = {
 		create:       saveCreate,
 		map:          saveMap,
@@ -2106,10 +2101,10 @@ Properties.prototype.saveSheet = function(key) {
 	this.saveWorking(key);
 
 	if (saveSheet != undefined) {
-		saveSheet();
+		saveSheet.call(this);
 		this.hide(key);
 	} else {
-		console.error(`Invalid property sheet: ${key}`);
+		console.error(`Unknown property sheet: ${key}`);
 	}
 
 	function saveCreate() {
@@ -2160,14 +2155,14 @@ Properties.prototype.saveSheet = function(key) {
 	}
 
 	function saveRestrictions() {
-		for (const index of Object.keys(self.working)) {
-			for (const i of Object.keys(self.working[index])) {
-				for (const j of Object.keys(self.working[index][i])) {
+		for (const index of Object.keys(this.working)) {
+			for (const i of Object.keys(this.working[index])) {
+				for (const j of Object.keys(this.working[index][i])) {
 					if (editor.pud.restrictions[index][j] == undefined) {
 						continue;
 					}
 
-					const value = Boolean(self.working[index][i][j]);
+					const value = Boolean(this.working[index][i][j]);
 					editor.pud.restrictions[index][j][i] = value;
 				}
 			}
@@ -2179,8 +2174,8 @@ Properties.prototype.saveSheet = function(key) {
 	function saveSelection() {
 		let ownerChanged = 0;
 
-		for (const index of Object.keys(self.working)) {
-			for (const property of Object.keys(self.working[index])) {
+		for (const index of Object.keys(this.working)) {
+			for (const property of Object.keys(this.working[index])) {
 				if (editor.pud.unitMap[index] == undefined) {
 					continue;
 				}
@@ -2189,7 +2184,7 @@ Properties.prototype.saveSheet = function(key) {
 					continue;
 				}
 
-				const value = Number(self.working[index][property]);
+				const value = Number(this.working[index][property]);
 
 				if (property == "owner") {
 					const unit = editor.pud.unitMap[index];
@@ -2227,8 +2222,8 @@ Properties.prototype.saveSheet = function(key) {
 			return;
 		}
 
-		for (const index of Object.keys(self.working)) {
-			for (const property of Object.keys(self.working[index])) {
+		for (const index of Object.keys(this.working)) {
+			for (const property of Object.keys(this.working[index])) {
 				if (editor.pud[key][property] == undefined) {
 					continue;
 				}
@@ -2237,7 +2232,7 @@ Properties.prototype.saveSheet = function(key) {
 					continue;
 				}
 
-				const value = self.working[index][property];
+				const value = this.working[index][property];
 				editor.pud[key][property][index] = value;
 			}
 		}
@@ -2367,86 +2362,35 @@ function Pud() {
 }
 
 Pud.prototype.load = function(filename, buffer) {
-	const self = this;
 	const sections = this.openFile(buffer);
 	this.filename = filename;
 
-	this.id             = readType();
-	this.version        = readSection("VER ");
-	this.description    = readDesc();
-	this.controller     = readSection("OWNR");
-	this.tileset        = readSection("ERAX") || readSection("ERA ");
-	[this.width, this.height] = readDim();
-	this.units          = readSection("UDTA");
-	this.upgrades       = readSection("UGRD");
-	this.restrictions   = readSection("ALOW") || {};
-	this.races          = readSection("SIDE");
-	this.startGold      = readSection("SGLD");
-	this.startLumber    = readSection("SLBR");
-	this.startOil       = readSection("SOIL");
-	this.ai             = readSection("AIPL");
-	this.tileMap        = readSection("MTXM");
-	this.movementMap    = readSection("SQM ");
-	this.oilMap         = readSection("OILM"); // unused
-	this.actionMap      = readSection("REGM");
-	this.certificate    = readSection("SIGN") || 0;
-	this.unitMap        = readUnit();
+	try {
+		this.id             = readType.call(this);
+		this.version        = readSection("VER ");
+		this.description    = readDesc.call(this);
+		this.controller     = readSection("OWNR");
+		this.tileset        = readSection("ERAX") || readSection("ERA ");
+		[this.width, this.height] = readDim();
+		this.units          = readSection("UDTA");
+		this.upgrades       = readSection("UGRD");
+		this.restrictions   = readSection("ALOW") || {};
+		this.races          = readSection("SIDE");
+		this.startGold      = readSection("SGLD");
+		this.startLumber    = readSection("SLBR");
+		this.startOil       = readSection("SOIL");
+		this.ai             = readSection("AIPL");
+		this.tileMap        = readSection("MTXM");
+		this.movementMap    = readSection("SQM ");
+		this.oilMap         = readSection("OILM"); // unused
+		this.actionMap      = readSection("REGM");
+		this.certificate    = readSection("SIGN") || 0;
+		this.unitMap        = readUnit();
 
-	this.isValid &= this.version == STANDARD || this.version == EXPANSION;
-	this.isValid &= this.tileset <= 0xff;
-
-	const area = this.width * this.height;
-	this.isValid &= this.tileMap.length == area;
-	this.isValid &= this.movementMap.length == area;
-
-	this.tileset = this.tileset > SWAMP ? FOREST : this.tileset;
-
-	this.controller = this.controller.map(function(controller) {
-		if (controller > 0xff) {
-			this.isValid = false;
-		}
-
-		if (controller == 0x01) { // computer
-			return 0x04;
-		}
-
-		if (controller >= 0x08) { // passive computer
-			return 0x00;
-		}
-
-		return controller;
-	}, this);
-
-	this.races = this.races.map(function(race) {
-		return Math.min(race, 0x02); // neutral
-	});
-
-	this.ai = this.ai.map(function(ai) {
-		return Math.min(ai, 0x52);
-	});
-
-	this.useAlow = Object.keys(this.restrictions).length > 0;
-
-	if (!this.useAlow) { // copies default restriction data if no ALOW section
-		for (const key of Object.keys(defaults.restrictions)) {
-			this.restrictions[key] = [];
-
-			for (const i of Object.keys(defaults.restrictions[key])) {
-				const keys = Object.keys(defaults.restrictions[key][i]);
-				this.restrictions[key][i] = [];
-
-				for (const j of keys) {
-					const value = defaults.restrictions[key][i][j];
-					this.restrictions[key][i][j] = value;
-				}
-			}
-		}
-	}
-
-	if (this.unitMap.length == 0) { // generates random ID for new maps
-		this.id = this.id.map(function() {
-			return Math.floor(Math.random() * 256);
-		});
+		this.validateAfterLoad();
+	} catch (error) {
+		this.isValid = false;
+		console.error(error);
 	}
 
 	function readSection(key) {
@@ -2454,7 +2398,7 @@ Pud.prototype.load = function(filename, buffer) {
 
 		if (sections.get(key) == undefined) {
 			if (schema.required) {
-				setInvalid(`Missing required section: ${key}`);
+				throw `Missing required section: ${key}`;
 			}
 
 			return;
@@ -2563,15 +2507,13 @@ Pud.prototype.load = function(filename, buffer) {
 		const section = sections.get("TYPE");
 
 		if (section == undefined) {
-			setInvalid("Missing required section: TYPE");
-			return;
+			throw "Missing required section: TYPE";
 		}
 
 		// checks for file format magic number
 		// last two bytes can be any value
-		if (!self.hexToStr(section).startsWith(FILE_SIGNATURE.slice(0, -2))) {
-			setInvalid("Invalid file signature.");
-			return;
+		if (!this.hexToStr(section).startsWith(FILE_SIGNATURE.slice(0, -2))) {
+			throw "Invalid file signature.";
 		}
 
 		return section.slice(FILE_SIGNATURE.length); // returns ID
@@ -2582,11 +2524,10 @@ Pud.prototype.load = function(filename, buffer) {
 		const section = sections.get("DESC");
 
 		if (section == undefined) {
-			setInvalid("Missing required section: DESC");
-			return;
+			throw "Missing required section: DESC";
 		}
 
-		const desc = self.hexToStr(section);
+		const desc = this.hexToStr(section);
 
 		// terminates at null char
 		return desc.slice(0, desc.indexOf("\x00"));
@@ -2597,20 +2538,18 @@ Pud.prototype.load = function(filename, buffer) {
 		const section = sections.get("DIM ");
 
 		if (section == undefined) {
-			setInvalid("Missing required section: DIM ");
-			return [0, 0];
+			throw "Missing required section: DIM ";
 		}
 
 		if (section.length != 4) {
-			setInvalid("Invalid map dimensions.");
-			return [0, 0];
+			throw "Invalid map dimensions.";
 		}
 
 		const x = section[0];
 		const y = section[2];
 
 		if (x > MAX_WIDTH || y > MAX_HEIGHT) {
-			setInvalid("Map dimensions are too large.");
+			throw "Map dimensions are too large.";
 		}
 
 		return [x, y];
@@ -2621,8 +2560,7 @@ Pud.prototype.load = function(filename, buffer) {
 		const section = sections.get("UNIT");
 
 		if (section == undefined) {
-			setInvalid("Missing required section: UNIT");
-			return;
+			throw "Missing required section: UNIT";
 		}
 
 		const unitMap = [];
@@ -2640,26 +2578,18 @@ Pud.prototype.load = function(filename, buffer) {
 
 		return unitMap;
 	}
-
-	function setInvalid(message) {
-		self.isValid = false;
-		console.error(message);
-	}
 };
 
 Pud.prototype.save = function() {
-	if (!this.validateMap()) {
-		return;
-	}
+	this.validateBeforeSave();
 
-	const self = this;
 	const sections = new Map([ // order is significant
-		["TYPE", saveType()],
-		["VER ", saveVers()],
-		["DESC", saveDesc()],
+		["TYPE", saveType.call(this)],
+		["VER ", saveVers.call(this)],
+		["DESC", saveDesc.call(this)],
 		["OWNR", this.controller],
-		["ERA ", saveEra()],
-		["ERAX", saveErax()],
+		["ERA ", saveEra.call(this)],
+		["ERAX", saveErax.call(this)],
 		["DIM ", saveSection("DIM ", this.width | this.height << 16)],
 		["UDTA", saveSection("UDTA", this.units)],
 		["UGRD", saveSection("UGRD", this.upgrades)],
@@ -2673,7 +2603,7 @@ Pud.prototype.save = function() {
 		["SQM ", saveSection("SQM ", this.movementMap)],
 		["OILM", saveSection("OILM", this.oilMap)],
 		["REGM", saveSection("REGM", this.actionMap)],
-		["UNIT", saveUnit()]
+		["UNIT", saveUnit.call(this)]
 	]);
 
 	// only writes restriction data if not using default values
@@ -2811,48 +2741,48 @@ Pud.prototype.save = function() {
 			newArray[i] = FILE_SIGNATURE.charCodeAt(i);
 		}
 
-		for (let i = 0; i < self.id.length; i++) {
-			newArray[i + len] = self.id[i];
+		for (let i = 0; i < this.id.length; i++) {
+			newArray[i + len] = this.id[i];
 		}
 
 		return newArray;
 	}
 
 	function saveVers() {
-		const expansionHeroes = self.unitMap.some(function(unit) {
+		const expansionHeroes = this.unitMap.some(function(unit) {
 			return data.expansionHeroes.includes(unit.id);
 		});
 
-		self.version = expansionHeroes ? EXPANSION : STANDARD;
+		this.version = expansionHeroes ? EXPANSION : STANDARD;
 
-		return convertNum(self.version, WORD);
+		return convertNum(this.version, WORD);
 	}
 
 	function saveDesc() {
 		const newArray = new Uint8Array(32);
-		self.description = self.description.slice(0, 31); // last byte is null
+		this.description = this.description.slice(0, 31); // last byte is null
 
-		for (let i = 0; i < self.description.length; i++) {
-			newArray[i] = self.description.charCodeAt(i);
+		for (let i = 0; i < this.description.length; i++) {
+			newArray[i] = this.description.charCodeAt(i);
 		}
 
 		return newArray;
 	}
 
 	function saveEra() {
-		const tileset = self.tileset == SWAMP ? WASTELAND : self.tileset;
+		const tileset = this.tileset == SWAMP ? WASTELAND : this.tileset;
 		return convertNum(tileset, WORD);
 	}
 
 	function saveErax() {
-		return self.tileset == SWAMP ? convertNum(self.tileset, WORD) : null;
+		return this.tileset == SWAMP ? convertNum(this.tileset, WORD) : null;
 	}
 
 	function saveUnit() {
-		const newArray = new Uint8Array(QWORD * self.unitMap.length);
+		const newArray = new Uint8Array(QWORD * this.unitMap.length);
 		let pos = 0;
 
-		for (const unit of self.unitMap) {
+		for (const unit of this.unitMap) {
 			const x = convertNum(unit.x, WORD);
 			const y = convertNum(unit.y, WORD);
 			const property = convertNum(unit.property, WORD);
@@ -2885,7 +2815,7 @@ Pud.prototype.openFile = function(buffer) {
 			sections.set(key, new Uint8Array(buffer, pos + 8, len));
 			pos += len + 8;
 		} catch (error) {
-			console.error(error);
+			console.error("Invalid file format.");
 			break;
 		}
 	}
@@ -2928,7 +2858,66 @@ Pud.prototype.createFile = function(sections) {
 	return new Blob([file], {type: MIME_TYPE});
 };
 
-Pud.prototype.validateMap = function() {
+Pud.prototype.validateAfterLoad = function() {
+	this.isValid &= this.version == STANDARD || this.version == EXPANSION;
+	this.isValid &= this.tileset <= 0xff;
+
+	const area = this.width * this.height;
+	this.isValid &= this.tileMap.length == area;
+	this.isValid &= this.movementMap.length == area;
+
+	this.tileset = this.tileset > SWAMP ? FOREST : this.tileset;
+
+	this.controller = this.controller.map(function(controller) {
+		if (controller > 0xff) {
+			this.isValid = false;
+		}
+
+		if (controller == 0x01) { // computer
+			return 0x04;
+		}
+
+		if (controller >= 0x08) { // passive computer
+			return 0x00;
+		}
+
+		return controller;
+	}, this);
+
+	this.races = this.races.map(function(race) {
+		return Math.min(race, 0x02); // neutral
+	});
+
+	this.ai = this.ai.map(function(ai) {
+		return Math.min(ai, 0x52);
+	});
+
+	this.useAlow = Object.keys(this.restrictions).length > 0;
+
+	if (!this.useAlow) { // copies default restriction data if no ALOW section
+		for (const key of Object.keys(defaults.restrictions)) {
+			this.restrictions[key] = [];
+
+			for (const i of Object.keys(defaults.restrictions[key])) {
+				const keys = Object.keys(defaults.restrictions[key][i]);
+				this.restrictions[key][i] = [];
+
+				for (const j of keys) {
+					const value = defaults.restrictions[key][i][j];
+					this.restrictions[key][i][j] = value;
+				}
+			}
+		}
+	}
+
+	if (this.unitMap.length == 0) { // generates random ID for new maps
+		this.id = this.id.map(function() {
+			return Math.floor(Math.random() * 256);
+		});
+	}
+};
+
+Pud.prototype.validateBeforeSave = function() {
 	if (this.unitMap.length == 0) {
 		throw "The map is empty. Place one or more units.";
 	}
@@ -2970,8 +2959,6 @@ Pud.prototype.validateMap = function() {
 
 		return controller;
 	});
-
-	return true;
 };
 
 // converts hex to ASCII
@@ -3093,9 +3080,9 @@ Files.prototype.openUploadedFile = function(event) {
 	if (file != null) {
 		const reader = new FileReader();
 		reader.addEventListener("load", function(event) {
-			this.removeQueryString();
 			editor.open(file.name, event.target.result);
 			properties.hide("browser");
+			this.removeQueryString();
 		}.bind(this));
 		reader.readAsArrayBuffer(file);
 	}
