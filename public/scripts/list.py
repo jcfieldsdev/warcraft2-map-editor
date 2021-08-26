@@ -24,8 +24,8 @@ try:
 except OSError:
 	pass
 
-dirs.sort()
-files.sort()
+dirs.sort(key=str.casefold)
+files.sort(key=str.casefold)
 
 print('Content-Type: application/json; charset=utf-8\n')
 print(json.dumps({'dirs': dirs, 'files': files}))

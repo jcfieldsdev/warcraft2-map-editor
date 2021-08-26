@@ -118,7 +118,7 @@ const files      = new Files("files");
  */
 
 window.addEventListener("load", function() {
-	files.parseQueryString();
+	files.openStartingMap();
 
 	window.addEventListener("keyup", function(event) {
 		const keyCode = event.keyCode;
@@ -3047,6 +3047,16 @@ Files.prototype.browse = function() {
 	}
 };
 
+Files.prototype.browseParent = function() {
+	this.dirs.pop();
+	this.browse();
+};
+
+Files.prototype.browseDir = function(href) {
+	this.dirs.push(window.decodeURIComponent(href.split("/").pop()));
+	this.browse();
+};
+
 Files.prototype.openFile = function(path) {
 	this.dirs = path.split("/").slice(0, -1);
 
@@ -3088,17 +3098,7 @@ Files.prototype.openUploadedFile = function(event) {
 	}
 };
 
-Files.prototype.browseParent = function() {
-	this.dirs.pop();
-	this.browse();
-};
-
-Files.prototype.browseDir = function(href) {
-	this.dirs.push(window.decodeURIComponent(href.split("/").pop()));
-	this.browse();
-};
-
-Files.prototype.parseQueryString = function() {
+Files.prototype.openStartingMap = function() {
 	const map = new URL(window.location.href).searchParams.get("map");
 
 	if (map == undefined || map == "") {
