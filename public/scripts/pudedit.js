@@ -1332,7 +1332,7 @@ Editor.prototype.validateArea = function(x, y) {
 		return; // cannot place start location for neutral player
 	}
 
-	const LAND = 0o1, AIR = 0o2, SEA = 0o4;
+	const LAND = 0b001, AIR = 0b010, SEA = 0b100;
 	const flags = this.pud.units.flags[this.unit];
 	const unitSize = this.pud.units.unitSize[this.unit];
 	const unitType = getUnitType(flags);
@@ -2495,9 +2495,9 @@ Pud.prototype.load = function(filename, buffer) {
 	function parseOctal(originalArray) {
 		return Array.from(originalArray).map(function(value) {
 			return [
-				Boolean(value & 0o1),
-				Boolean(value & 0o2),
-				Boolean(value & 0o4)
+				Boolean(value & 0b001),
+				Boolean(value & 0b010),
+				Boolean(value & 0b100)
 			];
 		});
 	}
@@ -2727,9 +2727,9 @@ Pud.prototype.save = function() {
 
 	function convertOctal(originalArray) {
 		return new Uint8Array(originalArray.length).map(function(undefined, i) {
-			return originalArray[i][0] * 0o1
-			     | originalArray[i][1] * 0o2
-			     | originalArray[i][2] * 0o4;
+			return originalArray[i][0] * 0b001
+			     | originalArray[i][1] * 0b010
+			     | originalArray[i][2] * 0b100;
 		});
 	}
 
@@ -2877,6 +2877,10 @@ Pud.prototype.validateAfterLoad = function() {
 			return 0x04;
 		}
 
+		if (controller == 0x03) { // nobody
+			return 0x05;
+		}
+
 		if (controller >= 0x08) { // passive computer
 			return 0x00;
 		}
@@ -2935,7 +2939,7 @@ Pud.prototype.validateBeforeSave = function() {
 		}
 	}
 
-	const PASSIVE_COMPUTER = 2, NOBODY = 3, HUMAN = 5;
+	const PASSIVE_COMPUTER = 0x02, NOBODY = 0x03, HUMAN = 0x05;
 
 	for (const player of players) {
 		if (player != NEUTRAL && start[player] == undefined) {
