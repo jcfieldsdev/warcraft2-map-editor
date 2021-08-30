@@ -229,12 +229,12 @@ window.addEventListener("load", function() {
 			properties.openSheet(element.value);
 		}
 
-		// overlay save buttons
+		// property sheet save buttons
 		if (element.closest(".save")) {
 			properties.saveSheet(element.closest(".save").value);
 		}
 
-		// overlay close buttons
+		// property sheet close buttons
 		if (element.closest(".close")) {
 			properties.hide(element.closest(".close").value);
 		}
@@ -453,7 +453,7 @@ window.addEventListener("load", function() {
 		}
 	});
 
-	// for overlay widgets
+	// for property sheet widgets
 	$("#file").addEventListener("change", files.openUploadedFile.bind(files));
 
 	function create() {
@@ -1709,10 +1709,10 @@ Editor.prototype.formatHex = function(num) {
  */
 
 function Properties() {
-	// currently active overlay
+	// currently active sheet
 	this.active = "";
 
-	// property sheet working object
+	// working object
 	this.working = {};
 	this.index = "";
 }
@@ -1749,6 +1749,10 @@ Properties.prototype.displayError = function(message) {
 };
 
 Properties.prototype.openSheet = function(key) {
+	if (key == this.active) { // checks if properties sheet already open
+		return;
+	}
+
 	const openSheet = {
 		create:       openCreate,
 		map:          openMap,
