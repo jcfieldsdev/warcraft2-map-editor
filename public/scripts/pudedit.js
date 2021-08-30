@@ -279,6 +279,9 @@ window.addEventListener("load", function() {
 		if (element.closest(".unit")) {
 			editor.mode = PLACE_UNIT;
 			editor.unit = Number(element.closest(".unit").value);
+
+			editor.selected = {};
+			editor.updateUnitInfo();
 		}
 
 		// file browser parent directory
@@ -294,7 +297,7 @@ window.addEventListener("load", function() {
 		}
 
 		// restrictions table column
-		if (element.matches(".restcol")) {
+		if (element.matches(".restCol")) {
 			const value = Number(element.value);
 
 			for (const element of $$(".restrictions")) {
@@ -307,7 +310,7 @@ window.addEventListener("load", function() {
 		}
 
 		// restrictions table row
-		if (element.matches(".restrow")) {
+		if (element.matches(".restRow")) {
 			const value = Number(element.value);
 
 			for (const element of $$(".restrictions")) {
@@ -409,6 +412,8 @@ window.addEventListener("load", function() {
 					$("#inspect").click();
 				}
 			}
+
+			editor.updateUnitInfo();
 		}
 	});
 	document.addEventListener("mousemove", function(event) {
@@ -435,7 +440,7 @@ window.addEventListener("load", function() {
 				editor.paintTerrain(event.clientX, event.clientY);
 			}
 
-			if ($("#info").open) {
+			if ($("#tileInfo").open) {
 				editor.updateTileInfo(event.clientX, event.clientY);
 			}
 		}
@@ -1108,8 +1113,7 @@ Editor.prototype.convertUnit = function(id, oldPlayer, newPlayer) {
 	return id;
 };
 
-Editor.prototype.convertAllUnits = function(player, oldRaceId, newRaceId) {
-	const oldRace = data.races[oldRaceId];
+Editor.prototype.convertAllUnits = function(player, newRaceId) {
 	const newRace = data.races[newRaceId];
 
 	for (const unit of this.pud.unitMap) {
@@ -1138,6 +1142,8 @@ Editor.prototype.convertAllUnits = function(player, oldRaceId, newRaceId) {
 			}
 		}
 	}
+
+	this.drawUnitMap();
 };
 
 Editor.prototype.paintTerrain = function(x, y) {
@@ -1459,8 +1465,8 @@ Editor.prototype.validateArea = function(x, y) {
 Editor.prototype.updateTileInfo = function(x, y) {
 	[x, y] = this.findNearestTile(x, y);
 
-	$("#text_posX").value = x;
-	$("#text_posY").value = y;
+	$("#text_tileX").value = x;
+	$("#text_tileY").value = y;
 
 	const index = x + this.pud.width * y;
 	$("#text_index").value = index;
@@ -1476,6 +1482,45 @@ Editor.prototype.updateTileInfo = function(x, y) {
 	if (index <= this.pud.actionMap.length) {
 		$("#text_actionTile").value = this.formatHex(this.pud.actionMap[index]);
 	}
+};
+
+Editor.prototype.updateUnitInfo = function() {
+	const selected = Object.keys(this.selected).length;
+	const multipleUnits = selected != 1;
+
+	if (!multipleUnits) {
+		const selection = Object.values(this.selected)[0];
+
+		$("#text_unitX").value = selection.x;
+		$("#text_unitY").value = selection.y;
+
+		if (selection.owner < PLAYERS) {
+			$("#owner").textContent = "Player " + (selection.owner + 1);
+		} else {
+			$("#owner").textContent = "Neutral";
+		}
+
+		const id = selection.id;
+
+		// finds unit name from ID
+		for (const group of Object.keys(data.units)) {
+			for (const type of Object.keys(data.units[group])) {
+				for (const race of Object.keys(data.units[group][type])) {
+					const unit = data.units[group][type][race];
+
+					if (unit.id == id) {
+						$("#unitType").textContent = unit.name;
+						break;
+					}
+				}
+			}
+		}
+	}
+
+	$("#oneUnit").hidden       =  multipleUnits;
+	$("#multipleUnits").hidden = !multipleUnits;
+
+	$("#selected").textContent = selected;
 };
 
 Editor.prototype.selectPlayer = function(player) {
@@ -1774,7 +1819,7 @@ Properties.prototype.openSheet = function(key) {
 
 					const unit = data.units[group][type][race];
 
-					if (unit.skip) {
+					if (unit.skip) { // start locations and walls
 						continue;
 					}
 
@@ -1854,9 +1899,9 @@ Properties.prototype.openSheet = function(key) {
 		}
 
 		for (const group of Object.keys(data.units)) {
-			for (const id of Object.keys(data.units[group])) {
-				for (const race of Object.keys(data.units[group][id])) {
-					const unit = data.units[group][id][race];
+			for (const type of Object.keys(data.units[group])) {
+				for (const race of Object.keys(data.units[group][type])) {
+					const unit = data.units[group][type][race];
 					units[unit.id] = unit.name;
 				}
 			}
@@ -1972,7 +2017,7 @@ Properties.prototype.fillSheet = function(key) {
 			const button = document.createElement("button");
 			button.value = i - 1;
 			button.textContent = i;
-			button.classList.add("restcol", "player" + i);
+			button.classList.add("restCol", "player" + i);
 			th.appendChild(button);
 			tr.appendChild(th);
 		}
@@ -1993,7 +2038,7 @@ Properties.prototype.fillSheet = function(key) {
 			const button = document.createElement("button");
 			button.value = i;
 			button.textContent = item;
-			button.classList.add("restrow");
+			button.classList.add("restRow");
 			td.appendChild(button);
 			tr.appendChild(td);
 
@@ -2138,8 +2183,7 @@ Properties.prototype.saveSheet = function(key) {
 			editor.pud.ai[i]         = $("#select_ai" + i).value;
 
 			if (oldRaceId != newRaceId) { // redraws units if race changes
-				editor.convertAllUnits(i, oldRaceId, newRaceId);
-				editor.drawUnitMap();
+				editor.convertAllUnits(i, newRaceId);
 			}
 		}
 
@@ -2572,7 +2616,7 @@ Pud.prototype.load = function(filename, buffer) {
 				id:       section[i + 4],
 				owner:    section[i + 5],
 				property: parseNum(section.slice(i + 6, i + 6 + WORD)),
-				position: undefined
+				position: undefined // used by editor, not part of format
 			});
 		}
 

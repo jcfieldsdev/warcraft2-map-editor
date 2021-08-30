@@ -12,343 +12,496 @@
 <script src="scripts/pudedit.js" type="text/javascript"></script></head>
 <body><header><h1>Warcraft II Map Editor</h1></header>
 <nav>
-<ul id="basic">
-	<li><button type="button" value="create" class="basic"><img src="layout/icon-create.svg" alt="[Create]" title="Create a new scenario"></button></li>
-	<li><button type="button" value="open" class="basic"><img src="layout/icon-open.svg" alt="[Open]" title="Open an existing scenario"></button></li>
-	<li><button type="button" value="save" class="basic"><img src="layout/icon-save.svg" alt="[Save Map]" title="Save this scenario"></button></li>
-</ul>
-<div id="filename"></div>
-<div id="miniMap"><canvas id="miniTileMap"></canvas>
-<canvas id="miniUnitMap"></canvas>
-<canvas id="frame"></canvas></div>
-<ul id="players">
-	<li><button type="button" value="0" title="Player 1 (Red)" class="player player1">1</button></li>
-	<li><button type="button" value="1" title="Player 2 (Blue)" class="player player2">2</button></li>
-	<li><button type="button" value="2" title="Player 3 (Green)" class="player player3">3</button></li>
-	<li><button type="button" value="3" title="Player 4 (Violet)" class="player player4">4</button></li>
-	<li><button type="button" value="4" title="Player 5 (Orange)" class="player player5">5</button></li>
-	<li><button type="button" value="5" title="Player 6 (Black)" class="player player6">6</button></li>
-	<li><button type="button" value="6" title="Player 7 (White)" class="player player7">7</button></li>
-	<li><button type="button" value="7" title="Player 8 (Yellow)" class="player player8">8</button></li>
-	<li><button type="button" value="15" title="Neutral" class="player player15">0</button></li>
-</ul>
-<ul id="tabs">
-	<li><button type="button" value="editor" class="tab">Editor</button></li>
-	<li><button type="button" value="terrain" class="tab">Terrain</button></li>
-	<li><button type="button" value="units" class="tab">Units</button></li>
-	<li><button type="button" value="map" class="tab">Map</button></li>
-</ul>
-<div id="editor" class="palette"><ul>
-	<li><button type="button" id="create"><img src="layout/icon-create.svg" alt="[Create]"> Create</button></li>
-	<li><button type="button" id="open"><img src="layout/icon-open.svg" alt="[Open]"> Open</button></li>
-	<li><button type="button" id="save"><img src="layout/icon-save.svg" alt="[Save Map]"> Save Map</button></li>
-	<li><button type="button" id="saveImage"><img src="layout/icon-image.svg" alt="[Save Map as Image]"> Save Map as Image</button></li>
-	<li><button type="button" id="about"><img src="layout/icon-about.svg" alt="[About]"> About</button></li>
-</ul>
-<div id="layers"><div><label><input type="checkbox" value="tileMap" checked="checked" class="layer"> Terrain</label>
-<label><input type="checkbox" value="unitMap" checked="checked" class="layer"> Units</label></div>
-<div><label><input type="checkbox" value="movementMap" class="layer"> Movement</label>
-<label><input type="checkbox" value="actionMap" class="layer"> Action</label></div></div></div>
-<div id="terrain" class="palette">
-<details id="info"><summary>Tile Information:</summary>
-<table><tr><td>Position:</td><td><input type="text" disabled="disabled" id="text_posX" class="dim">×<input type="text" disabled="disabled" id="text_posY" class="dim"></td></tr>
-<tr><td>Index:</td><td><input type="text" disabled="disabled" id="text_index" class="hex"></td></tr>
-<tr><td>Terrain tile:</td><td><input type="text" disabled="disabled" id="text_terrainTile" class="hex"></td></tr>
-<tr><td>Movement tile:</td><td><input type="text" disabled="disabled" id="text_moveTile" class="hex"></td></tr>
-<tr><td>Action tile:</td><td><input type="text" disabled="disabled" id="text_actionTile" class="hex"></td></tr></table></details>
-<details open="open"><summary>Brightness:</summary>
-<ul>
-	<li><button type="button" value="0" class="brightness active"><img src="icons/terrain/brightness-light.svg" alt="[Light]" title="Light"></button></li>
-	<li><button type="button" value="16" class="brightness"><img src="icons/terrain/brightness-dark.svg" alt="[Dark]" title="Dark"></button></li>
-</ul></details>
-<details open="open"><summary>Fill Pattern:</summary>
-<ul>
-	<li><button type="button" value="0" class="pattern active"><img src="icons/terrain/pattern-plain.svg" alt="[Plain]" title="Plain"></button></li>
-	<li><button type="button" value="1" class="pattern"><img src="icons/terrain/pattern-filler.svg" alt="[Filler]" title="Filler"></button></li>
-	<li><button type="button" value="2" class="pattern"><img src="icons/terrain/pattern-random.svg" alt="[Random]" title="Random"></button></li>
-</ul></details>
-<details open="open"><summary>Brush Size:</summary>
-<ul>
-	<li><button type="button" value="1" class="size active"><img src="icons/terrain/size-1x1.svg" alt="[1×1]" title="1×1"></button></li>
-	<li><button type="button" value="3" class="size"><img src="icons/terrain/size-3x3.svg" alt="[3×3]" title="3×3"></button></li>
-	<li><button type="button" value="5" class="size"><img src="icons/terrain/size-5x5.svg" alt="[5×5]" title="5×5"></button></li>
-</ul></details>
-<details open="open"><summary>Terrain Type:</summary>
-<ul>
-	<li><button type="button" value="0" id="inspect" class="terrain active"><img src="layout/icon-inspect.svg" alt="[Select Units]" title="Select Units"></button></li>
-	<li><button type="button" value="16" class="terrain"><img src="icons/terrain/forest/terrain-water.png" alt="[Water]" title="Water" class="tile"></button></li>
-	<li><button type="button" value="48" class="terrain"><img src="icons/terrain/forest/terrain-dirt.png" alt="[Dirt]" title="Dirt" class="tile"></button></li>
-	<li><button type="button" value="80" class="terrain"><img src="icons/terrain/forest/terrain-grass.png" alt="[Grass]" title="Grass" class="tile"></button></li>
-	<li><button type="button" value="112" class="terrain"><img src="icons/terrain/forest/terrain-trees.png" alt="[Trees]" title="Trees" class="tile"></button></li>
-	<li><button type="button" value="128" class="terrain"><img src="icons/terrain/forest/terrain-rocks.png" alt="[Rocks]" title="Rocks" class="tile"></button></li>
-	<li><button type="button" value="144" class="terrain"><img src="icons/terrain/terrain-humanwall.png" alt="[Human Wall]" title="Human Wall"></button></li>
-	<li><button type="button" value="160" class="terrain"><img src="icons/terrain/terrain-orcwall.png" alt="[Orc Wall]" title="Orc Wall"></button></li>
-</ul></details></div>
-<div id="units" class="palette">
-<select id="select_unitsPalette">
-	<option value="startLocation">Start Location</option>
-	<option value="land">Land Units</option>
-	<option value="air">Air Units</option>
-	<option value="sea">Sea Units</option>
-	<option value="buildings">Buildings</option>
-	<option value="humanHeroes">Human Heroes</option>
-	<option value="orcHeroes">Orc Heroes</option>
-	<option value="neutralUnits">Neutral Units</option>
-	<option value="neutralBuildings">Neutral Buildings</option>
-</select>
-<ul id="unitsPalette"></ul></div>
-<div id="map" class="palette"><ul>
-	<li><button type="button" value="map" class="properties">Map Properties</button></li>
-	<li><button type="button" value="players" class="properties">Player Properties</button></li>
-	<li><button type="button" value="resources" class="properties">Starting Resources</button></li>
-	<li><button type="button" value="units" class="properties">Unit Properties</button></li>
-	<li><button type="button" value="upgrades" class="properties">Upgrade Properties</button></li>
-	<li><button type="button" value="restrictions" class="properties">Restrictions</button></li>
-</ul></div>
-<div><a id="download">Download</a></div></nav>
-<main><noscript><p>Must have JavaScript enabled.</p></noscript>
-<canvas id="tileMap"></canvas>
-<canvas id="unitMap"></canvas>
-<canvas id="movementMap" hidden="hidden"></canvas>
-<canvas id="actionMap" hidden="hidden"></canvas>
-<canvas id="select"></canvas>
-<div id="overlay_create" class="overlay"><div class="title"><h2>Create</h2>
-<button type="button" value="create" title="Create" class="save"><img src="layout/widget-save.svg" alt="Create"></button>
-<button type="button" value="create" title="Close" class="close"><img src="layout/widget-close.svg" alt="Close"></button></div>
-<div><fieldset><legend>Map Size:</legend>
-<div><label><input type="radio" value="128" name="radio_size"> Large (128×128)</label></div>
-<div><label><input type="radio" value="96" name="radio_size"> Medium (96×96)</label></div>
-<div><label><input type="radio" value="64" name="radio_size"> Small (64×64)</label></div>
-<div><label><input type="radio" value="32" name="radio_size"> Extra Small (32×32)</label></div></fieldset>
-<fieldset><legend>Terrain Type:</legend>
-<div><label><input type="radio" value="0" name="radio_terrain"> Forest</label></div>
-<div><label><input type="radio" value="1" name="radio_terrain"> Winter</label></div>
-<div><label><input type="radio" value="2" name="radio_terrain"> Wasteland</label></div>
-<div><label><input type="radio" value="3" name="radio_terrain"> Swamp</label></div></fieldset></div></div>
-<div id="overlay_browser" class="overlay"><div class="title"><h2>Open</h2>
-<button type="button" value="browser" title="Close" class="close"><img src="layout/widget-close.svg" alt="Close" title="Close"></button></div>
-<ul id="files"></ul>
-<div><label>Open local file: <input type="file" id="file" accept=".pud"></label></div></div>
-<div id="overlay_map" class="overlay"><div class="title"><h2>Map Properties</h2>
-<button type="button" value="map" title="Save" class="save"><img src="layout/widget-save.svg" alt="Save"></button>
-<button type="button" value="map" title="Close" class="close"><img src="layout/widget-close.svg" alt="Close"></button></div>
-<table><tr><td><label for="text_filename">File Name:</label></td><td><input type="text" size="32" maxlength="255" id="text_filename"></td></tr>
-<tr><td><label>Map Size:</label></td><td><input type="text" size="3" disabled="disabled" id="text_width" class="dim">×<input type="text" size="3" disabled="disabled" id="text_height" class="dim"></td></tr>
-<tr><td><label for="text_description">Map Description:</label></td><td><input type="text" size="32" maxlength="31" id="text_description"></td></tr></table>
-<fieldset><legend>Terrain Type:</legend>
-<div><label><input type="radio" value="0" name="radio_tileset"> Forest</label></div>
-<div><label><input type="radio" value="1" name="radio_tileset"> Winter</label></div>
-<div><label><input type="radio" value="2" name="radio_tileset"> Wasteland</label></div>
-<div><label><input type="radio" value="3" name="radio_tileset"> Swamp</label></div></fieldset></div>
-<div id="overlay_players" class="overlay"><div class="title"><h2>Player Properties</h2>
-<button type="button" value="players" title="Save" class="save"><img src="layout/widget-save.svg" alt="Save"></button>
-<button type="button" value="players" title="Close" class="close"><img src="layout/widget-close.svg" alt="Close"></button></div>
-<table><tr><th></th><th>Race:</th><th>Controller:</th><th>A.I. Players:</th></tr>
-<tr><th class="player1">Player 1</th>
-<td><label><input type="radio" value="0" name="radio_race0"> Human</label> <label><input type="radio" value="1" name="radio_race0"> Orc</label></td>
-<td><select id="select_controller0"><option value="5">Human</option><option value="4">Computer</option><option value="6">Rescuable (Passive)</option><option value="7">Rescuable (Active)</option></select></td>
-<td><select id="select_ai0" class="ai"></select></td></tr>
-<tr><th class="player2">Player 2</th>
-<td><label><input type="radio" value="0" name="radio_race1"> Human</label> <label><input type="radio" value="1" name="radio_race1"> Orc</label></td>
-<td><select id="select_controller1"><option value="5">Human</option><option value="4">Computer</option><option value="6">Rescuable (Passive)</option><option value="7">Rescuable (Active)</option></select></td>
-<td><select id="select_ai1" class="ai"></select></td></tr>
-<tr><th class="player3">Player 3</th>
-<td><label><input type="radio" value="0" name="radio_race2"> Human</label> <label><input type="radio" value="1" name="radio_race2"> Orc</label></td>
-<td><select id="select_controller2"><option value="5">Human</option><option value="4">Computer</option><option value="6">Rescuable (Passive)</option><option value="7">Rescuable (Active)</option></select></td>
-<td><select id="select_ai2" class="ai"></select></td></tr>
-<tr><th class="player4">Player 4</th>
-<td><label><input type="radio" value="0" name="radio_race3"> Human</label> <label><input type="radio" value="1" name="radio_race3"> Orc</label></td>
-<td><select id="select_controller3"><option value="5">Human</option><option value="4">Computer</option><option value="6">Rescuable (Passive)</option><option value="7">Rescuable (Active)</option></select></td>
-<td><select id="select_ai3" class="ai"></select></td></tr>
-<tr><th class="player5">Player 5</th>
-<td><label><input type="radio" value="0" name="radio_race4"> Human</label> <label><input type="radio" value="1" name="radio_race4"> Orc</label></td>
-<td><select id="select_controller4"><option value="5">Human</option><option value="4">Computer</option><option value="6">Rescuable (Passive)</option><option value="7">Rescuable (Active)</option></select></td>
-<td><select id="select_ai4" class="ai"></select></td></tr>
-<tr><th class="player6">Player 6</th>
-<td><label><input type="radio" value="0" name="radio_race5"> Human</label> <label><input type="radio" value="1" name="radio_race5"> Orc</label></td>
-<td><select id="select_controller5"><option value="5">Human</option><option value="4">Computer</option><option value="6">Rescuable (Passive)</option><option value="7">Rescuable (Active)</option></select></td>
-<td><select id="select_ai5" class="ai"></select></td></tr>
-<tr><th class="player7">Player 7</th>
-<td><label><input type="radio" value="0" name="radio_race6"> Human</label> <label><input type="radio" value="1" name="radio_race6"> Orc</label></td>
-<td><select id="select_controller6"><option value="5">Human</option><option value="4">Computer</option><option value="6">Rescuable (Passive)</option><option value="7">Rescuable (Active)</option></select></td>
-<td><select id="select_ai6" class="ai"></select></td></tr>
-<tr><th class="player8">Player 8</th>
-<td><label><input type="radio" value="0" name="radio_race7"> Human</label> <label><input type="radio" value="1" name="radio_race7"> Orc</label></td>
-<td><select id="select_controller7"><option value="5">Human</option><option value="4">Computer</option><option value="6">Rescuable (Passive)</option><option value="7">Rescuable (Active)</option></select></td>
-<td><select id="select_ai7" class="ai"></select></td></tr></table></div>
-<div id="overlay_resources" class="overlay"><div class="title"><h2>Starting Resources</h2>
-<button type="button" value="resources" title="Save" class="save"><img src="layout/widget-save.svg" alt="Save"></button>
-<button type="button" value="resources" title="Close" class="close"><img src="layout/widget-close.svg" alt="Close"></button></div>
-<table><tr><th></th><th>Gold:</th><th>Lumber:</th><th>Oil:</th></tr>
-<tr><td class="player1">Player 1</td><td><input type="number" min="0" max="65535" id="number_startGold0" class="gold"></td><td><input type="number" min="0" max="65535" id="number_startLumber0" class="lumber"></td><td><input type="number" min="0" max="65535" id="number_startOil0" class="oil"></td></tr>
-<tr><td class="player2">Player 2</td><td><input type="number" min="0" max="65535" id="number_startGold1" class="gold"></td><td><input type="number" min="0" max="65535" id="number_startLumber1" class="lumber"></td><td><input type="number" min="0" max="65535" id="number_startOil1" class="oil"></td></tr>
-<tr><td class="player3">Player 3</td><td><input type="number" min="0" max="65535" id="number_startGold2" class="gold"></td><td><input type="number" min="0" max="65535" id="number_startLumber2" class="lumber"></td><td><input type="number" min="0" max="65535" id="number_startOil2" class="oil"></td></tr>
-<tr><td class="player4">Player 4</td><td><input type="number" min="0" max="65535" id="number_startGold3" class="gold"></td><td><input type="number" min="0" max="65535" id="number_startLumber3" class="lumber"></td><td><input type="number" min="0" max="65535" id="number_startOil3" class="oil"></td></tr>
-<tr><td class="player5">Player 5</td><td><input type="number" min="0" max="65535" id="number_startGold4" class="gold"></td><td><input type="number" min="0" max="65535" id="number_startLumber4" class="lumber"></td><td><input type="number" min="0" max="65535" id="number_startOil4" class="oil"></td></tr>
-<tr><td class="player6">Player 6</td><td><input type="number" min="0" max="65535" id="number_startGold5" class="gold"></td><td><input type="number" min="0" max="65535" id="number_startLumber5" class="lumber"></td><td><input type="number" min="0" max="65535" id="number_startOil5" class="oil"></td></tr>
-<tr><td class="player7">Player 7</td><td><input type="number" min="0" max="65535" id="number_startGold6" class="gold"></td><td><input type="number" min="0" max="65535" id="number_startLumber6" class="lumber"></td><td><input type="number" min="0" max="65535" id="number_startOil6" class="oil"></td></tr>
-<tr><td class="player8">Player 8</td><td><input type="number" min="0" max="65535" id="number_startGold7" class="gold"></td><td><input type="number" min="0" max="65535" id="number_startLumber7" class="lumber"></td><td><input type="number" min="0" max="65535" id="number_startOil7" class="oil"></td></tr></table></div>
-<div id="overlay_units" class="overlay"><div class="title"><h2>Unit Properties</h2>
-<button type="button" value="units" title="Save" class="save"><img src="layout/widget-save.svg" alt="Save"></button>
-<button type="button" value="units" title="Close" class="close"><img src="layout/widget-close.svg" alt="Close"></button></div>
-<div><label><input type="checkbox" value="units" id="checkbox_units" class="defaults"> Use default data.</label></div>
-<div class="view"><select size="10" id="select_units" class="fill"></select>
-<fieldset><legend id="legend_units"></legend>
-<div><table><tr><td><label for="number_hp">Hit points:</label></td><td><input type="number" min="0" max="65535" id="number_hp" class="units"></td></tr>
-<tr><td><label for="number_armor">Armor:</label></td><td><input type="number" min="0" max="255" id="number_armor" class="units"></td></tr>
-<tr><td><label for="number_unitGold">Gold cost:</label></td><td><input type="number" min="0" max="255" id="number_unitGold" class="units gold"> × 10</td></tr>
-<tr><td><label for="number_unitLumber">Lumber cost:</label></td><td><input type="number" min="0" max="255" id="number_unitLumber" class="units lumber"> × 10</td></tr>
-<tr><td><label for="number_unitOil">Oil cost:</label></td><td><input type="number" min="0" max="255" id="number_unitOil" class="units oil"> × 10</td></tr>
-<tr><td><label for="number_buildTime">Build time:</label></td><td><input type="number" min="0" max="255" id="number_buildTime" class="units"></td></tr>
-<tr><td><label for="number_basicDamage">Basic damage:</label></td><td><input type="number" min="0" max="255" id="number_basicDamage" class="units"></td></tr>
-<tr><td><label for="number_piercingDamage">Piercing damage:</label></td><td><input type="number" min="0" max="255" id="number_piercingDamage" class="units"></td></tr>
-<tr><td><label for="number_range">Attack range:</label></td><td><input type="number" min="0" max="255" id="number_range" class="units"></td></tr>
-<tr><td><label for="number_sight">Sight range:</label></td><td><input type="number" min="0" max="9" id="number_sight" class="units"></td></tr>
-<tr><td><label for="checkbox_weaponsUpgradable">Weapons upgradable:</label></td><td><input type="checkbox" id="checkbox_weaponsUpgradable" class="units"></td></tr>
-<tr><td><label for="checkbox_armorUpgradable">Armor upgradable:</label></td><td><input type="checkbox" id="checkbox_armorUpgradable" class="units"></td></tr>
-<tr><td><label for="select_type">Unit type:</label></td><td>
-<select id="select_type" class="units">
-	<option value="0">Land</option>
-	<option value="1">Air</option>
-	<option value="2">Sea</option>
-</select></td></tr>
-<tr><td><label for="number_unitSize_x">Unit size:</label></td><td><input type="number" min="1" max="4" id="number_unitSize_x" class="units">×<input type="number" min="1" max="4" id="number_unitSize_y" class="units"></td></tr>
-<tr><td><label for="number_boxSize_x">Box size:</label></td><td><input type="number" min="31" max="127" id="number_boxSize_x" class="units">×<input type="number" min="31" max="127" id="number_boxSize_y" class="units"></td></tr>
-<tr><td><label for="checkbox_selectable">Group selectable:</label></td><td><input type="checkbox" id="checkbox_selectable" class="units"></td></tr>
-<tr><td><label for="checkbox_magic">Magic:</label></td><td><input type="checkbox" id="checkbox_magic" class="units"></td></tr>
-<tr><td><label for="select_rmb">Right-click action:</label></td><td>
-<select id="select_rmb" class="units">
-	<option value="2">Move</option>
-	<option value="1">Attack</option>
-	<option value="3">Harvest Gold/Lumber</option>
-	<option value="4">Harvest Oil</option>
-	<option value="5">Demolish</option>
-	<option value="6">Sail</option>
-</select></td></tr>
-<tr><td><label for="select_missile">Missile:</label></td><td>
-<select id="select_missile" class="units">
-	<option value="29">(None)</option>
-	<option value="15">Arrow</option>
-	<option value="16">Axe</option>
-	<option value="14">Ballista Bolt</option>
-	<option value="13">Catapult Rock</option>
-	<option value="24">Small Cannon</option>
-	<option value="7">Big Cannon</option>
-	<option value="17">Submarine Missile</option>
-	<option value="18">Turtle Missile</option>
-	<option value="1">Gryphon Hammer</option>
-	<option value="2">Dragon Breath</option>
-	<option value="9">Heal</option>
-	<option value="11">Rune</option>
-	<option value="0">Lightning</option>
-	<option value="3">Flame Shield</option>
-	<option value="4">Flame Shield (Self)</option>
-	<option value="5">Blizzard</option>
-	<option value="10">Touch of Darkness</option>
-	<option value="12">Whirlwind</option>
-	<option value="6">Death and Decay</option>
-	<option value="20">Bright Flame</option>
-	<option value="19">Dark Flame</option>
-	<option value="21">Blood</option>
-	<option value="22">Black Powder</option>
-	<option value="23">Explosion</option>
-	<option value="25">Metal Spark</option>
-	<option value="26">Mini-Explosion</option>
-	<option value="27">Demon Fire</option>
-	<option value="28">Green Cross</option>
-</select></td></tr>
-<tr><td><label for="number_reactComputer">React range (computer):</label></td><td><input type="number" min="0" max="255" id="number_reactComputer" class="units"></td></tr>
-<tr><td><label for="number_reactHuman">React range (human):</label></td><td><input type="number" min="0" max="255" id="number_reactHuman" class="units"></td></tr>
-<tr><td><label for="number_priority">Priority:</label></td><td><input type="number" min="0" max="255" id="number_priority" class="units"></td></tr>
-<tr><td><label for="number_annoyFactor">Annoy factor:</label></td><td><input type="number" min="0" max="4294967295" id="number_annoyFactor" class="units"></td></tr>
-<tr><td><label for="number_decayRate">Decay rate:</label></td><td><input type="number" min="0" max="4294967295" id="number_decayRate" class="units"></td></tr>
-<tr><td><label for="number_points">Points:</label></td><td><input type="number" min="0" max="4294967295" id="number_points" class="units"></td></tr>
-<tr><td>Can Target:</td><td>
-<label><input type="checkbox" id="checkbox_canTarget_0" class="units"> Land</label>
-<label><input type="checkbox" id="checkbox_canTarget_2" class="units"> Air</label>
-<label><input type="checkbox" id="checkbox_canTarget_1" class="units"> Sea</label></td></tr>
-<tr><td>Flags:</td><td>
-<div><label><input type="checkbox" id="checkbox_flags_0" class="units"> Land unit</label></div>
-<div><label><input type="checkbox" id="checkbox_flags_1" class="units"> Air unit</label></div>
-<div><label><input type="checkbox" id="checkbox_flags_3" class="units"> Sea unit</label></div>
-<div><label><input type="checkbox" id="checkbox_flags_8" class="units"> Worker</label></div>
-<div><label><input type="checkbox" id="checkbox_flags_5" class="units"> Building</label></div>
-<div><label><input type="checkbox" id="checkbox_flags_20" class="units"> Tower</label></div>
-<div><label><input type="checkbox" id="checkbox_flags_16" class="units"> Shore building</label></div>
-<div><label><input type="checkbox" id="checkbox_flags_4" class="units"> Critter</label></div>
-<div><label><input type="checkbox" id="checkbox_flags_9" class="units"> Tanker</label></div>
-<div><label><input type="checkbox" id="checkbox_flags_10" class="units"> Transport</label></div>
-<div><label><input type="checkbox" id="checkbox_flags_6" class="units"> Submarine</label></div>
-<div><label><input type="checkbox" id="checkbox_flags_7" class="units"> Can see submarine</label></div>
-<div><label><input type="checkbox" id="checkbox_flags_22" class="units"> Gold mine</label></div>
-<div><label><input type="checkbox" id="checkbox_flags_12" class="units"> Gold depot</label></div>
-<div><label><input type="checkbox" id="checkbox_flags_18" class="units"> Wood depot</label></div>
-<div><label><input type="checkbox" id="checkbox_flags_11" class="units"> Oil source</label></div>
-<div><label><input type="checkbox" id="checkbox_flags_21" class="units"> Oil patch</label></div>
-<div><label><input type="checkbox" id="checkbox_flags_24" class="units"> Oil depot</label></div>
-<div><label><input type="checkbox" id="checkbox_flags_19" class="units"> Can attack</label></div>
-<div><label><input type="checkbox" id="checkbox_flags_14" class="units"> Can attack ground</label></div>
-<div><label><input type="checkbox" id="checkbox_flags_17" class="units"> Can cast spells</label></div>
-<div><label><input type="checkbox" id="checkbox_flags_23" class="units"> Hero</label></div>
-<div><label><input type="checkbox" id="checkbox_flags_26" class="units"> Mage</label></div>
-<div><label><input type="checkbox" id="checkbox_flags_27" class="units"> Organic</label></div>
-<div><label><input type="checkbox" id="checkbox_flags_15" class="units"> Undead</label></div>
-<div><label><input type="checkbox" id="checkbox_flags_25" class="units"> Volatile</label></div>
-<div><label><input type="checkbox" id="checkbox_flags_2" class="units"> Explode on death</label></div></td></tr></table>
-<p><button type="button" value="units" class="revert">Revert</button>
-<button type="button" value="units" class="reset">Reset to Defaults</button></p></div></fieldset></div></div>
-<div id="overlay_upgrades" class="overlay"><div class="title"><h2>Upgrade Properties</h2>
-<button type="button" value="upgrades" title="Save" class="save"><img src="layout/widget-save.svg" alt="Save"></button>
-<button type="button" value="upgrades" title="Close" class="close"><img src="layout/widget-close.svg" alt="Close"></button></div>
-<div><label><input type="checkbox" value="upgrades" id="checkbox_upgrades" class="defaults"> Use default data.</label></div>
-<div class="view"><select size="10" id="select_upgrades" class="fill"></select>
-<fieldset><legend id="legend_upgrades"></legend>
-<div><table><tr><td><label for="number_upgradeTime">Research time:</label></td><td><input type="number" min="0" max="255" id="number_upgradeTime" class="upgrades"></td></tr>
-<tr><td><label for="number_upgradeGold">Gold cost:</label></td><td><input type="number" min="0" max="65535" id="number_upgradeGold" class="upgrades gold"></td></tr>
-<tr><td><label for="number_upgradeLumber">Lumber cost:</label></td><td><input type="number" min="0" max="65535" id="number_upgradeLumber" class="upgrades lumber"></td></tr>
-<tr><td><label for="number_upgradeOil">Oil cost:</label></td><td><input type="number" min="0" max="65535" id="number_upgradeOil" class="upgrades oil"></td></tr>
-<tr><td><label for="number_icon">Icon:</label></td><td><img src="icons/forest/0000.png" alt="[Upgrade icon]" id="icon" class="icon"><input type="number" min="0" max="65535" id="number_icon" class="upgrades"></td></tr>
-<tr><td><label for="number_group">Group:</label></td><td><input type="number" min="0" max="65535" id="number_group" class="upgrades"></td></tr>
-<tr><td><label for="select_effect">Effect:</label></td><td><select id="select_effect" class="upgrades"><option value="1">0</option><option value="2">1</option><option value="4">2</option><option value="8">3</option><option value="16">4</option><option value="32">5</option><option value="64">6</option><option value="128">7</option><option value="256">8</option><option value="512">9</option><option value="1024">10</option><option value="2048">11</option><option value="4096">12</option><option value="8192">13</option><option value="16384">14</option><option value="32768">15</option><option value="65536">16</option><option value="131072">17</option><option value="262144">18</option><option value="524288">19</option><option value="1048576">20</option></select></td></tr></table>
-<p><button type="button" value="upgrades" class="revert">Revert</button>
-<button type="button" value="upgrades" class="reset">Reset to Defaults</button></p></div></fieldset></div></div>
-<div id="overlay_restrictions" class="overlay"><div class="title"><h2>Restrictions</h2>
-<button type="button" value="restrictions" title="Save" class="save"><img src="layout/widget-save.svg" alt="Save"></button>
-<button type="button" value="restrictions" title="Close" class="close"><img src="layout/widget-close.svg" alt="Close"></button></div>
-<div id="control"><div><select id="select_restrictions" class="fill">
-	<option value="units">Units</option>
-	<option value="upgrades">Upgrades</option>
-	<option value="spells">Spells</option>
-	<option value="spellsResearched">Spells Researched</option>
-</select></div>
-<div><label><input type="checkbox" value="restrictions" id="checkbox_restrictions" class="defaults"> Use default data.</label></div></div>
-<div id="restrictions"><table></table></div></div>
-<div id="overlay_unitMap" class="overlay"><div class="title"><h2>Selection Properties</h2>
-<button type="button" value="unitMap" title="Save" class="save"><img src="layout/widget-save.svg" alt="Save"></button>
-<button type="button" value="unitMap" title="Close" class="close"><img src="layout/widget-close.svg" alt="Close"></button></div>
-<div class="view"><select size="10" id="select_unitMap" class="fill"></select>
-<fieldset><legend id="legend_unitMap"></legend>
-<div><table><tr><td>Position:</td><td><input type="text" size="3" disabled="disabled" id="text_x" class="dim unitMap">×<input type="text" size="3" disabled="disabled" id="text_y" class="dim unitMap"></td></tr>
-<tr id="row_owner"><td>Owner:</td><td>
-<select id="select_owner" class="unitMap">
-	<option value="0" class="player1">Player 1</option>
-	<option value="1" class="player2">Player 2</option>
-	<option value="2" class="player3">Player 3</option>
-	<option value="3" class="player4">Player 4</option>
-	<option value="4" class="player5">Player 5</option>
-	<option value="5" class="player6">Player 6</option>
-	<option value="6" class="player7">Player 7</option>
-	<option value="7" class="player8">Player 8</option>
-	<option value="15" class="player15">Neutral</option>
-</select></td></tr>
-<tr id="row_resource"><td>Resources:</td><td><input type="range" min="1" max="255" value="6" id="range_property" class="unitMap"> <span id="resource"></span></td></tr>
-<tr id="row_ai"><td>A.I.:</td><td><select id="select_property" class="unitMap"><option value="1">Active</option><option value="0">Passive</option></select></td></tr></table></div></fieldset></div></div>
-<div id="overlay_about" class="overlay"><div class="title"><h2>About</h2>
-<button type="button" value="about" title="Close" class="close"><img src="layout/widget-close.svg" alt="Close"></button></div>
-<p>Created by <a href="mailto:jcfields@jcfields.dev">J.C. Fields</a>. Hosted by <a href="https://gitlab.com/jcfields/warcraft2-map-editor">GitLab</a>.</p>
-<p><a href="https://gitlab.com/jcfields/warcraft2-map-editor/blob/master/pudspec.txt">Pud file format specification</a> by Daniel Lemberg and contributors.</p>
-<p><a href="https://feathericons.com/">Feather icons</a> by Cole Bemis and contributors.</p></div>
-<div id="overlay_error" class="overlay"><div class="title"><h2>Error</h2>
-<button type="button" value="error" title="Close" class="close"><img src="layout/widget-close.svg" alt="Close"></button></div>
-<p>An unknown error has occurred.</p></div></main>
+	<ul id="basic">
+		<li><button type="button" value="create" class="basic"><img src="layout/icon-create.svg" alt="[Create]" title="Create a new scenario"></button></li>
+		<li><button type="button" value="open" class="basic"><img src="layout/icon-open.svg" alt="[Open]" title="Open an existing scenario"></button></li>
+		<li><button type="button" value="save" class="basic"><img src="layout/icon-save.svg" alt="[Save Map]" title="Save this scenario"></button></li>
+	</ul>
+	<div id="filename"></div>
+	<div id="miniMap">
+		<canvas id="miniTileMap"></canvas>
+		<canvas id="miniUnitMap"></canvas>
+		<canvas id="frame"></canvas>
+	</div>
+	<ul id="players">
+		<li><button type="button" value="0" title="Player 1 (Red)" class="player player1">1</button></li>
+		<li><button type="button" value="1" title="Player 2 (Blue)" class="player player2">2</button></li>
+		<li><button type="button" value="2" title="Player 3 (Green)" class="player player3">3</button></li>
+		<li><button type="button" value="3" title="Player 4 (Violet)" class="player player4">4</button></li>
+		<li><button type="button" value="4" title="Player 5 (Orange)" class="player player5">5</button></li>
+		<li><button type="button" value="5" title="Player 6 (Black)" class="player player6">6</button></li>
+		<li><button type="button" value="6" title="Player 7 (White)" class="player player7">7</button></li>
+		<li><button type="button" value="7" title="Player 8 (Yellow)" class="player player8">8</button></li>
+		<li><button type="button" value="15" title="Neutral" class="player player15">0</button></li>
+	</ul>
+	<ul id="tabs">
+		<li><button type="button" value="editor" class="tab">Editor</button></li>
+		<li><button type="button" value="terrain" class="tab">Terrain</button></li>
+		<li><button type="button" value="units" class="tab">Units</button></li>
+		<li><button type="button" value="map" class="tab">Map</button></li>
+	</ul>
+	<div id="editor" class="palette">
+		<details open="open"><summary>File:</summary>
+			<ul>
+				<li><button type="button" id="create"><img src="layout/icon-create.svg" alt="[Create]"> Create</button></li>
+				<li><button type="button" id="open"><img src="layout/icon-open.svg" alt="[Open]"> Open</button></li>
+				<li><button type="button" id="save"><img src="layout/icon-save.svg" alt="[Save Map]"> Save Map</button></li>
+				<li><button type="button" id="saveImage"><img src="layout/icon-image.svg" alt="[Save Map as Image]"> Save Map as Image</button></li>
+				<li><button type="button" id="about"><img src="layout/icon-about.svg" alt="[About]"> About</button></li>
+			</ul>
+		</details>
+		<details><summary>Layers:</summary>
+			<div id="layers">
+				<div><label><input type="checkbox" value="tileMap" checked="checked" class="layer"> Terrain</label>
+				<label><input type="checkbox" value="unitMap" checked="checked" class="layer"> Units</label></div>
+				<div><label><input type="checkbox" value="movementMap" class="layer"> Movement</label>
+				<label><input type="checkbox" value="actionMap" class="layer"> Action</label></div>
+			</div>
+		</details>
+	</div>
+	<div id="terrain" class="palette">
+		<details id="tileInfo"><summary>Tile Information:</summary>
+			<table>
+				<tr><td>Position:</td><td><input type="text" disabled="disabled" id="text_tileX" class="dim">×<input type="text" disabled="disabled" id="text_tileY" class="dim"></td></tr>
+				<tr><td>Index:</td><td><input type="text" disabled="disabled" id="text_index" class="hex"></td></tr>
+				<tr><td>Terrain tile:</td><td><input type="text" disabled="disabled" id="text_terrainTile" class="hex"></td></tr>
+				<tr><td>Movement tile:</td><td><input type="text" disabled="disabled" id="text_moveTile" class="hex"></td></tr>
+				<tr><td>Action tile:</td><td><input type="text" disabled="disabled" id="text_actionTile" class="hex"></td></tr>
+			</table>
+		</details>
+		<details open="open"><summary>Brightness:</summary>
+			<ul>
+				<li><button type="button" value="0" class="brightness active"><img src="icons/terrain/brightness-light.svg" alt="[Light]" title="Light"></button></li>
+				<li><button type="button" value="16" class="brightness"><img src="icons/terrain/brightness-dark.svg" alt="[Dark]" title="Dark"></button></li>
+			</ul>
+		</details>
+		<details open="open"><summary>Fill Pattern:</summary>
+			<ul>
+				<li><button type="button" value="0" class="pattern active"><img src="icons/terrain/pattern-plain.svg" alt="[Plain]" title="Plain"></button></li>
+				<li><button type="button" value="1" class="pattern"><img src="icons/terrain/pattern-filler.svg" alt="[Filler]" title="Filler"></button></li>
+				<li><button type="button" value="2" class="pattern"><img src="icons/terrain/pattern-random.svg" alt="[Random]" title="Random"></button></li>
+			</ul>
+		</details>
+		<details open="open"><summary>Brush Size:</summary>
+			<ul>
+				<li><button type="button" value="1" class="size active"><img src="icons/terrain/size-1x1.svg" alt="[1×1]" title="1×1"></button></li>
+				<li><button type="button" value="3" class="size"><img src="icons/terrain/size-3x3.svg" alt="[3×3]" title="3×3"></button></li>
+				<li><button type="button" value="5" class="size"><img src="icons/terrain/size-5x5.svg" alt="[5×5]" title="5×5"></button></li>
+			</ul>
+		</details>
+		<details open="open"><summary>Terrain Type:</summary>
+			<ul>
+				<li><button type="button" value="0" id="inspect" class="terrain active"><img src="layout/icon-inspect.svg" alt="[Select Units]" title="Select Units"></button></li>
+				<li><button type="button" value="16" class="terrain"><img src="icons/terrain/forest/terrain-water.png" alt="[Water]" title="Water" class="tile"></button></li>
+				<li><button type="button" value="48" class="terrain"><img src="icons/terrain/forest/terrain-dirt.png" alt="[Dirt]" title="Dirt" class="tile"></button></li>
+				<li><button type="button" value="80" class="terrain"><img src="icons/terrain/forest/terrain-grass.png" alt="[Grass]" title="Grass" class="tile"></button></li>
+				<li><button type="button" value="112" class="terrain"><img src="icons/terrain/forest/terrain-trees.png" alt="[Trees]" title="Trees" class="tile"></button></li>
+				<li><button type="button" value="128" class="terrain"><img src="icons/terrain/forest/terrain-rocks.png" alt="[Rocks]" title="Rocks" class="tile"></button></li>
+				<li><button type="button" value="144" class="terrain"><img src="icons/terrain/terrain-humanwall.png" alt="[Human Wall]" title="Human Wall"></button></li>
+				<li><button type="button" value="160" class="terrain"><img src="icons/terrain/terrain-orcwall.png" alt="[Orc Wall]" title="Orc Wall"></button></li>
+			</ul>
+		</details>
+	</div>
+	<div id="units" class="palette">
+		<details open="open"><summary>Unit Type:</summary>
+			<select id="select_unitsPalette">
+				<option value="startLocation">Start Location</option>
+				<option value="land">Land Units</option>
+				<option value="air">Air Units</option>
+				<option value="sea">Sea Units</option>
+				<option value="buildings">Buildings</option>
+				<option value="humanHeroes">Human Heroes</option>
+				<option value="orcHeroes">Orc Heroes</option>
+				<option value="neutralUnits">Neutral Units</option>
+				<option value="neutralBuildings">Neutral Buildings</option>
+			</select>
+			<ul id="unitsPalette"></ul>
+		</details>
+		<details id="unitInfo"><summary>Selection Information:</summary>
+			<div id="oneUnit" hidden="hidden">
+				<table>
+					<tr><td>Position:</td><td><input type="text" disabled="disabled" id="text_unitX" class="dim">×<input type="text" disabled="disabled" id="text_unitY" class="dim"></td></tr>
+					<tr><td>Owner:</td><td><span id="owner">0</span></td></tr>
+					<tr><td>Unit type:</td><td><span id="unitType"></span></td></tr>
+				</table>
+			</div>
+			<div id="multipleUnits"><span id="selected">0</span> units selected.</div>
+		</details>
+	</div>
+	<div id="map" class="palette">
+		<ul>
+			<li><button type="button" value="map" class="properties">Map Properties</button></li>
+			<li><button type="button" value="players" class="properties">Player Properties</button></li>
+			<li><button type="button" value="resources" class="properties">Starting Resources</button></li>
+			<li><button type="button" value="units" class="properties">Unit Properties</button></li>
+			<li><button type="button" value="upgrades" class="properties">Upgrade Properties</button></li>
+			<li><button type="button" value="restrictions" class="properties">Restrictions</button></li>
+		</ul>
+	</div>
+	<div><a id="download">Download</a></div>
+</nav>
+<main>
+	<noscript><p>Must have JavaScript enabled.</p></noscript>
+	<canvas id="tileMap"></canvas>
+	<canvas id="unitMap"></canvas>
+	<canvas id="movementMap" hidden="hidden"></canvas>
+	<canvas id="actionMap" hidden="hidden"></canvas>
+	<canvas id="select"></canvas>
+	<div id="overlay_create" class="overlay">
+		<div class="title">
+			<h2>Create</h2>
+			<button type="button" value="create" title="Create" class="save"><img src="layout/widget-save.svg" alt="Create"></button>
+			<button type="button" value="create" title="Close" class="close"><img src="layout/widget-close.svg" alt="Close"></button>
+		</div>
+		<div>
+			<fieldset><legend>Map Size:</legend>
+				<div><label><input type="radio" value="128" name="radio_size"> Large (128×128)</label></div>
+				<div><label><input type="radio" value="96" name="radio_size"> Medium (96×96)</label></div>
+				<div><label><input type="radio" value="64" name="radio_size"> Small (64×64)</label></div>
+				<div><label><input type="radio" value="32" name="radio_size"> Extra Small (32×32)</label></div>
+			</fieldset>
+			<fieldset><legend>Terrain Type:</legend>
+				<div><label><input type="radio" value="0" name="radio_terrain"> Forest</label></div>
+				<div><label><input type="radio" value="1" name="radio_terrain"> Winter</label></div>
+				<div><label><input type="radio" value="2" name="radio_terrain"> Wasteland</label></div>
+				<div><label><input type="radio" value="3" name="radio_terrain"> Swamp</label></div>
+			</fieldset>
+		</div>
+	</div>
+	<div id="overlay_browser" class="overlay">
+		<div class="title">
+			<h2>Open</h2>
+			<button type="button" value="browser" title="Close" class="close"><img src="layout/widget-close.svg" alt="Close" title="Close"></button>
+		</div>
+		<ul id="files"></ul>
+		<div><label>Open local file: <input type="file" id="file" accept=".pud"></label></div>
+	</div>
+	<div id="overlay_map" class="overlay">
+		<div class="title">
+			<h2>Map Properties</h2>
+			<button type="button" value="map" title="Save" class="save"><img src="layout/widget-save.svg" alt="Save"></button>
+			<button type="button" value="map" title="Close" class="close"><img src="layout/widget-close.svg" alt="Close"></button>
+		</div>
+		<table>
+			<tr><td><label for="text_filename">File Name:</label></td><td><input type="text" size="32" maxlength="255" id="text_filename"></td></tr>
+			<tr><td><label>Map Size:</label></td><td><input type="text" size="3" disabled="disabled" id="text_width" class="dim">×<input type="text" size="3" disabled="disabled" id="text_height" class="dim"></td></tr>
+			<tr><td><label for="text_description">Map Description:</label></td><td><input type="text" size="32" maxlength="31" id="text_description"></td></tr>
+		</table>
+		<fieldset><legend>Terrain Type:</legend>
+			<div><label><input type="radio" value="0" name="radio_tileset"> Forest</label></div>
+			<div><label><input type="radio" value="1" name="radio_tileset"> Winter</label></div>
+			<div><label><input type="radio" value="2" name="radio_tileset"> Wasteland</label></div>
+			<div><label><input type="radio" value="3" name="radio_tileset"> Swamp</label></div>
+		</fieldset>
+	</div>
+	<div id="overlay_players" class="overlay">
+		<div class="title">
+			<h2>Player Properties</h2>
+			<button type="button" value="players" title="Save" class="save"><img src="layout/widget-save.svg" alt="Save"></button>
+			<button type="button" value="players" title="Close" class="close"><img src="layout/widget-close.svg" alt="Close"></button>
+		</div>
+		<table>
+			<tr><th></th><th>Race:</th><th>Controller:</th><th>A.I. Players:</th></tr>
+			<tr><th class="player1">Player 1</th>
+			<td><label><input type="radio" value="0" name="radio_race0"> Human</label> <label><input type="radio" value="1" name="radio_race0"> Orc</label></td>
+			<td><select id="select_controller0"><option value="5">Human</option><option value="4">Computer</option><option value="6">Rescuable (Passive)</option><option value="7">Rescuable (Active)</option></select></td>
+			<td><select id="select_ai0" class="ai"></select></td></tr>
+			<tr><th class="player2">Player 2</th>
+			<td><label><input type="radio" value="0" name="radio_race1"> Human</label> <label><input type="radio" value="1" name="radio_race1"> Orc</label></td>
+			<td><select id="select_controller1"><option value="5">Human</option><option value="4">Computer</option><option value="6">Rescuable (Passive)</option><option value="7">Rescuable (Active)</option></select></td>
+			<td><select id="select_ai1" class="ai"></select></td></tr>
+			<tr><th class="player3">Player 3</th>
+			<td><label><input type="radio" value="0" name="radio_race2"> Human</label> <label><input type="radio" value="1" name="radio_race2"> Orc</label></td>
+			<td><select id="select_controller2"><option value="5">Human</option><option value="4">Computer</option><option value="6">Rescuable (Passive)</option><option value="7">Rescuable (Active)</option></select></td>
+			<td><select id="select_ai2" class="ai"></select></td></tr>
+			<tr><th class="player4">Player 4</th>
+			<td><label><input type="radio" value="0" name="radio_race3"> Human</label> <label><input type="radio" value="1" name="radio_race3"> Orc</label></td>
+			<td><select id="select_controller3"><option value="5">Human</option><option value="4">Computer</option><option value="6">Rescuable (Passive)</option><option value="7">Rescuable (Active)</option></select></td>
+			<td><select id="select_ai3" class="ai"></select></td></tr>
+			<tr><th class="player5">Player 5</th>
+			<td><label><input type="radio" value="0" name="radio_race4"> Human</label> <label><input type="radio" value="1" name="radio_race4"> Orc</label></td>
+			<td><select id="select_controller4"><option value="5">Human</option><option value="4">Computer</option><option value="6">Rescuable (Passive)</option><option value="7">Rescuable (Active)</option></select></td>
+			<td><select id="select_ai4" class="ai"></select></td></tr>
+			<tr><th class="player6">Player 6</th>
+			<td><label><input type="radio" value="0" name="radio_race5"> Human</label> <label><input type="radio" value="1" name="radio_race5"> Orc</label></td>
+			<td><select id="select_controller5"><option value="5">Human</option><option value="4">Computer</option><option value="6">Rescuable (Passive)</option><option value="7">Rescuable (Active)</option></select></td>
+			<td><select id="select_ai5" class="ai"></select></td></tr>
+			<tr><th class="player7">Player 7</th>
+			<td><label><input type="radio" value="0" name="radio_race6"> Human</label> <label><input type="radio" value="1" name="radio_race6"> Orc</label></td>
+			<td><select id="select_controller6"><option value="5">Human</option><option value="4">Computer</option><option value="6">Rescuable (Passive)</option><option value="7">Rescuable (Active)</option></select></td>
+			<td><select id="select_ai6" class="ai"></select></td></tr>
+			<tr><th class="player8">Player 8</th>
+			<td><label><input type="radio" value="0" name="radio_race7"> Human</label> <label><input type="radio" value="1" name="radio_race7"> Orc</label></td>
+			<td><select id="select_controller7"><option value="5">Human</option><option value="4">Computer</option><option value="6">Rescuable (Passive)</option><option value="7">Rescuable (Active)</option></select></td>
+			<td><select id="select_ai7" class="ai"></select></td></tr>
+		</table>
+	</div>
+	<div id="overlay_resources" class="overlay">
+		<div class="title">
+			<h2>Starting Resources</h2>
+			<button type="button" value="resources" title="Save" class="save"><img src="layout/widget-save.svg" alt="Save"></button>
+			<button type="button" value="resources" title="Close" class="close"><img src="layout/widget-close.svg" alt="Close"></button>
+		</div>
+		<table>
+			<tr><th></th><th>Gold:</th><th>Lumber:</th><th>Oil:</th></tr>
+			<tr><td class="player1">Player 1</td><td><input type="number" min="0" max="65535" id="number_startGold0" class="gold"></td><td><input type="number" min="0" max="65535" id="number_startLumber0" class="lumber"></td><td><input type="number" min="0" max="65535" id="number_startOil0" class="oil"></td></tr>
+			<tr><td class="player2">Player 2</td><td><input type="number" min="0" max="65535" id="number_startGold1" class="gold"></td><td><input type="number" min="0" max="65535" id="number_startLumber1" class="lumber"></td><td><input type="number" min="0" max="65535" id="number_startOil1" class="oil"></td></tr>
+			<tr><td class="player3">Player 3</td><td><input type="number" min="0" max="65535" id="number_startGold2" class="gold"></td><td><input type="number" min="0" max="65535" id="number_startLumber2" class="lumber"></td><td><input type="number" min="0" max="65535" id="number_startOil2" class="oil"></td></tr>
+			<tr><td class="player4">Player 4</td><td><input type="number" min="0" max="65535" id="number_startGold3" class="gold"></td><td><input type="number" min="0" max="65535" id="number_startLumber3" class="lumber"></td><td><input type="number" min="0" max="65535" id="number_startOil3" class="oil"></td></tr>
+			<tr><td class="player5">Player 5</td><td><input type="number" min="0" max="65535" id="number_startGold4" class="gold"></td><td><input type="number" min="0" max="65535" id="number_startLumber4" class="lumber"></td><td><input type="number" min="0" max="65535" id="number_startOil4" class="oil"></td></tr>
+			<tr><td class="player6">Player 6</td><td><input type="number" min="0" max="65535" id="number_startGold5" class="gold"></td><td><input type="number" min="0" max="65535" id="number_startLumber5" class="lumber"></td><td><input type="number" min="0" max="65535" id="number_startOil5" class="oil"></td></tr>
+			<tr><td class="player7">Player 7</td><td><input type="number" min="0" max="65535" id="number_startGold6" class="gold"></td><td><input type="number" min="0" max="65535" id="number_startLumber6" class="lumber"></td><td><input type="number" min="0" max="65535" id="number_startOil6" class="oil"></td></tr>
+			<tr><td class="player8">Player 8</td><td><input type="number" min="0" max="65535" id="number_startGold7" class="gold"></td><td><input type="number" min="0" max="65535" id="number_startLumber7" class="lumber"></td><td><input type="number" min="0" max="65535" id="number_startOil7" class="oil"></td></tr>
+		</table>
+	</div>
+	<div id="overlay_units" class="overlay">
+		<div class="title">
+			<h2>Unit Properties</h2>
+			<button type="button" value="units" title="Save" class="save"><img src="layout/widget-save.svg" alt="Save"></button>
+			<button type="button" value="units" title="Close" class="close"><img src="layout/widget-close.svg" alt="Close"></button>
+		</div>
+		<div><label><input type="checkbox" value="units" id="checkbox_units" class="defaults"> Use default data.</label></div>
+		<div class="view">
+			<select size="10" id="select_units" class="fill"></select>
+			<fieldset>
+				<legend id="legend_units"></legend>
+				<div>
+					<table>
+						<tr><td><label for="number_hp">Hit points:</label></td><td><input type="number" min="0" max="65535" id="number_hp" class="units"></td></tr>
+						<tr><td><label for="number_armor">Armor:</label></td><td><input type="number" min="0" max="255" id="number_armor" class="units"></td></tr>
+						<tr><td><label for="number_unitGold">Gold cost:</label></td><td><input type="number" min="0" max="255" id="number_unitGold" class="units gold"> × 10</td></tr>
+						<tr><td><label for="number_unitLumber">Lumber cost:</label></td><td><input type="number" min="0" max="255" id="number_unitLumber" class="units lumber"> × 10</td></tr>
+						<tr><td><label for="number_unitOil">Oil cost:</label></td><td><input type="number" min="0" max="255" id="number_unitOil" class="units oil"> × 10</td></tr>
+						<tr><td><label for="number_buildTime">Build time:</label></td><td><input type="number" min="0" max="255" id="number_buildTime" class="units"></td></tr>
+						<tr><td><label for="number_basicDamage">Basic damage:</label></td><td><input type="number" min="0" max="255" id="number_basicDamage" class="units"></td></tr>
+						<tr><td><label for="number_piercingDamage">Piercing damage:</label></td><td><input type="number" min="0" max="255" id="number_piercingDamage" class="units"></td></tr>
+						<tr><td><label for="number_range">Attack range:</label></td><td><input type="number" min="0" max="255" id="number_range" class="units"></td></tr>
+						<tr><td><label for="number_sight">Sight range:</label></td><td><input type="number" min="0" max="9" id="number_sight" class="units"></td></tr>
+						<tr><td><label for="checkbox_weaponsUpgradable">Weapons upgradable:</label></td><td><input type="checkbox" id="checkbox_weaponsUpgradable" class="units"></td></tr>
+						<tr><td><label for="checkbox_armorUpgradable">Armor upgradable:</label></td><td><input type="checkbox" id="checkbox_armorUpgradable" class="units"></td></tr>
+						<tr><td><label for="select_type">Unit type:</label></td><td>
+							<select id="select_type" class="units">
+								<option value="0">Land</option>
+								<option value="1">Air</option>
+								<option value="2">Sea</option>
+							</select>
+						</td></tr>
+						<tr><td><label for="number_unitSize_x">Unit size:</label></td><td><input type="number" min="1" max="4" id="number_unitSize_x" class="units">×<input type="number" min="1" max="4" id="number_unitSize_y" class="units"></td></tr>
+						<tr><td><label for="number_boxSize_x">Box size:</label></td><td><input type="number" min="31" max="127" id="number_boxSize_x" class="units">×<input type="number" min="31" max="127" id="number_boxSize_y" class="units"></td></tr>
+						<tr><td><label for="checkbox_selectable">Group selectable:</label></td><td><input type="checkbox" id="checkbox_selectable" class="units"></td></tr>
+						<tr><td><label for="checkbox_magic">Magic:</label></td><td><input type="checkbox" id="checkbox_magic" class="units"></td></tr>
+						<tr><td><label for="select_rmb">Right-click action:</label></td><td>
+							<select id="select_rmb" class="units">
+								<option value="2">Move</option>
+								<option value="1">Attack</option>
+								<option value="3">Harvest Gold/Lumber</option>
+								<option value="4">Harvest Oil</option>
+								<option value="5">Demolish</option>
+								<option value="6">Sail</option>
+							</select>
+						</td></tr>
+						<tr><td><label for="select_missile">Missile:</label></td><td>
+							<select id="select_missile" class="units">
+								<option value="29">(None)</option>
+								<option value="15">Arrow</option>
+								<option value="16">Axe</option>
+								<option value="14">Ballista Bolt</option>
+								<option value="13">Catapult Rock</option>
+								<option value="24">Small Cannon</option>
+								<option value="7">Big Cannon</option>
+								<option value="17">Submarine Missile</option>
+								<option value="18">Turtle Missile</option>
+								<option value="1">Gryphon Hammer</option>
+								<option value="2">Dragon Breath</option>
+								<option value="9">Heal</option>
+								<option value="11">Rune</option>
+								<option value="0">Lightning</option>
+								<option value="3">Flame Shield</option>
+								<option value="4">Flame Shield (Self)</option>
+								<option value="5">Blizzard</option>
+								<option value="10">Touch of Darkness</option>
+								<option value="12">Whirlwind</option>
+								<option value="6">Death and Decay</option>
+								<option value="20">Bright Flame</option>
+								<option value="19">Dark Flame</option>
+								<option value="21">Blood</option>
+								<option value="22">Black Powder</option>
+								<option value="23">Explosion</option>
+								<option value="25">Metal Spark</option>
+								<option value="26">Mini-Explosion</option>
+								<option value="27">Demon Fire</option>
+								<option value="28">Green Cross</option>
+							</select>
+						</td></tr>
+						<tr><td><label for="number_reactComputer">React range (computer):</label></td><td><input type="number" min="0" max="255" id="number_reactComputer" class="units"></td></tr>
+						<tr><td><label for="number_reactHuman">React range (human):</label></td><td><input type="number" min="0" max="255" id="number_reactHuman" class="units"></td></tr>
+						<tr><td><label for="number_priority">Priority:</label></td><td><input type="number" min="0" max="255" id="number_priority" class="units"></td></tr>
+						<tr><td><label for="number_annoyFactor">Annoy factor:</label></td><td><input type="number" min="0" max="4294967295" id="number_annoyFactor" class="units"></td></tr>
+						<tr><td><label for="number_decayRate">Decay rate:</label></td><td><input type="number" min="0" max="4294967295" id="number_decayRate" class="units"></td></tr>
+						<tr><td><label for="number_points">Points:</label></td><td><input type="number" min="0" max="4294967295" id="number_points" class="units"></td></tr>
+						<tr><td>Can Target:</td><td>
+							<label><input type="checkbox" id="checkbox_canTarget_0" class="units"> Land</label>
+							<label><input type="checkbox" id="checkbox_canTarget_2" class="units"> Air</label>
+							<label><input type="checkbox" id="checkbox_canTarget_1" class="units"> Sea</label>
+						</td></tr>
+						<tr><td>Flags:</td><td>
+							<div><label><input type="checkbox" id="checkbox_flags_0" class="units"> Land unit</label></div>
+							<div><label><input type="checkbox" id="checkbox_flags_1" class="units"> Air unit</label></div>
+							<div><label><input type="checkbox" id="checkbox_flags_3" class="units"> Sea unit</label></div>
+							<div><label><input type="checkbox" id="checkbox_flags_8" class="units"> Worker</label></div>
+							<div><label><input type="checkbox" id="checkbox_flags_5" class="units"> Building</label></div>
+							<div><label><input type="checkbox" id="checkbox_flags_20" class="units"> Tower</label></div>
+							<div><label><input type="checkbox" id="checkbox_flags_16" class="units"> Shore building</label></div>
+							<div><label><input type="checkbox" id="checkbox_flags_4" class="units"> Critter</label></div>
+							<div><label><input type="checkbox" id="checkbox_flags_9" class="units"> Tanker</label></div>
+							<div><label><input type="checkbox" id="checkbox_flags_10" class="units"> Transport</label></div>
+							<div><label><input type="checkbox" id="checkbox_flags_6" class="units"> Submarine</label></div>
+							<div><label><input type="checkbox" id="checkbox_flags_7" class="units"> Can see submarine</label></div>
+							<div><label><input type="checkbox" id="checkbox_flags_22" class="units"> Gold mine</label></div>
+							<div><label><input type="checkbox" id="checkbox_flags_12" class="units"> Gold depot</label></div>
+							<div><label><input type="checkbox" id="checkbox_flags_18" class="units"> Wood depot</label></div>
+							<div><label><input type="checkbox" id="checkbox_flags_11" class="units"> Oil source</label></div>
+							<div><label><input type="checkbox" id="checkbox_flags_21" class="units"> Oil patch</label></div>
+							<div><label><input type="checkbox" id="checkbox_flags_24" class="units"> Oil depot</label></div>
+							<div><label><input type="checkbox" id="checkbox_flags_19" class="units"> Can attack</label></div>
+							<div><label><input type="checkbox" id="checkbox_flags_14" class="units"> Can attack ground</label></div>
+							<div><label><input type="checkbox" id="checkbox_flags_17" class="units"> Can cast spells</label></div>
+							<div><label><input type="checkbox" id="checkbox_flags_23" class="units"> Hero</label></div>
+							<div><label><input type="checkbox" id="checkbox_flags_26" class="units"> Mage</label></div>
+							<div><label><input type="checkbox" id="checkbox_flags_27" class="units"> Organic</label></div>
+							<div><label><input type="checkbox" id="checkbox_flags_15" class="units"> Undead</label></div>
+							<div><label><input type="checkbox" id="checkbox_flags_25" class="units"> Volatile</label></div>
+							<div><label><input type="checkbox" id="checkbox_flags_2" class="units"> Explode on death</label></div>
+						</td></tr>
+					</table>
+					<p>
+						<button type="button" value="units" class="revert">Revert</button>
+						<button type="button" value="units" class="reset">Reset to Defaults</button>
+					</p>
+				</div>
+			</fieldset>
+		</div>
+	</div>
+	<div id="overlay_upgrades" class="overlay">
+		<div class="title">
+			<h2>Upgrade Properties</h2>
+			<button type="button" value="upgrades" title="Save" class="save"><img src="layout/widget-save.svg" alt="Save"></button>
+			<button type="button" value="upgrades" title="Close" class="close"><img src="layout/widget-close.svg" alt="Close"></button>
+		</div>
+		<div><label><input type="checkbox" value="upgrades" id="checkbox_upgrades" class="defaults"> Use default data.</label></div>
+		<div class="view">
+			<select size="10" id="select_upgrades" class="fill"></select>
+			<fieldset>
+				<legend id="legend_upgrades"></legend>
+				<div>
+					<table>
+						<tr><td><label for="number_upgradeTime">Research time:</label></td><td><input type="number" min="0" max="255" id="number_upgradeTime" class="upgrades"></td></tr>
+						<tr><td><label for="number_upgradeGold">Gold cost:</label></td><td><input type="number" min="0" max="65535" id="number_upgradeGold" class="upgrades gold"></td></tr>
+						<tr><td><label for="number_upgradeLumber">Lumber cost:</label></td><td><input type="number" min="0" max="65535" id="number_upgradeLumber" class="upgrades lumber"></td></tr>
+						<tr><td><label for="number_upgradeOil">Oil cost:</label></td><td><input type="number" min="0" max="65535" id="number_upgradeOil" class="upgrades oil"></td></tr>
+						<tr><td><label for="number_icon">Icon:</label></td><td><img src="icons/forest/0000.png" alt="[Upgrade icon]" id="icon" class="icon"><input type="number" min="0" max="65535" id="number_icon" class="upgrades"></td></tr>
+						<tr><td><label for="number_group">Group:</label></td><td><input type="number" min="0" max="65535" id="number_group" class="upgrades"></td></tr>
+						<tr><td><label for="select_effect">Effect:</label></td><td>
+							<select id="select_effect" class="upgrades">
+								<option value="1">0</option>
+								<option value="2">1</option>
+								<option value="4">2</option>
+								<option value="8">3</option>
+								<option value="16">4</option>
+								<option value="32">5</option>
+								<option value="64">6</option>
+								<option value="128">7</option>
+								<option value="256">8</option>
+								<option value="512">9</option>
+								<option value="1024">10</option>
+								<option value="2048">11</option>
+								<option value="4096">12</option>
+								<option value="8192">13</option>
+								<option value="16384">14</option>
+								<option value="32768">15</option>
+								<option value="65536">16</option>
+								<option value="131072">17</option>
+								<option value="262144">18</option>
+								<option value="524288">19</option>
+								<option value="1048576">20</option>
+							</select>
+						</td></tr>
+					</table>
+					<p>
+						<button type="button" value="upgrades" class="revert">Revert</button>
+						<button type="button" value="upgrades" class="reset">Reset to Defaults</button>
+					</p>
+				</div>
+			</fieldset>
+		</div>
+	</div>
+	<div id="overlay_restrictions" class="overlay">
+		<div class="title">
+			<h2>Restrictions</h2>
+			<button type="button" value="restrictions" title="Save" class="save"><img src="layout/widget-save.svg" alt="Save"></button>
+			<button type="button" value="restrictions" title="Close" class="close"><img src="layout/widget-close.svg" alt="Close"></button>
+		</div>
+		<div id="control"><div>
+			<select id="select_restrictions" class="fill">
+				<option value="units">Units</option>
+				<option value="upgrades">Upgrades</option>
+				<option value="spells">Spells</option>
+				<option value="spellsResearched">Spells Researched</option>
+			</select>
+		</div>
+		<div><label><input type="checkbox" value="restrictions" id="checkbox_restrictions" class="defaults"> Use default data.</label></div></div>
+		<div id="restrictions">
+			<table></table>
+		</div>
+	</div>
+	<div id="overlay_unitMap" class="overlay">
+		<div class="title">
+			<h2>Selection Properties</h2>
+			<button type="button" value="unitMap" title="Save" class="save"><img src="layout/widget-save.svg" alt="Save"></button>
+			<button type="button" value="unitMap" title="Close" class="close"><img src="layout/widget-close.svg" alt="Close"></button>
+		</div>
+		<div class="view">
+			<select size="10" id="select_unitMap" class="fill"></select>
+			<fieldset>
+				<legend id="legend_unitMap"></legend>
+				<div>
+					<table>
+						<tr><td>Position:</td><td><input type="text" size="3" disabled="disabled" id="text_x" class="dim unitMap">×<input type="text" size="3" disabled="disabled" id="text_y" class="dim unitMap"></td></tr>
+						<tr id="row_owner"><td>Owner:</td><td>
+							<select id="select_owner" class="unitMap">
+								<option value="0" class="player1">Player 1</option>
+								<option value="1" class="player2">Player 2</option>
+								<option value="2" class="player3">Player 3</option>
+								<option value="3" class="player4">Player 4</option>
+								<option value="4" class="player5">Player 5</option>
+								<option value="5" class="player6">Player 6</option>
+								<option value="6" class="player7">Player 7</option>
+								<option value="7" class="player8">Player 8</option>
+								<option value="15" class="player15">Neutral</option>
+							</select>
+						</td></tr>
+						<tr id="row_resource"><td>Resources:</td><td><input type="range" min="1" max="255" value="6" id="range_property" class="unitMap"> <span id="resource"></span></td></tr>
+						<tr id="row_ai"><td>A.I.:</td><td><select id="select_property" class="unitMap"><option value="1">Active</option><option value="0">Passive</option></select></td></tr>
+					</table>
+				</div>
+			</fieldset>
+		</div>
+	</div>
+	<div id="overlay_about" class="overlay">
+		<div class="title">
+			<h2>About</h2>
+			<button type="button" value="about" title="Close" class="close"><img src="layout/widget-close.svg" alt="Close"></button>
+		</div>
+		<p>Created by <a href="mailto:jcfields@jcfields.dev">J.C. Fields</a>. Hosted by <a href="https://gitlab.com/jcfields/warcraft2-map-editor">GitLab</a>.</p>
+		<p><a href="https://gitlab.com/jcfields/warcraft2-map-editor/blob/master/pudspec.txt">Pud file format specification</a> by Daniel Lemberg and contributors.</p>
+		<p><a href="https://feathericons.com/">Feather icons</a> by Cole Bemis and contributors.</p>
+	</div>
+	<div id="overlay_error" class="overlay">
+		<div class="title">
+			<h2>Error</h2>
+			<button type="button" value="error" title="Close" class="close"><img src="layout/widget-close.svg" alt="Close"></button>
+		</div>
+		<p>An unknown error has occurred.</p>
+	</div>
+</main>
 <footer>Created by <a href="mailto:jcfields@jcfields.dev">J.C. Fields</a>. Hosted by <a href="https://gitlab.com/jcfields/warcraft2-map-editor">GitLab</a>.</footer></body></html>
