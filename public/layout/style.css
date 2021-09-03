@@ -171,11 +171,11 @@ details:last-child {
 	border-bottom: 0;
 }
 
-details#tileInfo, details#unitInfo, div#layers, summary {
+details#details_tileInfo, details#details_unitInfo, div#layers, summary {
 	font-size: 0.7rem;
 }
 
-details#tileInfo table, details#unitInfo table {
+details#details_tileInfo table, details#details_unitInfo table {
 	margin: auto;
 }
 
@@ -236,8 +236,7 @@ div#overlay_create fieldset:first-child {
 	margin-right: 1em;
 }
 
-div#overlay_create legend, div#overlay_map legend, div#restrictions table td,
-div#tileInfo {
+div#overlay_create legend, div#overlay_map legend, div#restrictions table td {
 	font-size: 0.8rem;
 }
 

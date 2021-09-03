@@ -28,6 +28,8 @@
  * constants
  */
 
+const STORAGE_NAME = "pudedit";
+
 // file format
 const FILE_SIGNATURE = "WAR2 MAP\x00\x00\x0a\xff";
 const STANDARD  = 0x11;
@@ -98,12 +100,19 @@ const OIL_DEPOT      = 24; // shipyards and refineries
 // terrain
 const PLAIN = 0, FILLER = 1, RANDOM = 2;
 const INSPECT     = 0x0000;
+// solid tiles
 const LIGHT_WATER = 0x0010, DARK_WATER = 0x0020;
 const LIGHT_DIRT  = 0x0030, DARK_DIRT  = 0x0040;
 const LIGHT_GRASS = 0x0050, DARK_GRASS = 0x0060;
 const TREES       = 0x0070, ROCKS      = 0x0080;
 const HUMAN_WALL  = 0x0090, ORC_WALL   = 0x00a0;
 const HUMAN_IWALL = 0x00b0, ORC_IWALL  = 0x00c0;
+// boundary tiles
+const DARK_WATER_LIGHT_WATER = 0x0100, LIGHT_WATER_LIGHT_DIRT = 0x0200;
+const DARK_DIRT_LIGHT_DIRT   = 0x0300, ROCKS_LIGHT_DIRT       = 0x0400;
+const LIGHT_DIRT_LIGHT_GRASS = 0x0500, DARK_GRASS_LIGHT_GRASS = 0x0600;
+const TREES_LIGHT_GRASS      = 0x0700;
+const HUMAN_WALL_BOUNDARY    = 0x0800, ORC_WALL_BOUNDARY      = 0x0900;
 
 // map certificates
 const BLIZZARD = 1, LADDER = 2;
@@ -118,8 +127,14 @@ const files      = new Files("files");
  */
 
 window.addEventListener("load", function() {
+	const store = new Storage(STORAGE_NAME);
+	editor.loadSettings(store.load());
+
 	files.openStartingMap();
 
+	window.addEventListener("beforeunload", function() {
+		store.save(editor.saveSettings());
+	});
 	window.addEventListener("keyup", function(event) {
 		const keyCode = event.keyCode;
 
@@ -277,11 +292,7 @@ window.addEventListener("load", function() {
 
 		// unit palette buttons
 		if (element.closest(".unit")) {
-			editor.mode = PLACE_UNIT;
-			editor.unit = Number(element.closest(".unit").value);
-
-			editor.selected = {};
-			editor.updateUnitInfo();
+			editor.placeUnit(Number(element.closest(".unit").value));
 		}
 
 		// file browser parent directory
@@ -365,12 +376,16 @@ window.addEventListener("load", function() {
 
 		if (element.matches("#select")) {
 			if (event.button == LEFT) {
-				if (editor.mode == SELECT_UNITS) {
-					editor.startSelect(event.clientX, event.clientY);
-				} else if (editor.mode == PLACE_UNIT) {
-					editor.addUnit(event.clientX, event.clientY);
-				} else if (editor.mode == PAINT_TERRAIN) {
-					editor.startTerrain(event.clientX, event.clientY);
+				switch (editor.mode) {
+					case SELECT_UNITS:
+						editor.startSelect(event.clientX, event.clientY);
+						break;
+					case PLACE_UNIT:
+						editor.addUnit(event.clientX, event.clientY);
+						break;
+					case PAINT_TERRAIN:
+						editor.paintTerrain(event.clientX, event.clientY);
+						break;
 				}
 			}
 		}
@@ -391,25 +406,30 @@ window.addEventListener("load", function() {
 
 		if (element.matches("#select")) {
 			if (event.button == LEFT) {
-				if (editor.mode == DRAG_SELECT) {
-					editor.selectUnits(
-						event.clientX, event.clientY,
-						event.shiftKey
-					);
-				} else if (editor.mode == DRAG_TERRAIN) {
-					editor.mode = PAINT_TERRAIN;
-					editor.paintTerrain(event.clientX, event.clientY);
+				switch (editor.mode) {
+					case DRAG_SELECT:
+						editor.selectUnits(
+							event.clientX, event.clientY,
+							event.shiftKey
+						);
+						break;
+					case DRAG_TERRAIN:
+						editor.mode = PAINT_TERRAIN;
+						editor.paintTerrain(event.clientX, event.clientY);
+						break;
 				}
 			} else if (event.button == RIGHT) {
-				if (editor.mode == SELECT_UNITS) {
-					if (Object.keys(editor.selected).length > 0) {
-						properties.openSheet("unitMap");
-					}
-				} else if (
-					editor.mode == PLACE_UNIT
-					|| editor.mode == PAINT_TERRAIN
-				) {
-					$("#inspect").click();
+				switch (editor.mode) {
+					case SELECT_UNITS:
+						if (Object.keys(editor.selected).length > 0) {
+							properties.openSheet("unitMap");
+						}
+
+						break;
+					case PLACE_UNIT:
+					case PAINT_TERRAIN:
+						$("#inspect").click();
+						break;
 				}
 			}
 
@@ -430,17 +450,22 @@ window.addEventListener("load", function() {
 		}
 
 		if (element.matches("#select")) {
-			if (editor.mode == DRAG_SELECT) {
-				editor.drawSelect(event.clientX, event.clientY);
-			} else if (editor.mode == PLACE_UNIT) {
-				editor.drawUnitBrush(event.clientX, event.clientY);
-			} else if (editor.mode == PAINT_TERRAIN) {
-				editor.drawTerrainBrush(event.clientX, event.clientY);
-			} else if (editor.mode == DRAG_TERRAIN) {
-				editor.paintTerrain(event.clientX, event.clientY);
+			switch (editor.mode) {
+				case DRAG_SELECT:
+					editor.drawSelect(event.clientX, event.clientY);
+					break;
+				case PLACE_UNIT:
+					editor.drawUnitBrush(event.clientX, event.clientY);
+					break;
+				case PAINT_TERRAIN:
+					editor.drawTerrainBrush(event.clientX, event.clientY);
+					break;
+				case DRAG_TERRAIN:
+					editor.paintTerrain(event.clientX, event.clientY);
+					break;
 			}
 
-			if ($("#tileInfo").open) {
+			if ($("#details_tileInfo").open) {
 				editor.updateTileInfo(event.clientX, event.clientY);
 			}
 		}
@@ -479,7 +504,7 @@ window.addEventListener("load", function() {
 			a.click();
 			window.URL.revokeObjectURL(blob);
 		} catch (error) {
-			return properties.displayError(error);
+			properties.displayError(error);
 		}
 	}
 
@@ -616,11 +641,8 @@ Editor.prototype.open = function(path, buffer) {
 	this.miniUnitMap.scale(this.scaleX, this.scaleY);
 	this.miniUnitBuffer.scale(this.scaleX, this.scaleY);
 
-	this.selectPlayer(this.player);
-
-	if (this.palette == "") {
-		this.selectPalette(DEFAULT_PALETTE);
-	}
+	this.selectPlayer(this.player || 0);
+	this.selectPalette(this.palette || DEFAULT_PALETTE);
 
 	// draws tile map and unit map, changes unit icons to match tileset
 	this.changeTileset(this.pud.tileset);
@@ -877,9 +899,9 @@ Editor.prototype.drawActionMap = function() {
 	}
 };
 
-Editor.prototype.moveMap = function(x, y) {
-	x -= this.pos.left;
-	y -= this.pos.top;
+Editor.prototype.moveMap = function(clientX, clientY) {
+	const x = clientX - this.pos.left;
+	const y = clientY - this.pos.top;
 
 	window.scroll(
 		x / this.scaleX - window.innerWidth / 2 - LEFT_MARGIN,
@@ -907,25 +929,17 @@ Editor.prototype.clearSelect = function() {
 	this.select.clearRect(0, 0, $("#select").width, $("#select").height);
 };
 
-Editor.prototype.startSelect = function(x, y) {
+Editor.prototype.startSelect = function(clientX, clientY) {
 	this.mode = DRAG_SELECT;
-	this.selectX = window.scrollX + x - LEFT_MARGIN;
-	this.selectY = window.scrollY + y;
+	this.selectX = window.scrollX + clientX - LEFT_MARGIN;
+	this.selectY = window.scrollY + clientY;
 };
 
-Editor.prototype.startTerrain = function(x, y) {
-	[x, y] = this.findNearestTile(x, y, this.size, this.size);
-
-	this.mode = DRAG_TERRAIN;
-	this.terrainX = x;
-	this.terrainY = y;
-};
-
-Editor.prototype.drawSelect = function(x, y) {
+Editor.prototype.drawSelect = function(clientX, clientY) {
 	this.selectMultiple = true;
 
-	const w = window.scrollX + x - this.selectX - LEFT_MARGIN;
-	const h = window.scrollY + y - this.selectY;
+	const w = window.scrollX + clientX - this.selectX - LEFT_MARGIN;
+	const h = window.scrollY + clientY - this.selectY;
 
 	this.clearSelect();
 	this.select.lineWidth = 1;
@@ -933,7 +947,7 @@ Editor.prototype.drawSelect = function(x, y) {
 	this.select.strokeRect(this.selectX, this.selectY, w, h);
 };
 
-Editor.prototype.selectUnits = function(x, y, add=false) {
+Editor.prototype.selectUnits = function(clientX, clientY, add=false) {
 	this.mode = SELECT_UNITS;
 
 	if (!add) {
@@ -944,7 +958,7 @@ Editor.prototype.selectUnits = function(x, y, add=false) {
 		this.select.strokeStyle = SELECT_COLOR;
 	}
 
-	[x, y] = this.findNearestTile(x, y);
+	const [x, y] = this.findNearestTile(clientX, clientY);
 
 	const mx = Math.floor(this.selectX / TILE_SIZE);
 	const my = Math.floor(this.selectY / TILE_SIZE);
@@ -994,9 +1008,12 @@ Editor.prototype.selectUnits = function(x, y, add=false) {
 	this.selectMultiple = false;
 };
 
-Editor.prototype.drawUnitBrush = function(x, y) {
+Editor.prototype.drawUnitBrush = function(clientX, clientY) {
 	const unitSize = this.pud.units.unitSize[this.unit];
-	[x, y] = this.findNearestTile(x, y, unitSize.x, unitSize.y);
+	const [x, y] = this.findNearestTile(
+		clientX, clientY,
+		unitSize.x, unitSize.y
+	);
 
 	const isValid = this.validateArea(x, y);
 
@@ -1009,8 +1026,8 @@ Editor.prototype.drawUnitBrush = function(x, y) {
 	);
 };
 
-Editor.prototype.drawTerrainBrush = function(x, y) {
-	[x, y] = this.findNearestTile(x, y, this.size, this.size);
+Editor.prototype.drawTerrainBrush = function(clientX, clientY) {
+	const [x, y] = this.findNearestTile(clientX, clientY, this.size, this.size);
 
 	this.clearSelect();
 	this.select.lineWidth = 1;
@@ -1021,9 +1038,20 @@ Editor.prototype.drawTerrainBrush = function(x, y) {
 	);
 };
 
-Editor.prototype.addUnit = function(x, y) {
+Editor.prototype.placeUnit = function(id) {
+	this.mode = PLACE_UNIT;
+	this.unit = id;
+
+	this.selected = {};
+	this.updateUnitInfo();
+};
+
+Editor.prototype.addUnit = function(clientX, clientY) {
 	const unitSize = this.pud.units.unitSize[this.unit];
-	[x, y] = this.findNearestTile(x, y, unitSize.x, unitSize.y);
+	const [x, y] = this.findNearestTile(
+		clientX, clientY,
+		unitSize.x, unitSize.y
+	);
 
 	if (!this.validateArea(x, y)) {
 		return;
@@ -1041,12 +1069,12 @@ Editor.prototype.addUnit = function(x, y) {
 		property = DEFAULT_OIL;
 	}
 
+	const NEUTRAL_UNITS = [CRITTER, GOLD_MINE, OIL_PATCH, CIRCLE_OF_POWER,
+		DARK_PORTAL, RUNESTONE];
+
 	// places certain units and buildings as neutral player regardless of
 	// selected player (can reassign ownership in selection properties)
-	if (
-		id == CRITTER || id == GOLD_MINE || id == OIL_PATCH
-		|| id == CIRCLE_OF_POWER || id == DARK_PORTAL || id == RUNESTONE
-	) {
+	if (NEUTRAL_UNITS.includes(id)) {
 		owner = NEUTRAL;
 	}
 
@@ -1079,6 +1107,9 @@ Editor.prototype.removeSelected = function() {
 	}, this);
 	this.clearSelect();
 	this.drawUnitMap();
+
+	this.selected = {};
+	this.updateUnitInfo();
 };
 
 Editor.prototype.convertUnit = function(id, oldPlayer, newPlayer) {
@@ -1285,12 +1316,12 @@ Editor.prototype.paintTerrain = function(x, y) {
 	}
 };
 
-Editor.prototype.findNearestTile = function(x, y, w=0, h=0) {
-	x += window.scrollX;
-	y += window.scrollY;
+Editor.prototype.findNearestTile = function(clientX, clientY, w=0, h=0) {
+	clientX += window.scrollX;
+	clientY += window.scrollY;
 
-	x = Math.max(Math.floor((x - LEFT_MARGIN) / TILE_SIZE), 0);
-	y = Math.max(Math.floor(y / TILE_SIZE), 0);
+	let x = Math.max(Math.floor((clientX - LEFT_MARGIN) / TILE_SIZE), 0);
+	let y = Math.max(Math.floor(clientY / TILE_SIZE), 0);
 
 	if (this.mode == PLACE_UNIT) {
 		const flags = this.pud.units.flags[this.unit];
@@ -1462,25 +1493,25 @@ Editor.prototype.validateArea = function(x, y) {
 	}
 };
 
-Editor.prototype.updateTileInfo = function(x, y) {
-	[x, y] = this.findNearestTile(x, y);
+Editor.prototype.updateTileInfo = function(clientX, clientY) {
+	const [x, y] = this.findNearestTile(clientX, clientY);
 
 	$("#text_tileX").value = x;
 	$("#text_tileY").value = y;
 
-	const index = x + this.pud.width * y;
-	$("#text_index").value = index;
+	const point = x + this.pud.width * y;
+	$("#text_point").value = point;
 
-	if (index <= this.pud.tileMap.length) {
-		$("#text_terrainTile").value = this.formatHex(this.pud.tileMap[index]);
+	if (point <= this.pud.tileMap.length) {
+		$("#text_terrainTile").value = this.formatHex(this.pud.tileMap[point]);
 	}
 
-	if (index <= this.pud.movementMap.length) {
-		$("#text_moveTile").value = this.formatHex(this.pud.movementMap[index]);
+	if (point <= this.pud.movementMap.length) {
+		$("#text_moveTile").value = this.formatHex(this.pud.movementMap[point]);
 	}
 
-	if (index <= this.pud.actionMap.length) {
-		$("#text_actionTile").value = this.formatHex(this.pud.actionMap[index]);
+	if (point <= this.pud.actionMap.length) {
+		$("#text_actionTile").value = this.formatHex(this.pud.actionMap[point]);
 	}
 };
 
@@ -1505,9 +1536,7 @@ Editor.prototype.updateUnitInfo = function() {
 		// finds unit name from ID
 		for (const group of Object.keys(data.units)) {
 			for (const type of Object.keys(data.units[group])) {
-				for (const race of Object.keys(data.units[group][type])) {
-					const unit = data.units[group][type][race];
-
+				for (const unit of Object.values(data.units[group][type])) {
 					if (unit.id == id) {
 						$("#unitType").textContent = unit.name;
 						break;
@@ -1588,34 +1617,40 @@ Editor.prototype.changeTileset = function(tileset) {
 
 	if (tileset == FOREST || tileset == SWAMP) {
 		// remaps tiles that are unspecified for forest and swamp tilesets
-		this.pud.tileMap = this.pud.tileMap.map(function(tile) {
-			switch (tile) {
+		this.pud.tileMap = this.pud.tileMap.map(function(oldTile, point) {
+			switch (oldTile) {
 				case 0x0015:
 				case 0x0016:
 				case 0x0017:
 				case 0x0025:
 				case 0x0026:
 				case 0x0027:
-					return tile - 0x0004;
+					const newTile = oldTile - 0x0004;
+					reportChange.call(this, point, oldTile, newTile);
+
+					return newTile;
 				default:
-					return tile;
+					return oldTile;
 			}
-		});
+		}.bind(this));
 	}
 
 	if (tileset == SWAMP) {
 		// remaps tiles that are unspecified for swamp tileset
-		this.pud.tileMap = this.pud.tileMap.map(function(tile) {
-			switch (tile) {
+		this.pud.tileMap = this.pud.tileMap.map(function(oldTile, point) {
+			switch (oldTile) {
 				case 0x003a:
 				case 0x003b:
 				case 0x004a:
 				case 0x004b:
-					return tile - 0x0005;
+					const newTile = oldTile - 0x0005;
+					reportChange.call(this, point, oldTile, newTile);
+
+					return newTile;
 				default:
-					return tile;
+					return oldTile;
 			}
-		});
+		}.bind(this));
 	}
 
 	// changes terrain buttons to match tileset
@@ -1628,6 +1663,16 @@ Editor.prototype.changeTileset = function(tileset) {
 	this.drawFrame();
 	this.drawUnitMap();
 	this.changeUnitPalette();
+
+	function reportChange(point, oldTile, newTile) {
+		const x = point % this.pud.width;
+		const y = Math.floor(point / this.pud.height);
+
+		const oldHex = this.formatHex(oldTile);
+		const newHex = this.formatHex(newTile);
+
+		console.warn(`Changed tile: ${oldHex} to ${newHex} at (${x}, ${y})`);
+	}
 };
 
 Editor.prototype.changeUnitPalette = function() {
@@ -1702,6 +1747,40 @@ Editor.prototype.saveImage = function() {
 
 Editor.prototype.formatHex = function(num) {
 	return "0x" + num.toString(16).toUpperCase().padStart(4, "0");
+};
+
+Editor.prototype.loadSettings = function(settings) {
+	if (settings == null) {
+		return;
+	}
+
+	const {panels, player, palette} = settings;
+
+	if (panels != undefined) {
+		for (const panel of panels) {
+			$("#" + panel.id).open = panel.state;
+		}
+	}
+
+	this.player = player || 0;
+	this.palette = palette || DEFAULT_PALETTE;
+};
+
+Editor.prototype.saveSettings = function() {
+	const panels = [];
+
+	for (const element of $$("details")) {
+		panels.push({
+			id:    element.id,
+			state: element.open
+		});
+	}
+
+	return {
+		panels:  panels,
+		player:  this.player,
+		palette: this.palette
+	};
 };
 
 /*
@@ -1814,7 +1893,7 @@ Properties.prototype.openSheet = function(key) {
 		const select = $("#select_units");
 		const units = {};
 
-		for (const group of Object.keys(data.units)) {
+		for (const group of Object.keys(data.units)) { // sorts units by race
 			for (const type of Object.keys(data.units[group])) {
 				for (const race of Object.keys(data.units[group][type])) {
 					if (units[race] == undefined) {
@@ -1904,8 +1983,7 @@ Properties.prototype.openSheet = function(key) {
 
 		for (const group of Object.keys(data.units)) {
 			for (const type of Object.keys(data.units[group])) {
-				for (const race of Object.keys(data.units[group][type])) {
-					const unit = data.units[group][type][race];
+				for (const unit of Object.values(data.units[group][type])) {
 					units[unit.id] = unit.name;
 				}
 			}
@@ -2493,16 +2571,22 @@ Pud.prototype.load = function(filename, buffer) {
 			const [len, size, type] = value;
 			newMap[key] = originalArray.slice(addr, addr + len * size);
 
-			if (type == ARRAY) {
-				newMap[key] = makeArray(newMap[key], size);
-			} else if (type == BOOLEAN) {
-				newMap[key] = Boolean(newMap[key]);
-			} else if (type == DIMENSIONS) {
-				newMap[key] = parseDim(newMap[key]);
-			} else if (type == BIT_VECTOR) {
-				newMap[key] = parseBits(makeArray(newMap[key], size));
-			} else if (type == OCTAL) {
-				newMap[key] = parseOctal(newMap[key]);
+			switch (type) {
+				case ARRAY:
+					newMap[key] = makeArray(newMap[key], size);
+					break;
+				case BOOLEAN:
+					newMap[key] = Boolean(newMap[key]);
+					break;
+				case DIMENSIONS:
+					newMap[key] = parseDim(newMap[key]);
+					break;
+				case BIT_VECTOR:
+					newMap[key] = parseBits(makeArray(newMap[key], size));
+					break;
+				case OCTAL:
+					newMap[key] = parseOctal(newMap[key]);
+					break;
 			}
 
 			addr += len * size;
@@ -2715,16 +2799,22 @@ Pud.prototype.save = function() {
 			const [len, size, type] = value;
 			let contents = null;
 
-			if (type == ARRAY) {
-				contents = convertArray(originalMap[key], size);
-			} else if (type == BOOLEAN) {
-				contents = convertNum(Number(originalMap[key]), size);
-			} else if (type == DIMENSIONS) {
-				contents = convertDim(originalMap[key]);
-			} else if (type == BIT_VECTOR) {
-				contents = convertBits(originalMap[key]);
-			} else if (type == OCTAL) {
-				contents = convertOctal(originalMap[key]);
+			switch (type) {
+				case ARRAY:
+					contents = convertArray(originalMap[key], size);
+					break;
+				case BOOLEAN:
+					contents = convertNum(Number(originalMap[key]), size);
+					break;
+				case DIMENSIONS:
+					contents = convertDim(originalMap[key]);
+					break;
+				case BIT_VECTOR:
+					contents = convertBits(originalMap[key]);
+					break;
+				case OCTAL:
+					contents = convertOctal(originalMap[key]);
+					break;
 			}
 
 			for (let i = 0; i < contents.length; i++, pos++) {
@@ -3072,7 +3162,7 @@ Files.prototype.browse = function() {
 		}
 
 		$("#" + this.id).replaceWith(ul);
-	}.bind(this));
+	}.bind(this)).catch(properties.displayError.bind(properties));
 
 	function createDir(file, className) {
 		const li = document.createElement("li");
@@ -3128,7 +3218,7 @@ Files.prototype.openFile = function(path) {
 		xhr.send();
 	}).then(function({path, buffer}) {
 		editor.open(path, buffer);
-	});
+	}).catch(properties.displayError.bind(properties));
 };
 
 Files.prototype.openTemplate = function(tileset, size) {
@@ -3165,5 +3255,48 @@ Files.prototype.removeQueryString = function() {
 
 	if (url.searchParams.get("map") != undefined) {
 		window.history.pushState({}, document.title, url.pathname);
+	}
+};
+
+/*
+ * Storage prototype
+ */
+
+function Storage(name) {
+	this.name = name;
+}
+
+Storage.prototype.load = function() {
+	try {
+		const contents = localStorage.getItem(this.name);
+
+		if (contents != null) {
+			return JSON.parse(contents);
+		}
+	} catch (err) {
+		console.error(err);
+		this.reset();
+	}
+
+	return {};
+};
+
+Storage.prototype.save = function(settings) {
+	try {
+		if (settings != undefined) {
+			localStorage.setItem(this.name, JSON.stringify(settings));
+		} else {
+			this.reset();
+		}
+	} catch (err) {
+		console.error(err);
+	}
+};
+
+Storage.prototype.reset = function() {
+	try {
+		localStorage.removeItem(this.name);
+	} catch (err) {
+		console.error(err);
 	}
 };

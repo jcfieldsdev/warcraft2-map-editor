@@ -41,7 +41,7 @@
 		<li><button type="button" value="map" class="tab">Map</button></li>
 	</ul>
 	<div id="editor" class="palette">
-		<details open="open"><summary>File:</summary>
+		<details id="details_file" open="open"><summary>File:</summary>
 			<ul>
 				<li><button type="button" id="create"><img src="layout/icon-create.svg" alt="[Create]"> Create</button></li>
 				<li><button type="button" id="open"><img src="layout/icon-open.svg" alt="[Open]"> Open</button></li>
@@ -50,7 +50,7 @@
 				<li><button type="button" id="about"><img src="layout/icon-about.svg" alt="[About]"> About</button></li>
 			</ul>
 		</details>
-		<details><summary>Layers:</summary>
+		<details id="details_layers"><summary>Layers:</summary>
 			<div id="layers">
 				<div><label><input type="checkbox" value="tileMap" checked="checked" class="layer"> Terrain</label>
 				<label><input type="checkbox" value="unitMap" checked="checked" class="layer"> Units</label></div>
@@ -60,36 +60,36 @@
 		</details>
 	</div>
 	<div id="terrain" class="palette">
-		<details id="tileInfo"><summary>Tile Information:</summary>
+		<details id="details_tileInfo"><summary>Tile Information:</summary>
 			<table>
 				<tr><td>Position:</td><td><input type="text" disabled="disabled" id="text_tileX" class="dim">×<input type="text" disabled="disabled" id="text_tileY" class="dim"></td></tr>
-				<tr><td>Index:</td><td><input type="text" disabled="disabled" id="text_index" class="hex"></td></tr>
+				<tr><td>Point:</td><td><input type="text" disabled="disabled" id="text_point" class="hex"></td></tr>
 				<tr><td>Terrain tile:</td><td><input type="text" disabled="disabled" id="text_terrainTile" class="hex"></td></tr>
 				<tr><td>Movement tile:</td><td><input type="text" disabled="disabled" id="text_moveTile" class="hex"></td></tr>
 				<tr><td>Action tile:</td><td><input type="text" disabled="disabled" id="text_actionTile" class="hex"></td></tr>
 			</table>
 		</details>
-		<details open="open"><summary>Brightness:</summary>
+		<details id="details_brightness" open="open"><summary>Brightness:</summary>
 			<ul>
 				<li><button type="button" value="0" class="brightness active"><img src="icons/terrain/brightness-light.svg" alt="[Light]" title="Light"></button></li>
 				<li><button type="button" value="16" class="brightness"><img src="icons/terrain/brightness-dark.svg" alt="[Dark]" title="Dark"></button></li>
 			</ul>
 		</details>
-		<details open="open"><summary>Fill Pattern:</summary>
+		<details id="details_fillPattern" open="open"><summary>Fill Pattern:</summary>
 			<ul>
 				<li><button type="button" value="0" class="pattern active"><img src="icons/terrain/pattern-plain.svg" alt="[Plain]" title="Plain"></button></li>
 				<li><button type="button" value="1" class="pattern"><img src="icons/terrain/pattern-filler.svg" alt="[Filler]" title="Filler"></button></li>
 				<li><button type="button" value="2" class="pattern"><img src="icons/terrain/pattern-random.svg" alt="[Random]" title="Random"></button></li>
 			</ul>
 		</details>
-		<details open="open"><summary>Brush Size:</summary>
+		<details id="details_brushSize" open="open"><summary>Brush Size:</summary>
 			<ul>
 				<li><button type="button" value="1" class="size active"><img src="icons/terrain/size-1x1.svg" alt="[1×1]" title="1×1"></button></li>
 				<li><button type="button" value="3" class="size"><img src="icons/terrain/size-3x3.svg" alt="[3×3]" title="3×3"></button></li>
 				<li><button type="button" value="5" class="size"><img src="icons/terrain/size-5x5.svg" alt="[5×5]" title="5×5"></button></li>
 			</ul>
 		</details>
-		<details open="open"><summary>Terrain Type:</summary>
+		<details id="details_terrainType" open="open"><summary>Terrain Type:</summary>
 			<ul>
 				<li><button type="button" value="0" id="inspect" class="terrain active"><img src="layout/icon-inspect.svg" alt="[Select Units]" title="Select Units"></button></li>
 				<li><button type="button" value="16" class="terrain"><img src="icons/terrain/forest/terrain-water.png" alt="[Water]" title="Water" class="tile"></button></li>
@@ -103,7 +103,7 @@
 		</details>
 	</div>
 	<div id="units" class="palette">
-		<details open="open"><summary>Unit Type:</summary>
+		<details id="details_unitType" open="open"><summary>Unit Type:</summary>
 			<select id="select_unitsPalette">
 				<option value="startLocation">Start Location</option>
 				<option value="land">Land Units</option>
@@ -117,7 +117,7 @@
 			</select>
 			<ul id="unitsPalette"></ul>
 		</details>
-		<details id="unitInfo"><summary>Selection Information:</summary>
+		<details id="details_unitInfo"><summary>Selection Information:</summary>
 			<div id="oneUnit" hidden="hidden">
 				<table>
 					<tr><td>Position:</td><td><input type="text" disabled="disabled" id="text_unitX" class="dim">×<input type="text" disabled="disabled" id="text_unitY" class="dim"></td></tr>

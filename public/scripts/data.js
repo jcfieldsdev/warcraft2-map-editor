@@ -93,14 +93,14 @@ data.schema = {
 		required: true,
 		type: MAP,
 		map:  new Map([
-			["useDefaults",     [1,  WORD,  BOOLEAN]],
-			["upgradeTime",     [52, BYTE,  ARRAY]],
-			["upgradeGold",     [52, WORD,  ARRAY]],
-			["upgradeLumber",   [52, WORD,  ARRAY]],
-			["upgradeOil",      [52, WORD,  ARRAY]],
-			["icon",            [52, WORD,  ARRAY]],
-			["group",           [52, WORD,  ARRAY]],
-			["effect",          [52, DWORD, ARRAY]]
+			["useDefaults",   [1,  WORD,  BOOLEAN]],
+			["upgradeTime",   [52, BYTE,  ARRAY]],
+			["upgradeGold",   [52, WORD,  ARRAY]],
+			["upgradeLumber", [52, WORD,  ARRAY]],
+			["upgradeOil",    [52, WORD,  ARRAY]],
+			["icon",          [52, WORD,  ARRAY]],
+			["group",         [52, WORD,  ARRAY]],
+			["effect",        [52, DWORD, ARRAY]]
 		]),
 	},
 	"ALOW": {
