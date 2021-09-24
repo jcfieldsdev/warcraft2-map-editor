@@ -1069,12 +1069,12 @@ Editor.prototype.addUnit = function(clientX, clientY) {
 		property = DEFAULT_OIL;
 	}
 
-	const NEUTRAL_UNITS = [CRITTER, GOLD_MINE, OIL_PATCH, CIRCLE_OF_POWER,
-		DARK_PORTAL, RUNESTONE];
+	const NEUTRAL_UNITS = new Set([CRITTER, GOLD_MINE, OIL_PATCH,
+		CIRCLE_OF_POWER, DARK_PORTAL, RUNESTONE]);
 
 	// places certain units and buildings as neutral player regardless of
 	// selected player (can reassign ownership in selection properties)
-	if (NEUTRAL_UNITS.includes(id)) {
+	if (NEUTRAL_UNITS.has(id)) {
 		owner = NEUTRAL;
 	}
 
@@ -1177,105 +1177,106 @@ Editor.prototype.convertAllUnits = function(player, newRaceId) {
 	this.drawUnitMap();
 };
 
-Editor.prototype.paintTerrain = function(x, y) {
-	let tile = this.tile;
+Editor.prototype.paintTerrain = function(clientX, clientY) {
+	const [x, y] = this.findNearestTile(clientX, clientY, this.size, this.size);
 
-	this.drawTerrainBrush(x, y);
-	[x, y] = this.findNearestTile(x, y, this.size, this.size);
+	if (this.terrainX == x && this.terrainY == y) {
+		return;
+	}
+
+	this.mode = DRAG_TERRAIN;
+	this.drawTerrainBrush(clientX, clientY);
+
+	this.terrainX = x;
+	this.terrainY = y;
+
+	let tile = this.tile;
 
 	if (tile >= LIGHT_WATER && tile < TREES) {
 		tile += this.brightness; // adds 0x0010 for dark version of tile
 	}
 
-	const changes = [];
-
-	do {
-		const boundary = computeBoundary.call(this, x, y, this.size);
-
-		if ((tile & 0xf0) == LIGHT_DIRT) {
-			if ((this.pud.tileMap[boundary.tl] & 0xf0) == LIGHT_GRASS) {
-				changes.push({point: boundary.tl, index: 0x0570});
-			}
-
-			if ((this.pud.tileMap[boundary.tr] & 0xf0) == LIGHT_GRASS) {
-				changes.push({point: boundary.tr, index: 0x0530});
-			}
-
-			if ((this.pud.tileMap[boundary.bl] & 0xf0) == LIGHT_GRASS) {
-				changes.push({point: boundary.bl, index: 0x0510});
-			}
-
-			if ((this.pud.tileMap[boundary.br] & 0xf0) == LIGHT_GRASS) {
-				changes.push({point: boundary.br, index: 0x0500});
-			}
-
-			for (const point of boundary.t) {
-				if ((this.pud.tileMap[point] & 0xf0) == LIGHT_GRASS) {
-					changes.push({point, index: 0x05b0});
-				}
-			}
-
-			for (const point of boundary.b) {
-				if ((this.pud.tileMap[point] & 0xf0) == LIGHT_GRASS) {
-					changes.push({point, index: 0x0520});
-				}
-			}
-
-			for (const point of boundary.l) {
-				if ((this.pud.tileMap[point] & 0xf0) == LIGHT_GRASS) {
-					changes.push({point, index: 0x0590});
-				}
-			}
-
-			for (const point of boundary.r) {
-				if ((this.pud.tileMap[point] & 0xf0) == LIGHT_GRASS) {
-					changes.push({point, index: 0x0540});
-				}
-			}
-		}
-	} while (0);
-
 	// draws main tiles
 	for (let i = 0; i < this.size; i++) {
 		for (let j = 0; j < this.size; j++) {
 			const point = x + i + (y + j) * this.pud.width;
-			changeTile.call(this, point, tile + Math.floor(Math.random() * 3));
+
+			this.pud.tileMap[point] = tile;
+			drawTile.call(this, point, tile);
 		}
+	}
+
+	const changes = [];
+	const boundary = computeBoundary.call(this, x, y, this.size);
+
+	for (const point of boundary) {
+		let tile = this.pud.tileMap[point];
+
+		// adjacent tiles
+		const t = getTileType.call(this, point - this.pud.width);
+		const r = getTileType.call(this, point + 1);
+		const b = getTileType.call(this, point + this.pud.width);
+		const l = getTileType.call(this, point - 1);
+
+		// corner tiles
+		const tl = getTileType.call(this, point - this.pud.width - 1);
+		const tr = getTileType.call(this, point - this.pud.width + 1);
+		const bl = getTileType.call(this, point + this.pud.width - 1);
+		const br = getTileType.call(this, point + this.pud.width + 1);
+
+		if (tile == LIGHT_DIRT) {
+			if (t == DARK_DIRT || r == DARK_DIRT || b == DARK_DIRT || l == DARK_DIRT) {
+				tile = DARK_DIRT_LIGHT_DIRT;
+
+				if (t == LIGHT_DIRT && r == DARK_DIRT && b == DARK_DIRT && l == LIGHT_DIRT) {
+					tile += 0x00;
+				} else if (t == DARK_DIRT && r == DARK_DIRT && b == LIGHT_DIRT && l == LIGHT_DIRT) {
+					tile += 0x10;
+				} else if (t == DARK_DIRT && r == LIGHT_DIRT && b == LIGHT_DIRT && l == DARK_DIRT) {
+					tile += 0x70;
+				} else if (t == LIGHT_DIRT && r == LIGHT_DIRT && b == DARK_DIRT && l == DARK_DIRT) {
+					tile += 0x80;
+				} else if (t == LIGHT_DIRT && b == DARK_DIRT) {
+					tile += 0x20;
+				} else if (t == DARK_DIRT && b == LIGHT_DIRT) {
+					tile += 0xb0;
+				} else if (r == DARK_DIRT && l == LIGHT_DIRT) {
+					tile += 0x40;
+				} else if (r == LIGHT_DIRT && l == DARK_DIRT) {
+					tile += 0x90;
+				}
+			}
+		}
+
+		changes.push([point, tile]);
 	}
 
 	// draws boundary tiles
-	for (const change of changes) {
-		drawTile.call(this, change.point, change.index);
-	}
-
-	function getTileType(x, y) {
-		if (x >= 0 && x < this.pud.width && y >= 0 && y < this.pud.height) {
-			return this.pud.tileMap[x + y * this.pud.width] & 0xf0;
-		}
+	for (const [point, tile] of changes) {
+		this.pud.tileMap[point] = tile;
+		drawTile.call(this, point, tile);
 	}
 
 	function computeBoundary(x, y, size) {
-		const points = {};
+		const points = [];
 
 		// corners
-		points.tl = createPoint.call(this, x - 1,    y - 1);    // top-left
-		points.tr = createPoint.call(this, x + size, y - 1);    // top-right
-		points.bl = createPoint.call(this, x - 1,    y + size); // bottom-left
-		points.br = createPoint.call(this, x + size, y + size); // bottom-right
+		points.push(createPoint.call(this, x - 1,    y - 1));    // top-left
+		points.push(createPoint.call(this, x + size, y - 1));    // top-right
+		points.push(createPoint.call(this, x - 1,    y + size)); // bottom-left
+		points.push(createPoint.call(this, x + size, y + size)); // bottom-right
 
-		points.t = [];
-		points.b = [];
-		points.l = [];
-		points.r = [];
-
+		// sides
 		for (let i = 0; i < size; i++) {
-			points.t.push(createPoint.call(this, x + i,    y - 1));    // top
-			points.b.push(createPoint.call(this, x + i,    y + size)); // bottom
-			points.l.push(createPoint.call(this, x - 1,    y + i));    // left
-			points.r.push(createPoint.call(this, x + size, y + i));    // right
+			points.push(createPoint.call(this, x + i,    y - 1));    // top
+			points.push(createPoint.call(this, x + i,    y + size)); // bottom
+			points.push(createPoint.call(this, x - 1,    y + i));    // left
+			points.push(createPoint.call(this, x + size, y + i));    // right
 		}
 
-		return points;
+		return points.filter(function(point) {
+			return point != undefined;
+		});
 	}
 
 	function createPoint(x, y) {
@@ -1284,33 +1285,35 @@ Editor.prototype.paintTerrain = function(x, y) {
 		}
 	}
 
-	function changeTile(point, index) {
-		changes.push({point, index});
-		this.pud.tileMap[point] = index;
+	function getTileType(point) {
+		const boundary = this.pud.tileMap[point] & 0x0f00;
+		const solid    = this.pud.tileMap[point] & 0x00f0;
+
+		return boundary == 0x0000 ? solid : boundary;
 	}
 
-	function drawTile(point, index) {
-		if (index in data.tiles[this.pud.tileset]) {
-			let tile = data.tiles[this.pud.tileset][index];
+	function drawTile(point, tile) {
+		if (tile in data.tiles[this.pud.tileset]) {
+			const tiles = data.tiles[this.pud.tileset];
 			let cx = point % this.pud.width * TILE_SIZE;
 			let cy = Math.floor(point / this.pud.height) * TILE_SIZE;
 
 			this.tileMap.drawImage(
 				this.tiles,
-				tile.x, tile.y,
+				tiles[tile].x, tiles[tile].y,
 				TILE_SIZE, TILE_SIZE,
 				cx, cy,
 				TILE_SIZE, TILE_SIZE
 			);
 			this.miniTileMap.drawImage(
 				this.tiles,
-				tile.x, tile.y,
+				tiles[tile].x, tiles[tile].y,
 				MINI_TILE_SIZE, MINI_TILE_SIZE,
 				cx, cy,
 				TILE_SIZE, TILE_SIZE
 			);
 		} else {
-			let hex = this.formatHex(index);
+			let hex = this.formatHex(tile);
 			console.error(`Missing terrain tile: ${hex} at (${x}, ${y})`);
 		}
 	}
@@ -1563,12 +1566,12 @@ Editor.prototype.selectPlayer = function(player) {
 
 	// does not reassign ownership of certain units in box selections (can only
 	// do so explicitly in selection properties)
-	const OMIT_UNITS = [CRITTER, GOLD_MINE, OIL_PATCH,
-		HUMAN_START_LOC, ORC_START_LOC];
+	const OMIT_UNITS = new Set([CRITTER, GOLD_MINE, OIL_PATCH,
+		HUMAN_START_LOC, ORC_START_LOC]);
 
 	// reassigns owner of selected units
 	for (const unit of Object.values(this.selected)) {
-		if (OMIT_UNITS.includes(unit.id)) {
+		if (OMIT_UNITS.has(unit.id)) {
 			continue;
 		}
 
@@ -2888,7 +2891,7 @@ Pud.prototype.save = function() {
 
 	function saveVers() {
 		const expansionHeroes = this.unitMap.some(function(unit) {
-			return data.expansionHeroes.includes(unit.id);
+			return data.expansionHeroes.has(unit.id);
 		});
 
 		this.version = expansionHeroes ? EXPANSION : STANDARD;

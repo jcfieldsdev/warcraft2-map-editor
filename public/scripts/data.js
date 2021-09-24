@@ -2560,7 +2560,7 @@ data.units = {
 	}
 };
 
-data.expansionHeroes = [20, 21, 22, 23, 24, 25, 35, 44, 46, 47];
+data.expansionHeroes = new Set([20, 21, 22, 23, 24, 25, 35, 44, 46, 47]);
 
 data.upgrades = {
 	human: new Map([
