@@ -36,12 +36,12 @@ const STANDARD  = 0x11;
 const EXPANSION = 0x13;
 const MIME_TYPE = "application/x-warcraft2-scenario";
 const DEFAULT_FILE_NAME = "Untitled.pud";
+const SLOTS = 16; // total players (including unused)
 
 // editor
 const MAPS_DIR          = "maps";
-const TEMPLATES_DIR     = "templates";
 const DEFAULT_PALETTE   = "units";
-const DEFAULT_TILESET   = "forest";
+const DEFAULT_TILESET   = 0;
 const DEFAULT_SIZE      = 128;
 const MINIMAP_SIZE      = 200;
 const LEFT_MARGIN       = 270;
@@ -59,11 +59,12 @@ const DRAG_TERRAIN  = 4;
 
 // game mechanics
 const PLAYERS        = 8;
-const NEUTRAL        = 15;
+const NEUTRAL_PLAYER = 15;
 const TILE_SIZE      = 32;
 const MINI_TILE_SIZE = 8;
 const MAX_WIDTH      = 128;
 const MAX_HEIGHT     = 128;
+const STARTING_RESOURCE = 1000;
 const DEFAULT_GOLD   = 6; // x2500
 const DEFAULT_OIL    = 2; // x2500
 const RESOURCE_AREA  = 3; // distance between gold mines/town halls
@@ -74,6 +75,17 @@ const FOREST    = 0;
 const WINTER    = 1;
 const WASTELAND = 2;
 const SWAMP     = 3;
+
+// races
+const HUMAN_RACE = 0x00;
+const ORC_RACE   = 0x01;
+const NEUTRAL_RACE = 0x02;
+
+// controllers
+const PASSIVE_COMPUTER = 0x02;
+const NOBODY   = 0x03;
+const COMPUTER = 0x04;
+const HUMAN    = 0x05;
 
 // special units
 const CRITTER         = 57;
@@ -99,7 +111,7 @@ const OIL_DEPOT      = 24; // shipyards and refineries
 
 // terrain
 const PLAIN = 0, FILLER = 1, RANDOM = 2;
-const INSPECT     = 0x0000;
+const INSPECT = 0x0000;
 // solid tiles
 const LIGHT_WATER = 0x0010, DARK_WATER = 0x0020;
 const LIGHT_DIRT  = 0x0030, DARK_DIRT  = 0x0040;
@@ -158,7 +170,7 @@ window.addEventListener("load", function() {
 		}
 
 		if (keyCode >= 48 && keyCode <= 56) { // 0-8
-			editor.selectPlayer(keyCode == 48 ? NEUTRAL : keyCode - 49);
+			editor.selectPlayer(keyCode == 48 ? NEUTRAL_PLAYER : keyCode - 49);
 		}
 	});
 	window.addEventListener("keydown", function(event) {
@@ -576,26 +588,14 @@ function Editor() {
 	this.terrainY = 0;
 }
 
-Editor.prototype.open = function(path, buffer) {
+Editor.prototype.open = function(path, pud) {
 	window.scrollTo(0, 0);
 
-	if (buffer == null) {
-		return properties.displayError("The map file does not exist.");
-	}
-
-	const dirs = path.split("/");
-
-	this.pud = new Pud();
-	this.pud.load(dirs.pop(), buffer);
+	this.path = path;
+	this.pud = pud;
 
 	if (!this.pud.isValid) {
 		return properties.displayError("The map file is corrupted or invalid.");
-	}
-
-	this.path = path;
-
-	if (dirs[0] == TEMPLATES_DIR) {
-		this.pud.filename = DEFAULT_FILE_NAME;
 	}
 
 	document.title = this.pud.filename;
@@ -778,7 +778,7 @@ Editor.prototype.drawUnitMap = function() {
 	function drawToUnitMap(x, y, w, h, i, unit, img) {
 		const owner = Math.min(unit.owner, 7);
 		const startLocation = unit.id == HUMAN_START_LOC
-		                   || unit.id == ORC_START_LOC;
+			|| unit.id == ORC_START_LOC;
 		let sx = 0, sy = 0;
 
 		if (!startLocation && !this.pud.units.flags[unit.id][BUILDING]) {
@@ -900,13 +900,15 @@ Editor.prototype.drawActionMap = function() {
 };
 
 Editor.prototype.moveMap = function(clientX, clientY) {
-	const x = clientX - this.pos.left;
-	const y = clientY - this.pos.top;
+	if (this.pos != null) {
+		const x = clientX - this.pos.left;
+		const y = clientY - this.pos.top;
 
-	window.scroll(
-		x / this.scaleX - window.innerWidth / 2 - LEFT_MARGIN,
-		y / this.scaleY - window.innerHeight
-	);
+		window.scroll(
+			x / this.scaleX - window.innerWidth / 2 - LEFT_MARGIN,
+			y / this.scaleY - window.innerHeight
+		);
+	}
 };
 
 Editor.prototype.updateCoords = function() {
@@ -915,14 +917,16 @@ Editor.prototype.updateCoords = function() {
 };
 
 Editor.prototype.drawFrame = function() {
-	this.frame.clearRect(0, 0, $("#frame").width, $("#frame").height);
-	this.frame.lineWidth = 2;
-	this.frame.strokeStyle = FRAME_COLOR;
-	this.frame.strokeRect(
-		this.x, this.y,
-		this.scaleX * (window.innerWidth - LEFT_MARGIN),
-		this.scaleY * window.innerHeight
-	);
+	if (this.frame != null) {
+		this.frame.clearRect(0, 0, $("#frame").width, $("#frame").height);
+		this.frame.lineWidth = 2;
+		this.frame.strokeStyle = FRAME_COLOR;
+		this.frame.strokeRect(
+			this.x, this.y,
+			this.scaleX * (window.innerWidth - LEFT_MARGIN),
+			this.scaleY * window.innerHeight
+		);
+	}
 };
 
 Editor.prototype.clearSelect = function() {
@@ -1075,7 +1079,7 @@ Editor.prototype.addUnit = function(clientX, clientY) {
 	// places certain units and buildings as neutral player regardless of
 	// selected player (can reassign ownership in selection properties)
 	if (NEUTRAL_UNITS.has(id)) {
-		owner = NEUTRAL;
+		owner = NEUTRAL_PLAYER;
 	}
 
 	// removes existing start location if new one is placed
@@ -1368,7 +1372,7 @@ Editor.prototype.validateArea = function(x, y) {
 	                    | this.unit == ORC_START_LOC;
 	let isValid = true;
 
-	if (startLocation && this.player == NEUTRAL) {
+	if (startLocation && this.player == NEUTRAL_PLAYER) {
 		return; // cannot place start location for neutral player
 	}
 
@@ -1380,11 +1384,13 @@ Editor.prototype.validateArea = function(x, y) {
 	// checks if area contains other units
 	for (const otherUnit of this.pud.unitMap.values()) {
 		const unitStartLocation = otherUnit.id == HUMAN_START_LOC
-		                       || otherUnit.id == ORC_START_LOC;
+			|| otherUnit.id == ORC_START_LOC;
 
 		// start locations ignore collision with everything except
 		// other start locations and neutral units
-		if ((startLocation ^ unitStartLocation) && otherUnit.owner != NEUTRAL) {
+		if ((startLocation ^ unitStartLocation)
+			&& otherUnit.owner != NEUTRAL_PLAYER
+		) {
 			continue;
 		}
 
@@ -2062,7 +2068,7 @@ Properties.prototype.fillSheet = function(key) {
 		}
 
 		if (sub) {
-			for (const property in value) {
+			for (const property of Object.keys(value)) {
 				if (property == sub) {
 					if (type == "checkbox") {
 						$("#" + element.id).checked = Boolean(value[property]);
@@ -2194,15 +2200,15 @@ Properties.prototype.fillSheet = function(key) {
 		}
 
 		const startLocation = unit.id == HUMAN_START_LOC
-		                   || unit.id == ORC_START_LOC;
+			|| unit.id == ORC_START_LOC;
 
 		$("#row_owner").hidden = startLocation;
 		$("#select_owner").disabled = startLocation;
 
 		const flags = editor.pud.units.flags[unit.id];
 		const isResourceSource = flags[GOLD_SOURCE]
-		                      || flags[OIL_SOURCE]
-		                      || flags[OIL_PLATFORM];
+			|| flags[OIL_SOURCE]
+			|| flags[OIL_PLATFORM];
 		const isUnit = !startLocation && !flags[BUILDING];
 
 		$("#row_resource").hidden = !isResourceSource;
@@ -2222,8 +2228,8 @@ Properties.prototype.saveSheet = function(key) {
 		map:          saveMap,
 		players:      savePlayers,
 		resources:    saveResources,
-		units:        mergeWorking,
-		upgrades:     mergeWorking,
+		units:        saveUnits,
+		upgrades:     saveUpgrades,
 		restrictions: saveRestrictions,
 		unitMap:      saveSelection
 	}[key];
@@ -2238,10 +2244,7 @@ Properties.prototype.saveSheet = function(key) {
 	}
 
 	function saveCreate() {
-		const tileset = readRadio("terrain");
-		const size    = readRadio("size");
-
-		files.openTemplate(data.tilesets[tileset], size);
+		files.openTemplate(readRadio("terrain"), readRadio("size"));
 	}
 
 	function saveMap() {
@@ -2333,17 +2336,12 @@ Properties.prototype.saveSheet = function(key) {
 		}
 	}
 
-	function readNumber(id, size) {
-		const num = Number($("#number_" + id).value);
-		return Math.max(num, 0);
+	function saveUnits() {
+		mergeWorking.call(this, "units");
 	}
 
-	function readRadio(name) {
-		for (const element of document.getElementsByName("radio_" + name)) {
-			if (element.checked) {
-				return Number(element.value);
-			}
-		}
+	function saveUpgrades() {
+		mergeWorking.call(this, "upgrades");
 	}
 
 	function mergeWorking(key) {
@@ -2367,6 +2365,19 @@ Properties.prototype.saveSheet = function(key) {
 		}
 
 		editor.pud[key].useDefaults = $("#checkbox_" + key).checked;
+	}
+
+	function readNumber(id, size) {
+		const num = Number($("#number_" + id).value);
+		return Math.max(num, 0);
+	}
+
+	function readRadio(name) {
+		for (const element of document.getElementsByName("radio_" + name)) {
+			if (element.checked) {
+				return Number(element.value);
+			}
+		}
 	}
 };
 
@@ -2483,6 +2494,7 @@ function Pud() {
 	this.tileMap = [];
 	this.movementMap = [];
 	this.actionMap = [];
+	this.oilMap = [];
 	this.unitMap = [];
 
 	this.units = {};
@@ -2944,6 +2956,47 @@ Pud.prototype.save = function() {
 	}
 };
 
+Pud.prototype.newFile = function(tileset, size) {
+	this.filename = DEFAULT_FILE_NAME;
+	this.isValid = true;
+
+	this.id = new Uint8Array(DWORD).map(function() {
+		return Math.floor(Math.random() * 256); // generates random ID
+	});
+	this.version = STANDARD;
+	this.certificate = 0;
+	this.description = "";
+	this.width = size;
+	this.height = size;
+	this.tileset = tileset;
+	this.useAlow = false;
+
+	this.races = new Uint8Array(SLOTS).fill().map(function(race, i) {
+		return i == NEUTRAL_PLAYER ? NEUTRAL_RACE : HUMAN_RACE;
+	});
+	this.controller = new Uint8Array(SLOTS).fill().map(function(controller, i) {
+		return i == NEUTRAL_PLAYER ? PASSIVE_COMPUTER : HUMAN;
+	});
+	this.ai = new Uint8Array(SLOTS).fill(0x00);
+
+	this.startGold = Array(SLOTS).fill(STARTING_RESOURCE);
+	this.startLumber = Array(SLOTS).fill(STARTING_RESOURCE);
+	this.startOil = Array(SLOTS).fill(STARTING_RESOURCE);
+
+	const area = size * size;
+	this.tileMap = Array(area).fill().map(function() {
+		return LIGHT_GRASS + Math.floor(Math.random() * 3);
+	});
+	this.movementMap = Array(area).fill(0x0001);
+	this.actionMap = Array(area).fill(0x4000);
+	this.oilMap = Array(area).fill(0);
+	this.unitMap = [];
+
+	this.units = window.structuredClone(defaults.units);
+	this.upgrades = window.structuredClone(defaults.upgrades);
+	this.restrictions = window.structuredClone(defaults.restrictions);
+};
+
 Pud.prototype.openFile = function(buffer) {
 	const sections = new Map();
 	let pos = 0;
@@ -3015,11 +3068,11 @@ Pud.prototype.validateAfterLoad = function() {
 		}
 
 		if (controller == 0x01) { // computer
-			return 0x04;
+			return COMPUTER;
 		}
 
 		if (controller == 0x03) { // nobody
-			return 0x05;
+			return HUMAN;
 		}
 
 		if (controller >= 0x08) { // passive computer
@@ -3030,7 +3083,7 @@ Pud.prototype.validateAfterLoad = function() {
 	}, this);
 
 	this.races = this.races.map(function(race) {
-		return Math.min(race, 0x02); // neutral
+		return Math.min(race, NEUTRAL_RACE); // neutral
 	});
 
 	this.ai = this.ai.map(function(ai) {
@@ -3040,25 +3093,7 @@ Pud.prototype.validateAfterLoad = function() {
 	this.useAlow = Object.keys(this.restrictions).length > 0;
 
 	if (!this.useAlow) { // copies default restriction data if no ALOW section
-		for (const key of Object.keys(defaults.restrictions)) {
-			this.restrictions[key] = [];
-
-			for (const i of Object.keys(defaults.restrictions[key])) {
-				const keys = Object.keys(defaults.restrictions[key][i]);
-				this.restrictions[key][i] = [];
-
-				for (const j of keys) {
-					const value = defaults.restrictions[key][i][j];
-					this.restrictions[key][i][j] = value;
-				}
-			}
-		}
-	}
-
-	if (this.unitMap.length == 0) { // generates random ID for new maps
-		this.id = this.id.map(function() {
-			return Math.floor(Math.random() * 256);
-		});
+		this.restrictions = window.structuredClone(defaults.restrictions);
 	}
 };
 
@@ -3080,16 +3115,14 @@ Pud.prototype.validateBeforeSave = function() {
 		}
 	}
 
-	const PASSIVE_COMPUTER = 0x02, NOBODY = 0x03, HUMAN = 0x05;
-
 	for (const player of players) {
-		if (player != NEUTRAL && start[player] == undefined) {
+		if (player != NEUTRAL_PLAYER && start[player] == undefined) {
 			throw `Must place a start location for player ${player + 1}.`;
 		}
 	}
 
 	this.controller = this.controller.map(function(controller, i) {
-		if (i == NEUTRAL) { // neutral player is always passive computer
+		if (i == NEUTRAL_PLAYER) { // neutral player is always passive computer
 			controller = PASSIVE_COMPUTER;
 		} else {
 			if (players.has(i)) {
@@ -3123,11 +3156,6 @@ function Files(id) {
 }
 
 Files.prototype.browse = function() {
-	// opens at root directory if a template file is currently loaded
-	if (this.dirs[0] == TEMPLATES_DIR) {
-		this.dirs = [];
-	}
-
 	let path = this.dirs.join("/");
 
 	if (this.dirs.length > 0) {
@@ -3220,12 +3248,20 @@ Files.prototype.openFile = function(path) {
 		xhr.responseType = "arraybuffer";
 		xhr.send();
 	}).then(function({path, buffer}) {
-		editor.open(path, buffer);
+		const dirs = path.split("/");
+		const pud = new Pud();
+		pud.load(dirs.pop(), buffer);
+
+		editor.open(path, pud);
 	}).catch(properties.displayError.bind(properties));
 };
 
 Files.prototype.openTemplate = function(tileset, size) {
-	this.openFile([TEMPLATES_DIR, tileset, `${size}x${size}.pud`].join("/"));
+	const pud = new Pud();
+	pud.newFile(tileset, size);
+
+	editor.open("", pud);
+
 	this.removeQueryString();
 };
 
@@ -3235,8 +3271,13 @@ Files.prototype.openUploadedFile = function(event) {
 	if (file != null) {
 		const reader = new FileReader();
 		reader.addEventListener("load", function(event) {
-			editor.open(file.name, event.target.result);
+			const path = file.name;
+			const pud = new Pud();
+			pud.load(path, event.target.result);
+
+			editor.open(path, pud);
 			properties.hide("browser");
+
 			this.removeQueryString();
 		}.bind(this));
 		reader.readAsArrayBuffer(file);

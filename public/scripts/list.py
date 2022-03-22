@@ -17,7 +17,7 @@ files = []
 
 try:
 	for f in os.listdir(os.path.join(root, path)):
-		if os.path.isdir(os.path.join(root, path, f)) and f != 'templates':
+		if os.path.isdir(os.path.join(root, path, f)):
 			dirs.append(f)
 		elif f.endswith('.pud'):
 			files.append(f)
