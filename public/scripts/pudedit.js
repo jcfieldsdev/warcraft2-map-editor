@@ -113,6 +113,7 @@ const OIL_DEPOT      = 24; // shipyards and refineries
 const PLAIN = 0, FILLER = 1, RANDOM = 2;
 const INSPECT = 0x0000;
 // solid tiles
+const SOLID_TILE_TYPE_MASK = 0x00f0
 const LIGHT_WATER = 0x0010, DARK_WATER = 0x0020;
 const LIGHT_DIRT  = 0x0030, DARK_DIRT  = 0x0040;
 const LIGHT_GRASS = 0x0050, DARK_GRASS = 0x0060;
@@ -120,11 +121,30 @@ const TREES       = 0x0070, ROCKS      = 0x0080;
 const HUMAN_WALL  = 0x0090, ORC_WALL   = 0x00a0;
 const HUMAN_IWALL = 0x00b0, ORC_IWALL  = 0x00c0;
 // boundary tiles
-const DARK_WATER_LIGHT_WATER = 0x0100, LIGHT_WATER_LIGHT_DIRT = 0x0200;
-const DARK_DIRT_LIGHT_DIRT   = 0x0300, ROCKS_LIGHT_DIRT       = 0x0400;
-const LIGHT_DIRT_LIGHT_GRASS = 0x0500, DARK_GRASS_LIGHT_GRASS = 0x0600;
-const TREES_LIGHT_GRASS      = 0x0700;
-const HUMAN_WALL_BOUNDARY    = 0x0800, ORC_WALL_BOUNDARY      = 0x0900;
+const BOUNDARY_VALUE_MASK = 0x00f0
+const BOUNDARY_TYPE_MASK = 0x0f00
+const DARK_WATER_LIGHT_WATER  = 0x0100, LIGHT_WATER_LIGHT_DIRT = 0x0200;
+const DARK_DIRT_LIGHT_DIRT    = 0x0300, ROCKS_LIGHT_DIRT       = 0x0400;
+const LIGHT_DIRT_LIGHT_GRASS  = 0x0500, DARK_GRASS_LIGHT_GRASS = 0x0600;
+const TREES_LIGHT_GRASS       = 0x0700;
+const HUMAN_WALL_BOUNDARY     = 0x0800, ORC_WALL_BOUNDARY      = 0x0900;
+
+const BOUNDARY_TL = 1
+const BOUNDARY_T = 2
+const BOUNDARY_L = 4
+const BOUNDARY_MAIN = 8
+
+const BOUNDARY_IN_OUT = {
+	DARK_WATER_LIGHT_WATER : { VALUE: 0x0100, IN: 0x0020, OUT: 0x0010 },
+	LIGHT_WATER_LIGHT_DIRT : { VALUE: 0x0200,IN: 0x0010, OUT: 0x0030 },
+	DARK_DIRT_LIGHT_DIRT : { VALUE: 0x0300, IN : 0x0040, OUT : 0x0030 },
+	ROCKS_LIGHT_DIRT : { VALUE: 0x0400, IN : 0x0080, OUT : 0x0030 },
+	LIGHT_DIRT_LIGHT_GRASS : { VALUE: 0x0500, IN : 0x0030, OUT : 0x0050 },
+	DARK_GRASS_LIGHT_GRASS : { VALUE: 0x0600, IN : 0x0060, OUT : 0x0050 },
+	TREES_LIGHT_GRASS : { VALUE: 0x0700, IN : 0x0070, OUT : 0x0050 },
+	HUMAN_WALL_BOUNDARY : { VALUE: 0x0800, IN : 0x0090, OUT : 0x0050 },
+	ORC_WALL_BOUNDARY : { VALUE: 0x0900, IN : 0x00a0, OUT : 0x0050 },
+};
 
 // map certificates
 const BLIZZARD = 1, LADDER = 2;
@@ -1201,12 +1221,15 @@ Editor.prototype.paintTerrain = function(clientX, clientY) {
 	}
 
 	// draws main tiles
-	for (let i = 0; i < this.size; i++) {
-		for (let j = 0; j < this.size; j++) {
-			const point = x + i + (y + j) * this.pud.width;
+	for (let i = -1; i < this.size; i++) {
+		for (let j = -1; j < this.size; j++) {
+			if (x + i >= 0 && y + j >= 0)
+			{
+				const point = x + i + (y + j) * this.pud.width;
 
-			this.pud.tileMap[point] = tile;
-			drawTile.call(this, point, tile);
+				this.pud.tileMap[point] = tile;
+				drawTile.call(this, point, tile);
+			}
 		}
 	}
 
@@ -1216,43 +1239,39 @@ Editor.prototype.paintTerrain = function(clientX, clientY) {
 	for (const point of boundary) {
 		let tile = this.pud.tileMap[point];
 
-		// adjacent tiles
-		const t = getTileType.call(this, point - this.pud.width);
-		const r = getTileType.call(this, point + 1);
-		const b = getTileType.call(this, point + this.pud.width);
-		const l = getTileType.call(this, point - 1);
+		// current tile solid terrain
+		let terrain_type = getSolidTerrainType(tile);
+		// top left corner tile
+		const tl = getSolidTerrainType(this.pud.tileMap[point - this.pud.width - 1]);
+		// top tile
+		const t = getSolidTerrainType(this.pud.tileMap[point - this.pud.width]);
+		// left tile
+		const l = getSolidTerrainType(this.pud.tileMap[point - 1]);
 
-		// corner tiles
-		const tl = getTileType.call(this, point - this.pud.width - 1);
-		const tr = getTileType.call(this, point - this.pud.width + 1);
-		const bl = getTileType.call(this, point + this.pud.width - 1);
-		const br = getTileType.call(this, point + this.pud.width + 1);
-
-		if (tile == LIGHT_DIRT) {
-			if (t == DARK_DIRT || r == DARK_DIRT || b == DARK_DIRT || l == DARK_DIRT) {
-				tile = DARK_DIRT_LIGHT_DIRT;
-
-				if (t == LIGHT_DIRT && r == DARK_DIRT && b == DARK_DIRT && l == LIGHT_DIRT) {
-					tile += 0x00;
-				} else if (t == DARK_DIRT && r == DARK_DIRT && b == LIGHT_DIRT && l == LIGHT_DIRT) {
-					tile += 0x10;
-				} else if (t == DARK_DIRT && r == LIGHT_DIRT && b == LIGHT_DIRT && l == DARK_DIRT) {
-					tile += 0x70;
-				} else if (t == LIGHT_DIRT && r == LIGHT_DIRT && b == DARK_DIRT && l == DARK_DIRT) {
-					tile += 0x80;
-				} else if (t == LIGHT_DIRT && b == DARK_DIRT) {
-					tile += 0x20;
-				} else if (t == DARK_DIRT && b == LIGHT_DIRT) {
-					tile += 0xb0;
-				} else if (r == DARK_DIRT && l == LIGHT_DIRT) {
-					tile += 0x40;
-				} else if (r == LIGHT_DIRT && l == DARK_DIRT) {
-					tile += 0x90;
+		let boundary_type = getBoundaryType(terrain_type, tl, t, l);
+		if (boundary_type != undefined)
+		{
+			let boundary_in = BOUNDARY_IN_OUT[boundary_type].IN;
+			// Calculate marching squares transition value by setting the corresponding flags.
+			let transition = 0;
+			if (tl == boundary_in)
+				transition += BOUNDARY_TL;
+			if (t == boundary_in)
+				transition += BOUNDARY_T;
+			if (l == boundary_in)
+				transition += BOUNDARY_L;
+			if (terrain_type == boundary_in)
+				transition += BOUNDARY_MAIN;
+			if (transition != 0)
+			{
+				let boundary_value = BOUNDARY_IN_OUT[boundary_type].VALUE;
+				boundary_value += (transition - 1) << 4;
+				if ((tile & boundary_value) != boundary_value)
+				{
+					changes.push([point, boundary_value]);
 				}
 			}
 		}
-
-		changes.push([point, tile]);
 	}
 
 	// draws boundary tiles
@@ -1261,6 +1280,55 @@ Editor.prototype.paintTerrain = function(clientX, clientY) {
 		drawTile.call(this, point, tile);
 	}
 
+	function getBoundaryType(current, top_left, top, left)
+	{
+		let all = [current, top_left, top, left];
+		let a = all[0];
+		let b = a;
+		for (let i = 1; i < 4; i++)
+		{
+			if (all[i] != a)
+			{
+				b = all[i];
+				break;
+			}
+		}
+		if (a == b)
+			return undefined;
+		for (const p in BOUNDARY_IN_OUT)
+		{
+			if (BOUNDARY_IN_OUT[p].IN == a && BOUNDARY_IN_OUT[p].OUT == b)
+					return p;
+			else if (BOUNDARY_IN_OUT[p].IN == b && BOUNDARY_IN_OUT[p].OUT == a)
+					return p;
+		}
+		console.error("No boundary found for: " + [a, b]);
+		return undefined;
+	}
+
+	function getSolidTerrainType(tile) {
+		let boundary_type = tile & BOUNDARY_TYPE_MASK;
+		if (boundary_type)
+		{
+			for (let b in BOUNDARY_IN_OUT) {
+				if (BOUNDARY_IN_OUT[b].VALUE == boundary_type)
+				{
+					let boundary_value = ((tile & BOUNDARY_VALUE_MASK) >> 4) + 1;
+					if ((boundary_value & BOUNDARY_MAIN) == BOUNDARY_MAIN)
+					{
+						return BOUNDARY_IN_OUT[b].IN;
+					}
+					else
+						return BOUNDARY_IN_OUT[b].OUT;
+				}
+			}
+			console.error("Invalid boundary type index : " + boundary_type);
+			return undefined;
+		}
+		else
+			return tile & SOLID_TILE_TYPE_MASK;
+	}
+	
 	function computeBoundary(x, y, size) {
 		const points = [];
 
@@ -1272,9 +1340,9 @@ Editor.prototype.paintTerrain = function(clientX, clientY) {
 
 		// sides
 		for (let i = 0; i < size; i++) {
-			points.push(createPoint.call(this, x + i,    y - 1));    // top
-			points.push(createPoint.call(this, x + i,    y + size)); // bottom
-			points.push(createPoint.call(this, x - 1,    y + i));    // left
+			points.push(createPoint.call(this, x + i, y - 1));    // top
+			points.push(createPoint.call(this, x + i, y + size)); // bottom
+			points.push(createPoint.call(this, x - 1, y + i));    // left
 			points.push(createPoint.call(this, x + size, y + i));    // right
 		}
 
