@@ -148,15 +148,15 @@ window.addEventListener("load", function() {
 		store.save(editor.saveSettings());
 	});
 	window.addEventListener("keyup", function(event) {
-		const keyCode = event.keyCode;
+		const {key} = event;
 
-		if (keyCode == 13) { // Enter
+		if (key == "Enter") {
 			if (Object.keys(editor.selected).length > 0) {
 				properties.openSheet("unitMap");
 			}
 		}
 
-		if (keyCode == 27) { // Esc
+		if (key == "Esc") {
 			if (properties.active) {
 				properties.hideAll();
 			} else {
@@ -164,26 +164,26 @@ window.addEventListener("load", function() {
 			}
 		}
 
-		if (keyCode == 8 || keyCode == 46) { // Del
+		if (key == "Delete") {
 			event.preventDefault();
 			editor.removeSelected();
 		}
 
-		if (keyCode >= 48 && keyCode <= 56) { // 0-8
-			editor.selectPlayer(keyCode == 48 ? NEUTRAL_PLAYER : keyCode - 49);
+		if (key >= "0" && key <= "8") {
+			editor.selectPlayer(key == "0" ? NEUTRAL_PLAYER : Number(key) - 1);
 		}
 	});
 	window.addEventListener("keydown", function(event) {
-		const keyCode = event.keyCode;
+		const {code} = event;
 
-		if (event.ctrlKey ^ event.metaKey) { // Ctrl or Cmd
-			if (keyCode == 78) { // N
+		if (event.ctrlKey ^ event.metaKey) {
+			if (code == "KeyN") {
 				event.preventDefault();
 				create();
-			} else if (keyCode == 79) { // O
+			} else if (code == "KeyO") {
 				event.preventDefault();
 				open();
-			} else if (keyCode == 83) { // S
+			} else if (code == "KeyS") {
 				event.preventDefault();
 				save();
 			}
@@ -713,10 +713,10 @@ Editor.prototype.drawUnitMap = function() {
 
 	// sorts units by stacking priority
 	for (const [i, unit] of this.pud.unitMap.entries()) {
-		if (
-			unit.id == HUMAN_START_LOC || unit.id == ORC_START_LOC
-			|| this.pud.units.flags[unit.id][AIR_UNIT]
-		) {
+		const isStartLocation = unit.id == HUMAN_START_LOC
+			|| unit.id == ORC_START_LOC;
+
+		if (isStartLocation || this.pud.units.flags[unit.id][AIR_UNIT]) {
 			top.push(i);
 		} else {
 			bottom.push(i);
@@ -777,11 +777,11 @@ Editor.prototype.drawUnitMap = function() {
 
 	function drawToUnitMap(x, y, w, h, i, unit, img) {
 		const owner = Math.min(unit.owner, 7);
-		const startLocation = unit.id == HUMAN_START_LOC
+		const isStartLocation = unit.id == HUMAN_START_LOC
 			|| unit.id == ORC_START_LOC;
 		let sx = 0, sy = 0;
 
-		if (!startLocation && !this.pud.units.flags[unit.id][BUILDING]) {
+		if (!isStartLocation && !this.pud.units.flags[unit.id][BUILDING]) {
 			// centers unit in tile
 			x -= (img.width - w) / 2;
 			y -= (img.width - h) / 2;
@@ -1369,7 +1369,7 @@ Editor.prototype.findNearestTile = function(clientX, clientY, w=0, h=0) {
 
 Editor.prototype.validateArea = function(x, y) {
 	const startLocation = this.unit == HUMAN_START_LOC
-	                    | this.unit == ORC_START_LOC;
+		| this.unit == ORC_START_LOC;
 	let isValid = true;
 
 	if (startLocation && this.player == NEUTRAL_PLAYER) {
@@ -1388,7 +1388,8 @@ Editor.prototype.validateArea = function(x, y) {
 
 		// start locations ignore collision with everything except
 		// other start locations and neutral units
-		if ((startLocation ^ unitStartLocation)
+		if (
+			(startLocation ^ unitStartLocation)
 			&& otherUnit.owner != NEUTRAL_PLAYER
 		) {
 			continue;
@@ -2087,7 +2088,8 @@ Properties.prototype.fillSheet = function(key) {
 	}
 
 	if (key == "units") {
-		$("#select_rmb").disabled = editor.pud.units.flags[index][BUILDING];
+		const rmbAction = editor.pud.units.flags[index][BUILDING];
+		$("#select_rmbAction").disabled = rmbAction;
 	} else if (key == "upgrades") {
 		this.changeIcon($("#number_icon"), $("#icon"), $("#select_upgrades"));
 	}
@@ -2902,11 +2904,18 @@ Pud.prototype.save = function() {
 	}
 
 	function saveVers() {
-		const expansionHeroes = this.unitMap.some(function(unit) {
+		let expansion = false;
+
+		// uses expansion hero
+		expansion ||= this.unitMap.some(function(unit) {
 			return data.expansionHeroes.has(unit.id);
 		});
+		// uses expansion AI
+		expansion ||= this.ai.some(function(ai) {
+			return ai >= 0x20;
+		});
 
-		this.version = expansionHeroes ? EXPANSION : STANDARD;
+		this.version = expansion ? EXPANSION : STANDARD;
 
 		return convertNum(this.version, WORD);
 	}
@@ -2989,7 +2998,7 @@ Pud.prototype.newFile = function(tileset, size) {
 	});
 	this.movementMap = Array(area).fill(0x0001);
 	this.actionMap = Array(area).fill(0x4000);
-	this.oilMap = Array(area).fill(0);
+	this.oilMap = Array(area).fill(0x00);
 	this.unitMap = [];
 
 	this.units = window.structuredClone(defaults.units);
@@ -3162,20 +3171,10 @@ Files.prototype.browse = function() {
 		path += "/";
 	}
 
-	return new Promise(function(resolve, reject) {
-		const xhr = new XMLHttpRequest();
-		xhr.addEventListener("readystatechange", function() {
-			if (this.readyState == 4) {
-				if (this.status == 200) {
-					resolve(this.response);
-				} else {
-					reject("Could not open the file browser.");
-				}
-			}
-		});
-		xhr.open("GET", MAPS_DIR + "/" + path + "index.json", true);
-		xhr.responseType = "json";
-		xhr.send();
+	const url = MAPS_DIR + "/" + path + "index.json";
+
+	return window.fetch(url).then(function(response) {
+		return response.json();
 	}).then(function({dirs, files}) {
 		const ul = document.createElement("ul");
 		ul.id = this.id;
@@ -3233,21 +3232,9 @@ Files.prototype.browseDir = function(href) {
 Files.prototype.openFile = function(path) {
 	this.dirs = path.split("/").slice(0, -1);
 
-	return new Promise(function(resolve, reject) {
-		const xhr = new XMLHttpRequest();
-		xhr.addEventListener("readystatechange", function() {
-			if (this.readyState == 4) {
-				if (this.status == 200) {
-					resolve({path, buffer: this.response});
-				} else {
-					reject("Could not open the specified file.");
-				}
-			}
-		});
-		xhr.open("GET", MAPS_DIR + "/" + path, true);
-		xhr.responseType = "arraybuffer";
-		xhr.send();
-	}).then(function({path, buffer}) {
+	return window.fetch(MAPS_DIR + "/" + path).then(function(response) {
+		return response.arrayBuffer();
+	}).then(function(buffer) {
 		const dirs = path.split("/");
 		const pud = new Pud();
 		pud.load(dirs.pop(), buffer);
