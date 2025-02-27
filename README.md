@@ -2,9 +2,9 @@
 
 **Note**: This project is unfinished. Terrain manipulation is not yet implemented.
 
-<div align="center"><img src="https://gitlab.com/jcfields/warcraft2-map-editor/raw/master/screenshot.jpg" width="640" height="400" alt="[Warcraft II Map Editor]"></div>
+A [map editor for *Warcraft II*](https://jcfieldsdev.github.io/warcraft2-map-editor/). Written in JavaScript.
 
-A [map editor for *Warcraft II*](https://jcfields.gitlab.io/warcraft2-map-editor/). Written in JavaScript.
+![Warcraft II Map Editor](screenshot.jpg)
 
 Currently implemented functionality:
 
@@ -28,7 +28,7 @@ Works well in Firefox and Chrome. Also works in Safari, but performance is very 
 
 ## Acknowledgments
 
-Based on the [pud specification](https://gitlab.com/jcfields/warcraft2-map-editor/blob/master/pudspec.txt) created by Daniel Lemberg and contributors.
+Based on the [pud specification](https://github.com/jcfieldsdev/warcraft2-map-editor/blob/master/pudspec.txt) created by Daniel Lemberg and contributors.
 
 Used Alexander Cech's [Wardraft](https://gamebanana.com/tools/6199) for extracting tilesets and tile information.
 
